@@ -128,8 +128,13 @@ static int nf2c_open(struct net_device *dev)
   /* We don't have means to access phy registers to check their link status
    * until CNET bitfile has been downloaded
    * Assumption is carrier on (as same as previous version of this code).
+   *
+   *  netif_carrier_on(dev);
+   *
+   *  Since, nf2_download enables PHY interrupts, no need to do
+   *  netif_carrier_on here
    */
-  netif_carrier_on(dev);
+
 
   netif_wake_queue(dev);
 
