@@ -212,6 +212,8 @@ void nf2u_remove(struct pci_dev *pdev, struct nf2_card_priv *card);
 int nf2c_probe(struct pci_dev *pdev, const struct pci_device_id *id, struct nf2_card_priv *card);
 void nf2c_remove(struct pci_dev *pdev, struct nf2_card_priv *card);
 
+void nf2_set_ethtool_ops(struct net_device *dev);
+
 /*
  * Variables
  */

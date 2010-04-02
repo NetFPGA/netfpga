@@ -15,7 +15,7 @@ EXTRA_CFLAGS += -I$(LDDINC)
 ifneq ($(KERNELRELEASE),)
 # call from kernel build system
 
-nf2-objs	:= nf2main.o nf2_control.o nf2util.o
+nf2-objs	:= nf2main.o nf2_control.o nf2util.o nf2_ethtool.o
 
 obj-m	:= nf2.o
 

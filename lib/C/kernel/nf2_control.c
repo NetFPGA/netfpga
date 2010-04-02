@@ -1028,6 +1028,9 @@ int nf2c_probe(struct pci_dev *pdev, const struct pci_device_id *id, struct nf2_
        */
       memcpy(netdev->dev_addr, "\0NF2C0", ETH_ALEN);
       netdev->dev_addr[ETH_ALEN - 1] = devnum++;
+
+       /* call the ethtool ops */
+       nf2_set_ethtool_ops(netdev);
     }
 
   /* Register the network devices */

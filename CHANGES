@@ -20,6 +20,8 @@ HEAD -- Version X.X.X beta
      - verify that the correct bitfile is downloaded
    * Self test software verifies that the selftest bitfile is downloaded before
      running the test
+   * Kernel module:
+     - added basic ethtool support (Thanks to Kumar Sanghvi)
 
   Bug fixes:
    * numerous fixes to register system:
