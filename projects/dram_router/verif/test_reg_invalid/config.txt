@@ -1,0 +1,2 @@
+test_desc = Invalid register test
+finish = 30000

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Enable IP Forwarding for this test
+
+TMP_FILE="/tmp/ip_forward_bak"
+IP_FWD="/proc/sys/net/ipv4/ip_forward"
+
+# Back up the current value for restoration after the test
+# but only back it up if the backup file does not already exist
+if [ ! -f $TMP_FILE ]; then
+	cat $IP_FWD > $TMP_FILE
+fi
+echo "1" > $IP_FWD

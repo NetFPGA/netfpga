@@ -1,0 +1,2 @@
+test_desc = NF 2.1 Generic Empty test
+finish = 4000

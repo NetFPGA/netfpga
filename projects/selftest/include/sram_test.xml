@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>sram_test</nf:name>
+	<nf:prefix>sram_test</nf:prefix>
+	<nf:location>core</nf:location>
+	<nf:description>SRAM test module</nf:description>
+	<nf:blocksize>256k</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+			<nf:name>err_cnt</nf:name>
+			<nf:description>Total number of errors seen</nf:description>
+			<nf:type>generic_counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>iter_num</nf:name>
+			<nf:description>Number of iterations completed</nf:description>
+			<nf:type>generic_counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>bad_runs</nf:name>
+			<nf:description>Number of bad runs with errors</nf:description>
+			<nf:type>generic_counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>good_runs</nf:name>
+			<nf:description>Number of good runs with no errors</nf:description>
+			<nf:type>generic_counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>status</nf:name>
+			<nf:description>Test status</nf:description>
+			<nf:type>sram_test_status</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>en</nf:name>
+                        <nf:description>Enable patterns/testing of particular SRAMs</nf:description>
+			<nf:type>sram_test_enable</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>ctrl</nf:name>
+			<nf:description>Test control</nf:description>
+			<nf:type>sram_test_ctrl</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rand_seed</nf:name>
+			<nf:description>Random seed</nf:description>
+			<nf:type>sram_test_word</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>log_addr</nf:name>
+			<nf:description>Error log -- address of error</nf:description>
+			<nf:type>generic_software32</nf:type>
+			<nf:addr>0x20000</nf:addr>
+		</nf:register>
+		<nf:register>
+			<nf:name>log_exp_data</nf:name>
+			<nf:description>Error log -- expected data</nf:description>
+			<nf:type>sram_test_word</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>log_rd_data</nf:name>
+			<nf:description>Error log -- data read from SRAM</nf:description>
+			<nf:type>sram_test_word</nf:type>
+		</nf:register>
+	</nf:registers>
+	<nf:constants>
+		<nf:constant>
+			<nf:name>log_offset</nf:name>
+			<nf:description></nf:description>
+			<nf:value>0x20</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>num_patterns</nf:name>
+			<nf:description>Number of SRAM test patterns</nf:description>
+			<nf:value>5</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>num_srams</nf:name>
+			<nf:description>Number of SRAM devices on the board</nf:description>
+			<nf:value>2</nf:value>
+		</nf:constant>
+	</nf:constants>
+	<nf:types>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>sram_test_status</nf:name>
+			<nf:description>SRAM test status</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>done_1</nf:name>
+				<nf:description>Tests completed for SRAM 1</nf:description>
+				<nf:pos_lo>0</nf:pos_lo>
+				<nf:pos_hi>0 + num_patterns - 1</nf:pos_hi>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>fail_1</nf:name>
+				<nf:description>Tests failed for SRAM 1</nf:description>
+				<nf:pos_lo>8</nf:pos_lo>
+				<nf:pos_hi>8 + num_patterns - 1</nf:pos_hi>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>done_2</nf:name>
+				<nf:description>Tests completed for SRAM 2</nf:description>
+				<nf:pos_lo>16</nf:pos_lo>
+				<nf:pos_hi>16 + num_patterns - 1</nf:pos_hi>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>fail_2</nf:name>
+				<nf:description>Tests failed for SRAM 2</nf:description>
+				<nf:pos_lo>24</nf:pos_lo>
+				<nf:pos_hi>24 + num_patterns - 1</nf:pos_hi>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>sram_test_enable</nf:name>
+			<nf:description>SRAM test status</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>test_en</nf:name>
+				<nf:description>Enabled patterns</nf:description>
+				<nf:pos_lo>0</nf:pos_lo>
+				<nf:pos_hi>0 + num_patterns - 1</nf:pos_hi>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>sram_en</nf:name>
+				<nf:description>Enabled SRAMs</nf:description>
+				<nf:pos_lo>16</nf:pos_lo>
+				<nf:pos_hi>16 + num_srams - 1</nf:pos_hi>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>sram_test_ctrl</nf:name>
+			<nf:description>SRAM test status</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>run</nf:name>
+				<nf:description>Start the test</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>repeat</nf:name>
+				<nf:description>Run in non-stop mode</nf:description>
+				<nf:pos>1</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>reset_err_cnt</nf:name>
+				<nf:description>Reset the error count</nf:description>
+				<nf:pos>8</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>sram_test_word</nf:name>
+			<nf:description>SRAM data word</nf:description>
+			<nf:width>:SRAM_DATA_WIDTH</nf:width>
+		</nf:type>
+	</nf:types>
+</nf:module>

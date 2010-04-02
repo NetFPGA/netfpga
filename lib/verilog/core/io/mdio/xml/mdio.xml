@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>mdio</nf:name>
+	<nf:prefix>mdio</nf:prefix>
+	<nf:location>core</nf:location>
+	<nf:description>MDIO interface</nf:description>
+	<nf:blocksize>256k</nf:blocksize>
+	<nf:force_base>0x0440000</nf:force_base>
+	<nf:registers>
+		<nf:register_group>
+			<nf:name>phy</nf:name>
+			<nf:instances>:MAX_PHY_PORTS</nf:instances>
+			<nf:instance_size>0x80</nf:instance_size>
+			<nf:register>
+				<nf:name>control</nf:name>
+				<nf:description>MII control register</nf:description>
+				<nf:type>mii_ctrl</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>status</nf:name>
+				<nf:description>MII status register</nf:description>
+				<nf:type>mii_status</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>phy_id_hi</nf:name>
+				<nf:description>PHY identification (high-bits)</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>phy_id_lo</nf:name>
+				<nf:description>PHY identification (low-bits)</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>autonegotiation_advert</nf:name>
+				<nf:description>Auto-negotiation
+					advertisement</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>autoneg_link_partner_base_page_ability</nf:name>
+				<nf:description>Auto-negotiation link partner
+				ability</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>autoneg_expansion</nf:name>
+				<nf:description>Auto-negotiation expansion</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>autoneg_next_page_tx</nf:name>
+				<nf:description>Next page transmit</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>autoneg_link_partner_rcvd_next_page</nf:name>
+				<nf:description>Link partner received next
+					page</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>master_slave_ctrl</nf:name>
+				<nf:description>1000BASE-T control</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>master_slave_status</nf:name>
+				<nf:description>1000BASE-T status</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>pse_ctrl</nf:name>
+				<nf:description></nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>pse_status</nf:name>
+				<nf:description></nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>mmd_access_ctrl</nf:name>
+				<nf:description></nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>mmd_access_status</nf:name>
+				<nf:description></nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>extended_status</nf:name>
+				<nf:description>IEEE extended status</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>phy_extended_ctrl</nf:name>
+				<nf:description>PHY extended control</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>phy_extended_status</nf:name>
+				<nf:description>PHY extended status</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>rx_error_count</nf:name>
+				<nf:description>Receive error counter</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>false_carrier_sense_count</nf:name>
+				<nf:description>False carrier sense counter</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>rx_not_ok_count</nf:name>
+				<nf:description>Receiver NOT_OK counter</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>expansion_1</nf:name>
+				<nf:description>Reserved -- only use to access expansion registers</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>expansion_2</nf:name>
+				<nf:description>Reserved -- only use to access expansion registers</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>expansion_reg_access</nf:name>
+				<nf:description>Expansion register access</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>shadow_18</nf:name>
+				<nf:description>Shadow register 0x18</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>aux_status</nf:name>
+				<nf:description>Auxiliary status summary</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>int_status</nf:name>
+				<nf:description>Interrupt status</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>int_mask</nf:name>
+				<nf:description>Interrupt mask</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>shadow_1c</nf:name>
+				<nf:description>Shadow register 0x1c</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>shadow_1d</nf:name>
+				<nf:description>Shadow register 0x1d</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>test</nf:name>
+				<nf:description>Test register</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+			<nf:register>
+				<nf:name>reserved</nf:name>
+				<nf:description>Reserved -- do not use</nf:description>
+				<nf:type>mdio16</nf:type>
+			</nf:register>
+		</nf:register_group>
+	</nf:registers>
+	<nf:types>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>mii_ctrl</nf:name>
+			<nf:description>MII control register</nf:description>
+			<nf:width>16</nf:width>
+			<nf:bitmask>
+				<nf:name>reset</nf:name>
+				<nf:description>Reset</nf:description>
+				<nf:pos>15</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>internal_loopback</nf:name>
+				<nf:description>Internal loopback</nf:description>
+				<nf:pos>14</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>speed_sel_lo</nf:name>
+				<nf:description>Speed selection (LSB)</nf:description>
+				<nf:pos>13</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>autoneg_enable</nf:name>
+				<nf:description>Auto-negotiation enable</nf:description>
+				<nf:pos>12</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>pwr_down</nf:name>
+				<nf:description>Power down</nf:description>
+				<nf:pos>11</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>isolate</nf:name>
+				<nf:description>Isolate</nf:description>
+				<nf:pos>10</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>restart_autoneg</nf:name>
+				<nf:description>Restart auto-negotiation</nf:description>
+				<nf:pos>9</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>duplex_mode</nf:name>
+				<nf:description>Duplex mode</nf:description>
+				<nf:pos>8</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>collision_test_en</nf:name>
+				<nf:description>Collision test enable</nf:description>
+				<nf:pos>7</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>speed_sel_hi</nf:name>
+				<nf:description>Speed_selection (MSB)</nf:description>
+				<nf:pos>6</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>mii_status</nf:name>
+			<nf:description>MII status register</nf:description>
+			<nf:width>16</nf:width>
+			<nf:bitmask>
+				<nf:name>100base_t4_capable</nf:name>
+				<nf:description>100BASE-T4 capable</nf:description>
+				<nf:pos>15</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>100base_x_full_dplx_capable</nf:name>
+				<nf:description>100BASE-X full-duplex capable</nf:description>
+				<nf:pos>14</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>100base_x_half_dplx_capable</nf:name>
+				<nf:description>100BASE-X half-duplex capable</nf:description>
+				<nf:pos>13</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>10base_t_full_dplx_capable</nf:name>
+				<nf:description>10BASE-T full-duplex capable</nf:description>
+				<nf:pos>12</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>10base_t_half_dplx_capable</nf:name>
+				<nf:description>10BASE-T half-duplex capable</nf:description>
+				<nf:pos>11</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>10base_t2_full_dplx_capable</nf:name>
+				<nf:description>10BASE-T2 full-duplex capable</nf:description>
+				<nf:pos>10</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>10base_t2_half_dplx_capable</nf:name>
+				<nf:description>10BASE-T2 half-duplex capable</nf:description>
+				<nf:pos>9</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>extended_status</nf:name>
+				<nf:description>Extended status information
+					available</nf:description>
+				<nf:pos>8</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>mf_preamble_suppress</nf:name>
+				<nf:description>Management frame preamble
+					suppression</nf:description>
+				<nf:pos>6</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>autoneg_complete</nf:name>
+				<nf:description>Auto-negotiation complete</nf:description>
+				<nf:pos>5</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>remote_fault</nf:name>
+				<nf:description>Remote fault</nf:description>
+				<nf:pos>4</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>autoneg_ability</nf:name>
+				<nf:description>Auto-negotiation ability</nf:description>
+				<nf:pos>3</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>link_status</nf:name>
+				<nf:description>Link status</nf:description>
+				<nf:pos>2</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>jabber_detect</nf:name>
+				<nf:description>Jabber detect</nf:description>
+				<nf:pos>1</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>extended_capability</nf:name>
+				<nf:description>Extended capability</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>mdio16</nf:name>
+			<nf:description>16-bit MDIO register</nf:description>
+			<nf:width>16</nf:width>
+		</nf:type>
+	</nf:types>
+</nf:module>

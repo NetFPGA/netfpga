@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>cpu_dma_queue</nf:name>
+	<nf:prefix>cpu_queue</nf:prefix>
+	<nf:location>core</nf:location>
+	<nf:description>CPU DMA queue</nf:description>
+	<nf:blocksize>256k</nf:blocksize>
+	<nf:preferred_base>0x0700000</nf:preferred_base>
+</nf:module>

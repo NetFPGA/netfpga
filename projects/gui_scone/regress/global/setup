@@ -1,0 +1,5 @@
+#!/bin/sh
+
+export LD_LIBRARY_PATH=$NF_ROOT/lib/java/gui/lib:$LD_LIBRARY_PATH;
+
+nf_download  $NF_ROOT/bitfiles/reference_router.bit

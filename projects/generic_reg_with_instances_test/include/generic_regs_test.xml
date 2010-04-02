@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>generic_regs_test</nf:name>
+	<nf:prefix>reg_test</nf:prefix>
+	<nf:location>udp</nf:location>
+	<nf:description>Generic registers test</nf:description>
+	<nf:blocksize>256</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+			<nf:name>disable</nf:name>
+			<nf:description>Dummy disable register</nf:description>
+			<nf:type>generic_software32</nf:type>
+		</nf:register>
+		<nf:register_group>
+			<nf:name>grp</nf:name>
+			<nf:instances>:NUM_OUTPUT_QUEUES</nf:instances>
+                        <nf:register>
+                                <nf:name>count_a</nf:name>
+                                <nf:description>Test counter 1</nf:description>
+                                <nf:type>generic_counter32</nf:type>
+                        </nf:register>
+                        <nf:register>
+                                <nf:name>count_b</nf:name>
+                                <nf:description>Test counter 2</nf:description>
+                                <nf:type>generic_counter32</nf:type>
+                        </nf:register>
+                        <nf:register>
+                                <nf:name>count_c</nf:name>
+                                <nf:description>Test counter 3</nf:description>
+                                <nf:type>generic_counter32</nf:type>
+                        </nf:register>
+                        <nf:register>
+                                <nf:name>sw_a</nf:name>
+                                <nf:description>Test SW reg</nf:description>
+                                <nf:type>generic_software32</nf:type>
+                        </nf:register>
+                </nf:register_group>
+	</nf:registers>
+</nf:module>

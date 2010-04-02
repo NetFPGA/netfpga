@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>dram_queue</nf:name>
+	<nf:prefix>dram_queue</nf:prefix>
+	<nf:location>udp</nf:location>
+	<nf:description>DRAM queue registers</nf:description>
+	<nf:blocksize>64</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+		  	<nf:name>shortcut_disable</nf:name>
+			<nf:description>disable shortcut path</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+                <nf:register>
+		  	<nf:name>block_num</nf:name>
+			<nf:description>number of 4K blocks each queue will use</nf:description>
+			<nf:type>software32</nf:type>
+  		</nf:register>
+                <nf:register>
+		  	<nf:name>shortcut_words</nf:name>
+			<nf:description>number of shortcut words (144bit)</nf:description>
+			<nf:type>counter32</nf:type>
+  		</nf:register>
+                <nf:register>
+		  	<nf:name>input_words</nf:name>
+			<nf:description>number of input words (72bit)</nf:description>
+			<nf:type>counter32</nf:type>
+  		</nf:register>
+                <nf:register>
+		  	<nf:name>output_words</nf:name>
+			<nf:description>number of shortcut words (72bit)</nf:description>
+			<nf:type>counter32</nf:type>
+  		</nf:register>
+                <nf:register>
+		  	<nf:name>dram_rd_words</nf:name>
+			<nf:description>number of dram read words (144bit)</nf:description>
+			<nf:type>counter32</nf:type>
+  		</nf:register>
+                <nf:register>
+		  	<nf:name>dram_wr_words</nf:name>
+			<nf:description>number of dram write words (144bit)</nf:description>
+			<nf:type>counter32</nf:type>
+  		</nf:register>
+	</nf:registers>
+	<nf:constants>
+	</nf:constants>
+	<nf:types>
+	</nf:types>
+</nf:module>

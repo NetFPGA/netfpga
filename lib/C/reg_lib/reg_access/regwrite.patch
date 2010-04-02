@@ -1,0 +1,20 @@
+--- regwrite.c	2008-10-10 07:26:41.000000000 -0700
++++ regwrite.c	2008-10-10 08:14:29.000000000 -0700
+@@ -1,5 +1,5 @@
+ /* ****************************************************************************
+- * $Id: regwrite.c 2267 2007-09-18 00:09:14Z grg $
++ * $Id: regwrite.c 4562 2008-10-10 21:39:06Z icing $
+  *
+  * Module: regwrite.c
+  * Project: NetFPGA 2 Register Access
+@@ -15,8 +15,8 @@
+
+ #include <net/if.h>
+
+-#include "../common/nf2.h"
+-#include "../common/nf2util.h"
++#include "../../common/nf2.h"
++#include "../../common/nf2util.h"
+
+ #define PATHLEN		80
+

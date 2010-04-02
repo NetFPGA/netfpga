@@ -1,0 +1,5 @@
+test_desc = NF2.1 SRAM self-test
+finish = 20000
+extra_files = testbench_inc
+opts = -g/testbench_inc/NF21_SELFTEST_NO_DRAM_TEST=1 -g/testbench_inc/NF21_SELFTEST_NO_PHY_TEST=1
+extra_checks = ./check_sram.pl

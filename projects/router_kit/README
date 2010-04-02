@@ -1,0 +1,52 @@
+Overview:
+
+Router Kit is a simple approach to providing hardware acceleration to an
+unmodified Linux system. It is comprised of a single program, rkd
+(Router Kit Daemon), which monitors the Linux routing table and ARP
+cache and mirrors it down to the NetFPGA2 ipv4 reference router
+implementation.
+
+Running Router Kit:
+
+   rkd [-h|--help} [-d|--daemon} [-i|--interval] <in_ms>
+
+rkd should work from the command line without any external
+configuration options.  Simply run (./rkd).  To run the process in the
+background use -d. You may specify the polling time in milliseconds
+using the -i option.
+
+Using Router Kit:
+
+Router Kit is only useful on a Linux host with NetFPGA2 installed, and
+the ipv4 reference router bitfile loaded.  Given this setup each port on
+the NetFPGA2 card is available to Linux via a nfc* interface (i.e. nfc0,
+nfc1, nfc2, and nfc3 assuming a single card is installed).
+
+rkd will attempt to mirror all ARP cache and routing table entries
+associate with a NetFPGA interface into hardware.  This provides a very
+simple (and familiar) method of of adding entries to the hardware.  For
+example, to add a static ARP entry, simply use the arp(8) command.  The
+following command will add a static ARP entry.
+
+    arp -s 1.2.3.4 ca:fe:de:ad:d0:d0 -i nfc0
+
+To add an entry into the routing table, use route(8) (or ip(8)). For
+example, adding a default entry with a next hop of 10.0.0.1 out of the
+first port would look something like:
+
+    rout add default gw 10.0.0.1 dev nfc0
+
+Router kit is not limited to manual manipulation from the command line.
+*All* state (including dynamic state) is mirrored.  To wit, running rkd
+alongside a standard routing daemon, such as XoRP, or Zebra/Quagga,
+should provide hardware acceleration of the forwarding table without any
+further configuration (provided the routing software are using
+the NetFPGA interfaces for forwarding).
+
+How it Works:
+
+rkd continuously polls the routing table and ARP cache state from
+/proc/net/route and /proc/net/arp respectively.  When a change in state
+is detected, ./rkd writes the updated state to the NetFPGA through the
+register interface.  All traffic not handled by the hardware is DMA'd
+to software where it is processed by the Linux kernel.

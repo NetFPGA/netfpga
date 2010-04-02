@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+# Author:         Neda Beheshti
+# Date:           Nov 1, 2007
+# Last Update:    Nov 7, 2007
+# Comments:       Checks if the Main Frame can be loaded.
+
+
+#---------------------------------------------------
+# File Names
+#---------------------------------------------------
+my $jar_file=$ENV{'NF_ROOT'} . "/lib/java/gui/router_gui.jar";
+my $regdump_dir=$ENV{'NF_ROOT'} . "/lib/C/router";
+my $libdir=$ENV{'NF_ROOT'} . "/lib/java/gui/lib";
+
+system("java -Djna.library.path=$libdir -classpath $jar_file:$libdir/*:. MainFrameTest") == 0
+ or exit 1;
+
+exit 0;
+

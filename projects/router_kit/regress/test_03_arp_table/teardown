@@ -1,0 +1,6 @@
+#!/bin/sh
+
+/sbin/arp -i nf2c0 -d 10.10.0.200
+/sbin/arp -i nf2c1 -d 10.10.1.200
+/sbin/arp -i nf2c2 -d 10.10.2.200
+/sbin/arp -i nf2c3 -d 10.10.3.200

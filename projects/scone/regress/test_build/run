@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Verify that the makefile is there (otherwise assume we're running a
+# binary release)
+if [ ! -f ../../sw/Makefile ] ; then
+	exit 0
+fi
+
+cd ../../sw
+make

@@ -1,0 +1,89 @@
+# $Id$
+#
+# Description: makefile to create a distribution version of the svn tree
+#
+
+############################################################################
+# Set the distribution version                                             #
+#
+VERSION = 0.1
+TAG_NAME = netfpga2.1-$(VERSION)
+
+############################################################################
+# list the stable projects here                                            #
+#
+
+STABLE_PROJECTS = reference_switch reference_router cpci cpci_reprogrammer
+
+############################################################################
+# commands to be executed                                                  #
+#
+
+SVN   = svn
+GREP  = grep
+WC    = wc
+MKDIR = mkdir
+TAR   = tar
+RM    = rm
+
+############################################################################
+# Locations
+#
+SVN_URL = svn+ssh://g9coving@nity.stanford.edu/hpn/home/svn/nf2/NF2/new_tree
+
+LIBS_DIR     = lib
+BIN_DIR      = bin
+PROJECTS_DIR = projects
+README_FILE  = README
+DOCS_DIR     = docs
+
+DIRS_LIST = $(README_FILE) $(DOCS_DIR) $(LIBS_DIR) $(BIN_DIR) $(foreach proj,$(STABLE_PROJECTS),$(PROJECTS_DIR)/$(proj))
+
+TAGS_URL = $(SVN_URL)/tags
+
+############################################################################
+# Targets                                                                  #
+############################################################################
+
+all: tag_svn tarball
+
+.PHONY: tag_svn
+tag_svn:
+	@echo ---------------------------------------------------------------
+	@echo - Checking if the tag already exists
+	@echo - Then creating the tag directory and copying the sources
+	@echo ---------------------------------------------------------------
+	@if [ `$(SVN) ls $(TAGS_URL) | $(GREP) $(TAG_NAME)/ | $(WC) -l` = "0" ] ; then \
+		$(SVN) mkdir $(TAGS_URL)/$(TAG_NAME) -m "Added Tag directory for release version $(VERSION)"; \
+		for dir in $(DIRS_LIST) ; do \
+			$(SVN) copy $(SVN_URL)/$$dir $(TAGS_URL)/$(TAG_NAME)/`dirname $$dir`/ -m "Added $$dir for release for version $(VERSION)" ; \
+		done \
+	else \
+		echo WARNING: Tag already exists. Check that you have updated the version number in libs/Makefiles/dist_makefile ; \
+	fi
+
+.PHONY: tarball
+tarball: tag_svn
+	@echo ---------------------------------------------------------------
+	@echo - Exporting tag directory and creating tarball
+	@echo ---------------------------------------------------------------
+	@if [ ! -d $(TMPDIR) ] ; then \
+		$(mkdir) ~/temp_nf2_dir ; \
+		$(SVN) export $(TAGS_URL)/$(TAG_NAME) ~/temp_nf2_dir/$(TAG_NAME) ; \
+		$(TAR) -C ~/temp_nf2_dir -czf `pwd`/$(TAG_NAME).tar.gz $(TAG_NAME) ; \
+		$(RM) -rf ~/temp_nf2_dir ; \
+	else \
+		$(SVN) export $(TAGS_URL)/$(TAG_NAME) $(TMPDIR)/$(TAG_NAME) ; \
+		$(TAR) -C $(TMPDIR) -czf `pwd`/$(TAG_NAME).tar.gz $(TAG_NAME) ; \
+		$(RM) -rf $(TMPDIR)/$(TAG_NAME) ; \
+	fi
+	@$(SVN) import $(TAG_NAME).tar.gz $(TAGS_URL)/$(TAG_NAME)/$(TAG_NAME).tar.gz -m "Added the tarball for the release"
+
+.PHONY: clean_tag
+clean_tag:
+	@echo ---------------------------------------------------------------
+	@echo - Checking if the tag exists and removing it
+	@echo ---------------------------------------------------------------
+	@if [ ! `$(SVN) ls $(TAGS_URL) | $(GREP) $(TAG_NAME)/ | $(WC) -l` = "0" ] ; then \
+		$(SVN) rm $(TAGS_URL)/$(TAG_NAME)/ -m "Removed release version $(VERSION) from the tags directory" ; \
+	fi

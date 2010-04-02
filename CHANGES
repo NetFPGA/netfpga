@@ -1,0 +1,186 @@
+HEAD -- Version X.X.X beta
+
+  Improvements:
+   * Register system:
+     - project name included in the #define at the top of the C header file,
+       allowing the inclusion of multiple header files
+     - device ID info (version, name, desc) now specified in project.xml
+     - provide more information in headers at the top of generated files
+     - output bitmasks in C/Perl
+   * device_id module updated to include proj name, desc, and directory
+   * nf2_info utility updated and installed by default (reads the device ID
+     info from the active bitfile)
+   * Moved contributed code out of lib/verilog/core
+   * Added regression tests for the reference switch
+   * Packaging scripts allow Verilog modules to be excluded
+   * selftest updated to use new register system
+   * Types added for CPCI registers with bitmasks
+   * Added functions to C common library:
+     - read device ID register
+     - verify that the correct bitfile is downloaded
+   * Self test software verifies that the selftest bitfile is downloaded before
+     running the test
+
+  Bug fixes:
+   * numerous fixes to register system:
+     - incorrectly output of instance block addresses
+     - replace periods with underscores in identifier names
+   * cpci_download:
+     - should work correctly on Fedora systems
+       (Thanks to Paul Rodman)
+
+  Other changes:
+   * CPCI project renamed: CPCI_2.1 -> cpci
+   * CPCI PERL library updated: CPCI_21Lib.pm -> CPCI_Lib.pm
+   * Preparation for 10G system:
+     - Perl NF2 library renamed to NF
+     - nf2 replaced with nf in utility names (eg. nf_download)
+     - NetFPGA directory renamed to netfpga (instead of NF2)
+
+Version 2.0.1 beta
+(29 Sep, 2009)
+
+  Improvements:
+   * Modified packaging script to support core and contibuted verilog libraries
+   * Added regression tests to Reference Switch
+   * Released Reference Switch
+
+Version 2.0 beta
+(30 July, 2009)
+
+  Improvements:
+   * Generate CPCI Registers when building a Project
+   * JAVA GUI uses new Register System
+   * Reference NIC regression tests rewritten
+   * Support shared contants/types in XML
+
+Version 2.0 alpha
+(15 May, 2009)
+
+ Improvements:
+  * Register XML backend
+  * Added nf2_register_gen.pl to generate registers
+  * All scripts updated to create registers
+  * All reference designs updated to use project.xml file
+  * All library modules updated to use module xml files
+  * Updated nf2_download (allows for link status)
+  * DRAM Output FIFO
+  * Reference NIC regression tests rewritten
+  * Generic Table Registers (lib/verilog)
+
+ Bug fixes
+  * Rate limiter lockup condition fixed
+
+Version 1.2.5-2 beta
+(4 Feb, 2009)
+
+ Bug Fixes
+  * Fixed the regress.txt file located in NF2/projects
+
+Version 1.2.5-1 beta
+(22 Jan, 2009)
+
+ Bug fixes
+  * Replaced selftest bitfile to ensure it meets timing
+
+Version 1.2.5 beta
+(20 Jan, 2009)
+
+ Bug fixes
+  * MAC IO queues
+    - Disabled MAC truncation of packets for ethertypes < 46 (not all modules are short-packet safe)
+  * BRAM Output queues
+    - Fixed bug with register counter updates
+
+ Improvements:
+  * Driver
+   - DMA transfer errors include more debugging information
+
+
+Version 1.2.4 beta
+(11 Aug, 2008)
+
+ Minor new features and improvements:
+  * CPCI
+   - Corrected bug preventing programming of Virtex via JTAG immediately after power-on
+
+ Improvements:
+  * Updated location information in UCF files for CPCI reprogramming signals
+    (these are unused in all but the CPCI reprogrammer) -- eliminates warning
+    about location constraints for signal pins
+
+
+Version 1.2.3 beta
+(21 Jul, 2008)
+
+ Improvements:
+  * Updated the reference NIC and reference router regression tests
+  * Fixed the ucf files for projects (contributed from Jeff Shafer)
+
+
+Version 1.2 beta revision 2
+(10 Jul, 2008)
+
+ Minor improvment:
+  * CPCI
+   - Increased the DMA default timeout value
+
+
+Version 1.2 beta
+(08 Jul, 2008)
+
+ Major new features:
+  * Packaging
+   - RPM packages released to improve installation process for CentOS users
+
+  * Updated DMA engine
+    - DMA transfers from host to NetFPGA use the dedicated DMA bus between Spartan and Virtex
+    - Supports operation at both 125 MHz and 62.5 MHz (previous version only functioned at 125 MHz)
+
+
+ Minor new features and improvements:
+  * Kernel driver
+    - Checks added to prevent ioctl access outside of NetFPGA address space
+    - Checks added to prevent ioctl calls prior to complete card initialization (crashes seen on some CentOS 5 systems)
+    - Register read/write functions exported to allow other kernel modules to use NetFPGA module
+    - Added tx packet/byte counters (bug #4)
+    - Kernel unloading/reloading fixed (bug #15 + unreported bug)
+
+  * nf2_download
+    - Verifies that the Virtex bitfile was compiled against the CPCI version currently loaded (bug #54)
+
+  * cpci_reprogram
+    - Added --bit option to specify the CPCI bitfile to download
+
+  * Selftest
+    - Updated to support new DMA code
+    - Register addresses reassigned
+
+  * Utilities
+    - Added nf2_info tool (lib/C/tools/nf2_info) to display info in the device_id module
+    - Added sram_dump tool (lib/scripts/sram_dump) to dump the contents of SRAM
+
+  * Perl libraries
+    - Libraries restructed slightly to allow use in other projects (external interfaces should remain unchanged)
+
+  * Compatibility
+    - Minor changes to improve compatibility with non-supported Linux distributions
+
+  * Projects
+    - Project specific C/Perl register defines will be built when a local Verilog register defines exists
+
+
+
+Version 1.1 beta
+(29 Feb, 2008)
+
+ Minor new features and improvements:
+  * CentOS 5 compatibility
+    - Reference tests pass on CentOS 5.1 system
+
+
+
+Version 1.0 beta
+(12 Dec, 2007)
+
+ Initial release

@@ -1,0 +1,35 @@
+**DAVID:CODE/TEST**-Check that an interface broadcasts a neighbor rid of 0 in an LSU update if there is
+no hello from the neighbor on that interface, or if the hello has timed out
+
+**DAVID:CODE/TEST**-Check that if a hello expires, or a new one is heard (that adds a neighbor to a link),
+that it immediately updates the associated pwospf_router (ours), and initiates a LSU flood, and dijkstra update
+
+**DAVID:CODE/TEST**-Ensure nbr_rid is reset to 0 on a hello timeout (and the rest of the associated
+fields are reset, nbr_ip etc)
+
+**DAVID:CODE**-Ensure pwospf packets NOT in our area get dropped
+
+-Ensure when a link is downed via the CLI that it's neighbor info is reset to 0,
+the pwospf_router is updated, a LSU flood is initiated, and dijkstra's is run
+
+-Same thing for bringing a link up
+
+**DAVID:CODE/TEST**-Test that pwospf_router's get deleted when their entry times out (3x LSU INT)
+
+**DAVID:CODE/TEST**-If pwospf packet's authtype != 0 it is dropped
+
+**DAVID:CODE**-Ensure incoming hello packet's source ips are checked to see if they match
+the given interface's neighbor ip, if it exists.
+
+**DAVID:CODE/TEST**-ensure helloint timeout is a global value (NOT per interface), and that
+if an incoming hello packet's helloint does not match our router's helloint,
+that the packet is dropped
+
+**FILIP:CODE/TEST**-Check that we rebroadcast LSU packets that we receive to all interfaces
+except the one we received it on, and that we have decremented and checked the
+ttl to see if we need to expire the packet.  Make sure we create a new
+ethernet, ip, etc header.
+
+**DAVID:CODE/TEST**-Ensure a helloint timeout on a link causes an LSU flood and dijkstra run
+
+**DAVID:CODE/TEST**-Have a flag on the dijkstra thread letting it know it needs to run in addition to the signal

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:project xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+  <nf:name>Selftest</nf:name>
+  <nf:description>NetFPGA selftest -- exercises all major subsystems of the board</nf:description>
+  <nf:version_major>1</nf:version_major>
+  <nf:version_minor>1</nf:version_minor>
+  <nf:version_revision>0</nf:version_revision>
+  <nf:dev_id>5</nf:dev_id>
+  <nf:use_modules>
+    core/nf2/reference_core
+    core/io/mdio
+    core/cpci_bus
+    core/dma
+    core/ddr2_controller
+    core/utils
+  </nf:use_modules>-
+  <nf:memalloc layout="reference">
+    <nf:group name="core1">
+      <nf:instance name="device_id" />
+      <nf:instance name="dma" base="0x0500000"/>
+      <nf:instance name="mdio" />
+    </nf:group>
+    <nf:group name="core2">
+      <nf:instance name="serial_test" base="0x08c0000"/>
+      <nf:instance name="reg_reflect" base="0x0840000"/>
+      <nf:instance name="clock_test" base="0x0880000"/>
+      <nf:instance name="sram_msb" base="0x0940000"/>
+      <nf:instance name="sram_test" base="0x0900000"/>
+      <nf:instance name="dram_test" base="0x0980000"/>
+      <nf:instance name="phy_test" base="0x09c0000"/>
+      <nf:instance name="reg_file" base="0x0800000"/>
+    </nf:group>
+    <nf:group name="udp">
+    </nf:group>
+  </nf:memalloc>
+</nf:project>

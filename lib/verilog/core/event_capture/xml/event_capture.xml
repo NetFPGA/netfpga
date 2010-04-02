@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>event_capture</nf:name>
+	<nf:prefix>evt_cap</nf:prefix>
+	<nf:location>udp</nf:location>
+	<nf:description>Event Capture Registers</nf:description>
+	<nf:blocksize>256</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+		  <nf:name>enable_capture</nf:name>
+			<nf:description>Enable Event Capture</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>send_pkt</nf:name>
+			<nf:description>??</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>dst_mac</nf:name>
+			<nf:description>destination MAC</nf:description>
+			<nf:type>ethernet_addr</nf:type>
+    </nf:register>
+    <nf:register>
+		  <nf:name>src_mac</nf:name>
+			<nf:description>source MAC</nf:description>
+			<nf:type>ethernet_addr</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>ethertype</nf:name>
+			<nf:description>ethertype</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>ip_dst</nf:name>
+			<nf:description>destination IP</nf:description>
+			<nf:type>ip_addr</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>ip_src</nf:name>
+			<nf:description>source IP</nf:description>
+			<nf:type>ip_addr</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>monitor_mask</nf:name>
+			<nf:description>??</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>signal_id_mask</nf:name>
+			<nf:description>??</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>num_evts_dropped</nf:name>
+			<nf:description>Number of events dropped</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>udp_src_port</nf:name>
+			<nf:description>UDP src port</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>udp_dst_port</nf:name>
+			<nf:description>UDP dst port</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>output_ports</nf:name>
+			<nf:description>??</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>reset_timers</nf:name>
+			<nf:description>reset the Timers</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>timer_resolution</nf:name>
+			<nf:description>set the timer resolution</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>num_evt_pkts_sent</nf:name>
+			<nf:description>number of event packets sent</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>num_evts_sent</nf:name>
+			<nf:description>number of events sent</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+	</nf:registers>
+	<nf:constants>
+	</nf:constants>
+	<nf:types>
+	</nf:types>
+</nf:module>

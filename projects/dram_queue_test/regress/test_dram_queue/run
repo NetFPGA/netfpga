@@ -1,0 +1,4 @@
+#! /bin/bash
+
+./dram_queue.pl $@
+

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:global xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+  <nf:constants>
+  	<nf:constant>
+  		<nf:name>MAX_PHY_PORTS</nf:name>
+		<nf:description>Maximum number of phy ports</nf:description>
+  		<nf:value>4</nf:value>
+  	</nf:constant>
+	<!--
+	============================================================
+	PCI Bus Definitions
+	============================================================
+	-->
+  	<nf:constant>
+  		<nf:name>PCI_ADDR_WIDTH</nf:name>
+		<nf:description>PCI address bus width</nf:description>
+  		<nf:value>32</nf:value>
+  	</nf:constant>
+  	<nf:constant>
+  		<nf:name>PCI_DATA_WIDTH</nf:name>
+		<nf:description>PCI data bus width</nf:description>
+  		<nf:value>32</nf:value>
+  	</nf:constant>
+  	<nf:constant>
+  		<nf:name>PCI_BE_WIDTH</nf:name>
+		<nf:description>PCI byte enable bus width</nf:description>
+  		<nf:value>4</nf:value>
+  	</nf:constant>
+	<!--
+	============================================================
+	CPCI/CNET Bus Definitions
+	============================================================
+	-->
+  	<nf:constant>
+  		<nf:name>CPCI_CNET_ADDR_WIDTH</nf:name>
+		<nf:description>CPCI--CNET address bus width. This is byte addresses even though bottom bits are zero.</nf:description>
+  		<nf:value>27</nf:value>
+  	</nf:constant>
+  	<nf:constant>
+  		<nf:name>CPCI_CNET_DATA_WIDTH</nf:name>
+		<nf:description>CPCI--CNET data bus width</nf:description>
+  		<nf:value>32</nf:value>
+  	</nf:constant>
+  	<nf:constant>
+  		<nf:name>CPCI_NF2_ADDR_WIDTH</nf:name>
+		<nf:description>CPCI--Virtex address bus width. This is byte addresses even though bottom bits are zero.</nf:description>
+  		<nf:value>CPCI_CNET_ADDR_WIDTH</nf:value>
+  	</nf:constant>
+  	<nf:constant>
+  		<nf:name>CPCI_NF2_DATA_WIDTH</nf:name>
+		<nf:description>CPCI--Virtex data bus width</nf:description>
+  		<nf:value>CPCI_CNET_DATA_WIDTH</nf:value>
+  	</nf:constant>
+	<!--
+	============================================================
+	DMA Bus Definitions
+	============================================================
+	-->
+  	<nf:constant>
+  		<nf:name>DMA_DATA_WIDTH</nf:name>
+		<nf:description>DMA data bus width</nf:description>
+  		<nf:value>32</nf:value>
+  	</nf:constant>
+  	<nf:constant>
+  		<nf:name>DMA_CTRL_WIDTH</nf:name>
+		<nf:description>DMA control bus width</nf:description>
+		<nf:value>DMA_DATA_WIDTH / 8</nf:value>
+  	</nf:constant>
+  	<nf:constant>
+  		<nf:name>CPCI_DEBUG_DATA_WIDTH</nf:name>
+		<nf:description>CPCI debug bus width</nf:description>
+  		<nf:value>29</nf:value>
+  	</nf:constant>
+	<!--
+	============================================================
+	SRAM related defines
+
+	Note: These are for a *single* device
+	============================================================
+	-->
+  	<nf:constant>
+  		<nf:name>SRAM_ADDR_WIDTH</nf:name>
+		<nf:description>SRAM address width</nf:description>
+  		<nf:value>19</nf:value>
+  	</nf:constant>
+  	<nf:constant>
+  		<nf:name>SRAM_DATA_WIDTH</nf:name>
+		<nf:description>SRAM data width</nf:description>
+  		<nf:value>36</nf:value>
+  	</nf:constant>
+	<!--
+	============================================================
+	DRAM related defines
+	============================================================
+	-->
+  	<nf:constant>
+  		<nf:name>DRAM_ADDR_WIDTH</nf:name>
+		<nf:description>DRAM address width</nf:description>
+		<!-- Width: 2 + 22    (BA + Addr) -->
+  		<nf:value>24</nf:value>
+  	</nf:constant>
+  </nf:constants>
+  <!--
+  ============================================================
+  Types
+  ============================================================
+  -->
+  <nf:types>
+  	<nf:type xsi:type="nf:SimpleType">
+  		<nf:name>ethernet_addr</nf:name>
+  		<nf:width>48</nf:width>
+  	</nf:type>
+  	<nf:type xsi:type="nf:SimpleType">
+  		<nf:name>ip_addr</nf:name>
+  		<nf:width>32</nf:width>
+  	</nf:type>
+	<nf:type xsi:type="nf:SimpleType">
+		<nf:name>counter32</nf:name>
+		<nf:description>32-bit counter</nf:description>
+		<nf:width>32</nf:width>
+	</nf:type>
+  <nf:type xsi:type="nf:SimpleType">
+		<nf:name>software32</nf:name>
+		<nf:description>software 32-bit register</nf:description>
+		<nf:width>32</nf:width>
+	</nf:type>
+	<nf:type xsi:type="nf:SimpleType">
+		<nf:name>generic_counter32</nf:name>
+		<nf:description>generic 32-bit counter</nf:description>
+		<nf:width>32</nf:width>
+	</nf:type>
+	<nf:type xsi:type="nf:SimpleType">
+		<nf:name>generic_software32</nf:name>
+		<nf:description>generic 32-bit software register</nf:description>
+		<nf:width>32</nf:width>
+	</nf:type>
+	<nf:type xsi:type="nf:SimpleType">
+		<nf:name>generic_hardware32</nf:name>
+		<nf:description>generic 32-bit hardware register</nf:description>
+		<nf:width>32</nf:width>
+	</nf:type>
+  </nf:types>
+</nf:global>

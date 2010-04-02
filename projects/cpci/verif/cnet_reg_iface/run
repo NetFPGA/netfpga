@@ -1,0 +1,30 @@
+#!/bin/bash
+
+echo $0 : $@
+
+if [ "$1" = "dump" ]; then
+   if [ -r dump.v ]; then
+      dump="DUMP_CTRL=dump.v"
+   else
+      echo "Error: dumping was specified but couldnt find dump.v"
+      exit 1
+   fi
+else
+   dump=""
+fi
+echo "invoking compiler ..."
+make simv $dump
+
+log="my_sim.log"
+
+echo "-- Running the simulation (takes a while). Logging to ${log}"
+
+if ! ./simv > $log 2>&1
+then
+   echo "-- Test Failed."
+   touch FAIL
+   exit 1
+else
+   echo "Simulation completed - see log in $log"
+fi
+

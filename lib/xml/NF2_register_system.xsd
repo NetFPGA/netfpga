@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.NetFPGA.org/NF2_register_system" targetNamespace="http://www.NetFPGA.org/NF2_register_system" elementFormDefault="qualified">
+
+  <complexType name="Constant">
+    <sequence>
+      <element name="name" type="string" maxOccurs="1" minOccurs="1">
+        </element>
+      <element name="description" type="string" maxOccurs="1" minOccurs="0">
+        </element>
+      <element name="width" type="tns:Expression" maxOccurs="1" minOccurs="0">
+        </element>
+      <element name="value" type="tns:Expression" maxOccurs="1" minOccurs="1">
+        </element>
+    </sequence>
+  </complexType>
+
+  <complexType name="SimpleType">
+    <complexContent>
+      <extension base="tns:Type">
+        <sequence>
+          <element name="width" type="tns:Expression" maxOccurs="1" minOccurs="1">
+            </element>
+          <element name="bitmask" type="tns:BitmaskType" maxOccurs="unbounded" minOccurs="0">
+            </element>
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="BitmaskType">
+    <complexContent>
+      <extension base="tns:Type">
+        <choice maxOccurs="1" minOccurs="1">
+          <element name="pos" type="int" maxOccurs="1" minOccurs="1">
+             </element>
+          <sequence>
+            <element name="pos_lo" type="int" maxOccurs="1" minOccurs="1">
+               </element>
+            <element name="pos_hi" type="int" maxOccurs="1" minOccurs="1">
+               </element>
+          </sequence>
+        </choice>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="CompoundType">
+    <complexContent>
+      <extension base="tns:Type">
+        <sequence>
+          <element name="field" type="tns:Field" maxOccurs="unbounded" minOccurs="1"/>
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="Field">
+    <sequence>
+      <element name="name" type="string" maxOccurs="1" minOccurs="1">
+        </element>
+      <element name="description" type="string" maxOccurs="1" minOccurs="0"/>
+      <choice maxOccurs="1" minOccurs="1">
+        <element name="type" type="string" maxOccurs="1" minOccurs="1">
+          </element>
+        <element name="width" type="tns:Expression" maxOccurs="1" minOccurs="1">
+          </element>
+      </choice>
+    </sequence>
+  </complexType>
+
+  <complexType name="Type">
+    <sequence>
+      <element name="name" type="string" maxOccurs="1" minOccurs="1">
+        </element>
+      <element name="description" type="string" maxOccurs="1" minOccurs="0"/>
+    </sequence>
+  </complexType>
+
+  <complexType name="TableType">
+    <complexContent>
+      <extension base="tns:Type">
+        <sequence>
+          <element name="depth" type="int" maxOccurs="1" minOccurs="1"/>
+          <choice maxOccurs="1" minOccurs="1">
+            <element name="entry_type" type="string" maxOccurs="1" minOccurs="1"/>
+            <element name="width" type="tns:Expression" maxOccurs="1" minOccurs="1"/>
+          </choice>
+        </sequence>
+        <attribute name="table_type">
+          <simpleType>
+            <restriction base="string">
+              <enumeration value="indirect"/>
+            </restriction>
+          </simpleType>
+        </attribute>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="Register">
+    <sequence>
+      <element name="name" type="string" maxOccurs="1" minOccurs="1">
+        </element>
+      <element name="description" type="string" maxOccurs="1" minOccurs="0">
+        </element>
+      <choice maxOccurs="1" minOccurs="0">
+        <element name="type" type="string" maxOccurs="1" minOccurs="1">
+          </element>
+        <element name="width" type="tns:Expression" maxOccurs="1" minOccurs="1"/>
+      </choice>
+    </sequence>
+  </complexType>
+
+  <complexType name="RegisterList">
+    <element name="register" type="tns:Register" maxOccurs="unbounded" minOccurs="0">
+      </element>
+    <element name="register_group" type="tns:RegisterGroup" maxOccurs="unbounded" minOccurs="0">
+      </element>
+  </complexType>
+
+  <complexType name="Module">
+    <sequence>
+      <element name="name" type="string" maxOccurs="1" minOccurs="1">
+        </element>
+      <element name="prefix" type="string" maxOccurs="1" minOccurs="1">
+        </element>
+      <element name="location" maxOccurs="1" minOccurs="1">
+        <simpleType>
+          <restriction base="string">
+            <enumeration value="core"/>
+            <enumeration value="udp"/>
+            <enumeration value="cpci"/>
+          </restriction>
+        </simpleType>
+      </element>
+      <element name="description" type="string" maxOccurs="1" minOccurs="0">
+        </element>
+      <element name="blocksize" type="string" maxOccurs="1" minOccurs="0">
+        </element>
+      <choice>
+        <element name="preferred_base" type="tns:Address" maxOccurs="1" minOccurs="0">
+          </element>
+        <element name="force_base" type="tns:Address" maxOccurs="1" minOccurs="0">
+          </element>
+      </choice>
+      <element name="registers" type="tns:RegisterList" maxOccurs="1" minOccurs="0"/>
+      <element name="constants" type="tns:ConstantList" maxOccurs="1" minOccurs="0"/>
+      <element name="types" type="tns:TypeList" maxOccurs="1" minOccurs="0"/>
+    </sequence>
+  </complexType>
+
+  <complexType name="RegisterGroup">
+    <sequence>
+      <element name="name" type="string" maxOccurs="1" minOccurs="1">
+      	</element>
+      <element name="description" type="string" maxOccurs="1" minOccurs="0">
+        </element>
+      <element name="instances" type="tns:Expression" maxOccurs="1" minOccurs="1">
+      	</element>
+      <element name="instance_size" type="tns:Expression" maxOccurs="1" minOccurs="0"/>
+      <element name="register" type="tns:Register" maxOccurs="unbounded" minOccurs="0">
+      	</element>
+    </sequence>
+  </complexType>
+
+  <complexType name="Project">
+    <sequence>
+      <element name="name" type="string" maxOccurs="1" minOccurs="1">
+        </element>
+      <element name="description" type="string" maxOccurs="1" minOccurs="0">
+        </element>
+      <element name="version_major" type="int" maxOccurs="1" minOccurs="0">
+        </element>
+      <element name="version_minor" type="int" maxOccurs="1" minOccurs="0">
+        </element>
+      <element name="version_revision" type="int" maxOccurs="1" minOccurs="0">
+        </element>
+      <element name="constants" type="tns:ConstantList" maxOccurs="1" minOccurs="0"/>
+      <element name="types" type="tns:TypeList" maxOccurs="1" minOccurs="0"/>
+      <element name="use_modules" type="string" maxOccurs="1" minOccurs="0">
+        </element>
+      <element name="memalloc" type="tns:MemoryAllocation" maxOccurs="1" minOccurs="1">
+        </element>
+    </sequence>
+  </complexType>
+
+  <attribute name="path" type="string"/>
+  <simpleType name="Address">
+    <restriction base="tns:hex"/>
+  </simpleType>
+
+  <complexType name="ConstantList">
+    <sequence>
+      <element name="constant" type="tns:Constant" maxOccurs="unbounded" minOccurs="0"/>
+    </sequence>
+  </complexType>
+
+  <complexType name="TypeList">
+    <sequence>
+      <element name="type" type="tns:Type" maxOccurs="unbounded" minOccurs="0"/>
+    </sequence>
+  </complexType>
+
+  <element name="module" type="tns:Module"/>
+  <element name="project" type="tns:Project"/>
+
+  <complexType name="Global">
+    <sequence>
+      <element name="constants" type="tns:ConstantList"/>
+      <element name="types" type="tns:TypeList"/>
+    </sequence>
+  </complexType>
+
+  <element name="global" type="tns:Global"/>
+
+  <simpleType name="IntOrConstant">
+    <union memberTypes="string int"/>
+  </simpleType>
+
+  <simpleType name="hex">
+    <restriction base="string">
+      <pattern value="0[xX][0-9a-fA-F]+"/>
+    </restriction>
+  </simpleType>
+
+  <simpleType name="intOrHex">
+    <union memberTypes="int tns:hex"/>
+  </simpleType>
+
+  <simpleType name="Expression">
+    <restriction base="string"/>
+  </simpleType>
+
+  <simpleType name="MemoryLayout">
+    <restriction base="string">
+      <enumeration value="reference"/>
+      <enumeration value="freeform"/>
+      <enumeration value="cpci"/>
+    </restriction>
+  </simpleType>
+
+  <complexType name="MemoryAllocation">
+    <sequence>
+      <element name="group" type="tns:MemoryAllocationGroup" maxOccurs="unbounded" minOccurs="0">
+    		</element>
+    </sequence>
+    <attribute name="layout" type="tns:MemoryLayout" use="required"/>
+  </complexType>
+
+  <complexType name="MemoryAllocationGroup">
+    <sequence>
+      <element name="instance" type="tns:ModuleInstance" maxOccurs="unbounded" minOccurs="0">
+    		</element>
+    </sequence>
+    <attribute name="name" type="string" use="required"/>
+  </complexType>
+
+  <complexType name="ModuleInstance">
+    <attribute name="name" type="string" use="required"/>
+    <attribute name="count" type="string" use="optional"/>
+    <attribute name="base" type="tns:Address" use="optional"/>
+  </complexType>
+</schema>

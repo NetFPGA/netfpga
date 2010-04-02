@@ -1,0 +1,33 @@
+#!/usr/bin/perl -w
+
+#
+# Verify the MTU
+#
+
+use strict;
+
+# Desired MTU
+use constant MTU => 1500;
+
+# ifconfig locaiton
+my $ifconfig = '/sbin/ifconfig';
+
+# Which interface to query
+my $iface = 'nf2c0';
+
+
+
+# Call ifconfig
+my $ifconfigResult = `$ifconfig $iface`;
+
+# verify the MTU
+if ( $ifconfigResult =~ /MTU:(\d+)/ ) {
+	if ($1 != MTU) {
+		print "ERROR: Incorrect MTU: $1   Expected: " . MTU . "\n";
+	}
+}
+else {
+	print "ERROR: cannot find MTU\n";
+	print "$ifconfigResult";
+	exit 1;
+}

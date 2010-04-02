@@ -1,0 +1,6 @@
+test_loopback_crc/run.pl
+test_loopback_random/run.pl
+test_loopback_drop/run.pl
+test_loopback_minsize/run.pl
+test_loopback_maxsize/run.pl
+test_ip_interface

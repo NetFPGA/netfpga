@@ -1,0 +1,36 @@
+Module: Hardwired output port lookup
+Author: Jad Naous
+
+This module allows a user to programmatically select how packets on each input port (Ethernet and CPU) will be forwarded. The user does this by writing bitmasks into registers for each input port.
+
+The registers start at base address HARDWIRE_OUTPUT_PORTS_BASE_REG which corresponds to queue 0 (Eth port 0). To get queue 1 (CPU 0) add 4. To get queue 2 (Eth 1) add 8. In general, to set the outputs for input queue X, write to register (HARDWIRE_OUTPUT_PORTS_BASE_REG + 4*X). The bits of the bitmask represent the queues to send the packets on where bit 0 <-> queue 0, bit 1 <-> queue 1, ...
+
+To use this module in your project, you need to do the following:
+
+1. Add it in your lib_modules.txt file
+----------------------------------------
+
+Add the following line:
+
+  output_port_lookup/hardwire_lookup
+
+
+2. Add the registers in your project's include file
+----------------------------------------------------
+
+Add the following lines to the include file in the appropriate locations:
+
+/* Register macros */
+`define HARDWIRE_LOOKUP_REG_ADDR_WIDTH       `UDP_BLOCK_SIZE_64_REG_ADDR_WIDTH
+`define HARDWIRE_LOOKUP_BLOCK_ADDR_WIDTH     `UDP_BLOCK_SIZE_64_BLOCK_ADDR_WIDTH
+`define HARDWIRE_LOOKUP_BLOCK_ADDR           `HARDWIRE_LOOKUP_BLOCK_ADDR_WIDTH'h8
+`define HARDWIRE_LOOKUP_BLOCK_TAG            ({`UDP_BLOCK_SIZE_64_TAG, `HARDWIRE_LOOKUP_BLOCK_ADDR})
+
+/* Internal register addresses */
+// Start of the output_ports registers
+`define HARDWIRE_OUTPUT_PORTS_BASE           `HARDWIRE_LOOKUP_REG_ADDR_WIDTH'h0
+
+`define HARDWIRE_OUTPUT_PORTS_BASE_REG         (`UDP_BASE_ADDRESS | {`HARDWIRE_LOOKUP_BLOCK_TAG, `HARDWIRE_OUTPUT_PORTS_BASE})
+
+`define PRINT_USER_REG_ADDRESSES \
+  $fwrite(c_reg_defines_fd, "#define HARDWIRE_OUTPUT_PORTS_BASE_REG      0x%07x\n\n", `HARDWIRE_OUTPUT_PORTS_BASE_REG<<2)

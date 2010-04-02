@@ -1,0 +1,134 @@
+html, body {
+	padding: 0;
+	margin: 0;
+	border: 0;
+	background-color: #000000;
+	color: #FFFFFF;
+	width: 100%;
+	height: 100%;
+	line-height: 100%;
+	font-family: sans-serif;
+}
+a, a:visited {
+	color: #BBBBBB;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+div {
+	padding: 0;
+	margin: 0;
+	border: 0;
+	background-color: #000000;
+	color: #FFFFFF;
+}
+
+div#commands {
+	padding-left: 10px;
+	padding-top: 10px;
+}
+
+div#header_wrapper {
+	height: 70px;
+	width: 100%;
+}
+
+div#header_top {
+	height: 10px;
+	width: 100%;
+}
+
+div#header_bottom {
+	height: 60px;
+	background-image: url("gradient_1.gif");
+	background-repeat: repeat-x;
+}
+
+div#stats_div {
+	height: 60px;
+	background-image: url("gradient_1.gif");
+	background-repeat: repeat-x;
+}
+
+div#footer_wrapper {
+	height: 100px;
+	width: 100%;
+	padding-bottom: 10px;
+}
+
+div#footer {
+	height: 60px;
+	width: 100%;
+	background-image: url("gradient_1.gif");
+	background-repeat: repeat-x;
+	vertical-align: middle;
+}
+
+div#left_wrapper {
+	background-color: #282828;
+	border-right: 2px solid white;
+	width: 193px;
+	height: 100%;
+	padding-left: 5px;
+	padding-top: 5px;
+}
+
+form#command_line {
+	padding-top: 20px;
+	padding-left: 200px;
+}
+
+.command_input {
+	background-color: #000000;
+	color: #00da1a;
+}
+
+h4 {
+	margin: 0;
+	padding: 0;
+
+}
+
+pre {
+	color: #00da1a;
+	padding-left: 10px;
+	padding-top: 10px;
+	font-weight: bold;
+}
+
+pre#stats {
+	height: 58px;
+	color: #009122;
+	padding: 0;
+	padding-left: 5px;
+	padding-right: 5px;
+	margin: 0;
+	font-weight: bold;
+	background-color: #FFFFFF;
+	border: 1px dotted #000000;
+	font-size: 10px;
+}
+
+table, tr, td {
+	padding: 0;
+	margin: 0;
+	border: 0;
+	vertical-align: top;
+	text-align: left;
+}
+
+ul, li {
+	margin-top: 0;
+	margin-bottom: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	list-style: none;
+}
+
+ul {
+	padding-left: 10px;
+	padding-bottom: 10px;
+}

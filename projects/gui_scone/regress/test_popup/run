@@ -1,0 +1,17 @@
+#!/bin/sh
+# Author:         Neda Beheshti
+# Date:           Nov 1, 2007
+# Last Update:    Nov 7, 2007
+# Comments:       Checks if the 'Details' and 'Statistics' pages pop up by clicking.
+
+
+#---------------------------------------------------
+# File Names
+#---------------------------------------------------
+jar_file="$NF_ROOT/lib/java/gui/router_gui.jar"
+regdump_dir="$NF_ROOT/lib/C/router"
+libdir="$NF_ROOT/lib/java/gui/lib";
+
+if ! java -Djna.library.path=$libdir -classpath $jar_file:$libdir/*:. PopUpTest; then
+	exit 1
+fi;

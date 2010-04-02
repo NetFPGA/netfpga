@@ -1,0 +1,97 @@
+#!/bin/sh
+
+#
+# Verify that there are 4 interfaces on a computer with 1 NetFPGA
+# using the newly compiled/installed driver
+#
+
+NF2_MODULE=nf2
+
+# The kernel should already be made. Only try the install if we are root
+if [ ! $UID -eq 0 ] ; then
+	echo "WARNING: Not running as root. Not testing new kernel module"
+else
+	# Get the state of the current module (if it is installed)
+	if [ `/sbin/lsmod | grep nf2 | wc -l` -gt 0 ] ; then
+		# Store the state of the current driver
+		WAS_INSTALLED=1
+
+		IFACE_STATUS=''
+		for IFACE in 0 1 2 3 ; do
+			IFCONFIG=`/sbin/ifconfig nf2c$IFACE`
+			IFACE_UP=`echo "$IFCONFIG" | grep MTU | grep RUNNING | wc -l`
+			INET=`echo "$IFCONFIG" | grep "inet addr"`
+			INET_ADDR=`echo "$INET" | awk '/addr:/ { print $2}' | sed 's/.*://'`
+			INET_MASK=`echo "$INET" | awk '/addr:/ { print $4}' | sed 's/.*://'`
+
+			IFACE_STATUS="$IFACE_STATUS $IFACE:$IFACE_UP:$INET_ADDR:$INET_MASK"
+		done
+
+		# Bring the interfaces down
+		for IFACE in 0 1 2 3 ; do
+			/sbin/ifconfig nf2c$IFACE down
+		done
+
+		# Remove the driver since it is currently installed
+		if ! `/sbin/modprobe -r $NF2_MODULE` ; then
+			echo "$0: Error: Unable to remove module '$NF2_MODULE'"
+			exit 1
+		fi
+	else
+		WAS_INSTALLED=0
+	fi
+
+	# Attempt to install the new module
+	if ! `/sbin/modprobe $NF2_MODULE` ; then
+		echo "$0: Error: Unable to install module '$NF2_MODULE'"
+		exit 1
+	fi
+
+	# Verify that we can actually see the interfaces
+	if [ `ls /sys/class/net | grep nf2c | wc -l` -ne 4 ] ; then
+		echo "$0: Error: Incorrect number of nf2c* entries in /sys/class/net:"
+		echo $SYS_CLASS_NET
+		exit 1
+	fi
+	for IFACE in 0 1 2 3 ; do
+		if [ ! -d /sys/class/net/nf2c$IFACE ] ; then
+			echo "$0: Error: Could not locate nf2c$IFACE in /sys/class/net"
+			exit 1
+		fi
+
+		if ! /sbin/ifconfig nf2c$IFACE >& /dev/null ; then
+			echo "$0: Error: ifconfig could not find nf2c$IFACE"
+			exit 1
+		fi
+	done
+
+	sleep 2;
+	# Restore the previous settings
+	if [ $WAS_INSTALLED -eq 1 ] ; then
+		for STATUS in $IFACE_STATUS ; do
+			IFACE=${STATUS%%:*}
+			STATUS=${STATUS#$IFACE:}
+
+			IFACE_UP=${STATUS%%:*}
+			STATUS=${STATUS#$IFACE_UP:}
+			if [ $IFACE_UP -eq 1 ] ; then
+				IFACE_UP_STR=up
+			else
+				IFACE_UP_STR=down
+			fi
+
+			INET_ADDR=${STATUS%%:*}
+			STATUS=${STATUS#$INET_ADDR:}
+
+			INET_MASK=${STATUS%%:*}
+			STATUS=${STATUS#$INET_MASK:}
+
+			# Actually do the ifconfig thing
+			if [ "$INET_MASK" = "" ] ; then
+				/sbin/ifconfig nf2c$IFACE $IFACE_UP_STR $INET_ADDR
+			else
+				/sbin/ifconfig nf2c$IFACE $IFACE_UP_STR netmask $INET_MASK $INET_ADDR
+			fi
+		done
+	fi
+fi

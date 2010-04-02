@@ -1,0 +1,6 @@
+regread.pl and regwrite.pl are demo applications to show how to use the
+NF::RegAccess library.  The two important functions from the library are:
+ - nf_regread - nf_regwrite
+
+These two sample programs are almost identical to the C regread/regwrite
+functions.

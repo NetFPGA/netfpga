@@ -1,0 +1,2 @@
+# ./rr_hw_test.pl <test_id> <numberOfPorts> <numberOfPackets>
+../src/rr_hw_test.pl 5 2 30 $@

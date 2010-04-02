@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>nf2_mac_grp</nf:name>
+	<nf:prefix>mac_grp</nf:prefix>
+	<nf:location>core</nf:location>
+	<nf:description>Ethernet MAC group</nf:description>
+	<nf:blocksize>256k</nf:blocksize>
+	<nf:preferred_base>0x0600000</nf:preferred_base>
+	<nf:registers>
+		<nf:register>
+			<nf:name>control</nf:name>
+			<nf:description>MAC group control</nf:description>
+			<nf:type>mac_grp_control</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rx_queue_num_pkts_in_queue</nf:name>
+			<nf:description>Number of packets in the RX queue</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rx_queue_num_pkts_stored</nf:name>
+			<nf:description>Number of RX packets stored</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rx_queue_num_pkts_dropped_full</nf:name>
+			<nf:description>Number of RX packets dropped because
+				the queue was full</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rx_queue_num_pkts_dropped_bad</nf:name>
+			<nf:description>Number of RX packets dropped because
+				the packet was bad</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rx_queue_num_pkts_dequeued</nf:name>
+			<nf:description>Number of packets dequeud from the
+				RX queue</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rx_queue_num_words_pushed</nf:name>
+			<nf:description>Number of words pushed out of the
+				RX queue</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rx_queue_num_bytes_pushed</nf:name>
+			<nf:description>Number of bytes pushed out of the
+				RX queue</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>tx_queue_num_pkts_in_queue</nf:name>
+			<nf:description>Number of packets in the TX queue</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>tx_queue_num_pkts_enqueued</nf:name>
+			<nf:description>Number of packets enqueud to the
+				TX queue</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>tx_queue_num_pkts_sent</nf:name>
+			<nf:description>Number of packets sent out the TX
+				queue</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>tx_queue_num_words_pushed</nf:name>
+			<nf:description>Number of words pushed out of the
+				TX queue</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>tx_queue_num_bytes_pushed</nf:name>
+			<nf:description>Number of bytes pushed out of the
+				TX queue</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+	</nf:registers>
+	<nf:constants>
+    <nf:constant>
+      <nf:name>tx_queue_disable_bit_num</nf:name>
+      <nf:description>TX queue disable bit</nf:description>
+      <nf:value>0</nf:value>
+    </nf:constant>
+    <nf:constant>
+      <nf:name>rx_queue_disable_bit_num</nf:name>
+      <nf:description>RX queue disable bit</nf:description>
+      <nf:value>1</nf:value>
+    </nf:constant>
+    <nf:constant>
+      <nf:name>reset_mac_bit_num</nf:name>
+      <nf:description>Reset MAC bit</nf:description>
+      <nf:value>2</nf:value>
+    </nf:constant>
+    <nf:constant>
+      <nf:name>mac_disable_tx_bit_num</nf:name>
+      <nf:description>MAC TX queue disable bit</nf:description>
+      <nf:value>3</nf:value>
+    </nf:constant>
+    <nf:constant>
+      <nf:name>mac_disable_rx_bit_num</nf:name>
+      <nf:description>MAC RX queue disable bit</nf:description>
+      <nf:value>4</nf:value>
+    </nf:constant>
+    <nf:constant>
+      <nf:name>mac_dis_jumbo_tx_bit_num</nf:name>
+      <nf:description>MAC disable jumbo TX bit</nf:description>
+      <nf:value>5</nf:value>
+    </nf:constant>
+    <nf:constant>
+      <nf:name>mac_dis_jumbo_rx_bit_num</nf:name>
+      <nf:description>MAC disable jumbo RX bit</nf:description>
+      <nf:value>6</nf:value>
+    </nf:constant>
+    <nf:constant>
+      <nf:name>mac_dis_crc_check_bit_num</nf:name>
+      <nf:description>MAC disable crc check disable bit</nf:description>
+      <nf:value>7</nf:value>
+    </nf:constant>
+    <nf:constant>
+      <nf:name>mac_dis_crc_gen_bit_num</nf:name>
+      <nf:description>MAC disable crc generate bit</nf:description>
+      <nf:value>8</nf:value>
+    </nf:constant>
+	</nf:constants>
+	<nf:types>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>mac_grp_control</nf:name>
+			<nf:description>MAC group control register</nf:description>
+			<nf:width>9</nf:width>
+			<nf:bitmask>
+				<nf:name>tx_queue_disable</nf:name>
+				<nf:description>Disable the TX queue</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>rx_queue_disable</nf:name>
+				<nf:description>Disable the RX queue</nf:description>
+				<nf:pos>1</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>reset_mac</nf:name>
+				<nf:description>Reset the MAC</nf:description>
+				<nf:pos>2</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>mac_disable_tx</nf:name>
+				<nf:description>Disable MAC TX</nf:description>
+				<nf:pos>3</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>mac_disable_rx</nf:name>
+				<nf:description>Disable MAC RX</nf:description>
+				<nf:pos>4</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>mac_disable_jumbo_tx</nf:name>
+				<nf:description>Disable jumbo frame TX</nf:description>
+				<nf:pos>5</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>mac_disable_jumbo_rx</nf:name>
+				<nf:description>Disable jumbo frame RX</nf:description>
+				<nf:pos>6</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>mac_disable_crc_check</nf:name>
+				<nf:description>Disable MAC CRC checking</nf:description>
+				<nf:pos>7</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>mac_disable_crc_gen</nf:name>
+				<nf:description>Disable MAC CRC generation</nf:description>
+				<nf:pos>8</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+	</nf:types>
+</nf:module>

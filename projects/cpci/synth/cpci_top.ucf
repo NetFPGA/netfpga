@@ -1,0 +1,773 @@
+################################################################################
+#
+# File:   xc2s200fg456_32_33.ucf (PCI edge: left CLK edge: up)
+# Rev:    3.0.0
+#
+# Use this file only with the device listed below.  Any
+# other combination is invalid.  Do not modify this file
+# except in regions designated for "user" constraints.
+# This file is valid only with the default input delay
+# buffer settings as described in the implementation guide.
+#
+# Copyright (c) 2003 Xilinx, Inc.  All rights reserved.
+#
+# The UCF file information provided by Xilinx is provided
+# solely for your convenience.  Xilinx makes no warranties,
+# and accepts no liability, with respect to such information
+# or its use, and any use thereof is solely at the risk of
+# the user.  In addition, Xilinx does not assume any liability
+# arising out of such use; nor does it convey any license under
+# its patents, copyrights, maskwork, or any rights of others.
+#
+################################################################################
+# Define Device, Package, And Speed Grade
+################################################################################
+#
+CONFIG PART = XC2S200-FG456-6 ;
+#
+################################################################################
+# Avoid Configuration Pins
+################################################################################
+#
+CONFIG PROHIBIT = "A20" ;	#IO_WRITE
+CONFIG PROHIBIT = "C19" ;	#IO_CS
+CONFIG PROHIBIT = "C21" ;	#IO_DOUT_BUSY
+CONFIG PROHIBIT = "D20" ;	#IO_DIN_D0
+CONFIG PROHIBIT = "H22" ;	#IO_D1
+CONFIG PROHIBIT = "H20" ;	#IO_D2
+CONFIG PROHIBIT = "K20" ;	#IO_D3
+CONFIG PROHIBIT = "N22" ;	#IO_D4
+CONFIG PROHIBIT = "R21" ;	#IO_D5
+CONFIG PROHIBIT = "T22" ;	#IO_D6
+CONFIG PROHIBIT = "Y21" ;	#IO_D7
+CONFIG PROHIBIT = "V19" ;	#IO_INIT
+#
+################################################################################
+# I/O Assignment
+################################################################################
+#
+NET  "pcim_top/PCI_CORE/PCLK"                        LOC = "C11"  ;
+NET  "pcim_top/PCI_CORE/RST_I"                       LOC = "E2"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<31>"                   LOC = "E1"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<30>"                   LOC = "G4"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<29>"                   LOC = "G3"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<28>"                   LOC = "H5"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<27>"                   LOC = "F2"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<26>"                   LOC = "F1"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<25>"                   LOC = "H4"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<24>"                   LOC = "G1"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<23>"                   LOC = "H3"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<22>"                   LOC = "H2"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<21>"                   LOC = "J4"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<20>"                   LOC = "H1"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<19>"                   LOC = "J5"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<18>"                   LOC = "J2"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<17>"                   LOC = "J3"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<16>"                   LOC = "J1"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<15>"                   LOC = "K5"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<14>"                   LOC = "K1"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<13>"                   LOC = "K3"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<12>"                   LOC = "K4"   ;
+NET  "pcim_top/PCI_CORE/REQ_O"                       LOC = "K2"   ;
+NET  "pcim_top/PCI_CORE/IDSEL_I"                     LOC = "L6"   ;
+NET  "pcim_top/PCI_CORE/DEVSEL_IO"                   LOC = "L1"   ;
+NET  "pcim_top/PCI_CORE/GNT_I"                       LOC = "L5"   ;
+NET  "pcim_top/PCI_CORE/STOP_IO"                     LOC = "L4"   ;
+NET  "pcim_top/PCI_CORE/IRDY_IO"                     LOC = "L3"   ;
+NET  "pcim_top/PCI_CORE/TRDY_IO"                     LOC = "M1"   ;
+NET  "pcim_top/PCI_CORE/FRAME_IO"                    LOC = "M6"   ;
+NET  "pcim_top/PCI_CORE/INTA_O"                      LOC = "M3"   ;
+NET  "pcim_top/PCI_CORE/SERR_IO"                     LOC = "M4"   ;
+NET  "pcim_top/PCI_CORE/CBE_IO<3>"                   LOC = "N2"   ;
+NET  "pcim_top/PCI_CORE/CBE_IO<2>"                   LOC = "N3"   ;
+NET  "pcim_top/PCI_CORE/CBE_IO<1>"                   LOC = "N4"   ;
+NET  "pcim_top/PCI_CORE/CBE_IO<0>"                   LOC = "P1"   ;
+NET  "pcim_top/PCI_CORE/PERR_IO"                     LOC = "N5"   ;
+NET  "pcim_top/PCI_CORE/PAR_IO"                      LOC = "P2"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<11>"                   LOC = "P4"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<10>"                   LOC = "R1"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<9>"                    LOC = "P5"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<8>"                    LOC = "P3"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<7>"                    LOC = "R2"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<6>"                    LOC = "T1"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<5>"                    LOC = "R4"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<4>"                    LOC = "T2"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<3>"                    LOC = "U1"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<2>"                    LOC = "R5"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<1>"                    LOC = "V1"   ;
+NET  "pcim_top/PCI_CORE/AD_IO<0>"                    LOC = "T5"   ;
+#
+################################################################################
+# Force IOB Flip Flop Use For Data Path Output Flip Flops
+################################################################################
+#
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO3/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO2/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO1/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO0/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PAR/OFD"                                      IOB = TRUE ;
+#
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO31/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO30/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO29/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO28/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO27/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO26/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO25/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO24/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO23/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO22/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO21/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO20/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO19/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO18/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO17/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO16/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO15/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO14/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO13/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO12/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO11/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO10/OFD"                              IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO9/OFD"                               IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO8/OFD"                               IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO7/OFD"                               IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO6/OFD"                               IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO5/OFD"                               IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO4/OFD"                               IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO3/OFD"                               IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO2/OFD"                               IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO1/OFD"                               IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO0/OFD"                               IOB = TRUE ;
+#
+################################################################################
+# Force IOB Flip Flop Use For Data Path Input Flip Flops
+################################################################################
+#
+INST "pcim_top/PCI_CORE/XPCI_CBQ3"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_CBQ2"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_CBQ1"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_CBQ0"                                           IOB = TRUE ;
+#
+INST "pcim_top/PCI_CORE/XPCI_ADQ31"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ30"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ29"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ28"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ27"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ26"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ25"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ24"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ23"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ22"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ21"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ20"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ19"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ18"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ17"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ16"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ15"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ14"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ13"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ12"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ11"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ10"                                          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ9"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ8"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ7"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ6"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ5"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ4"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ3"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ2"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ1"                                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ0"                                           IOB = TRUE ;
+#
+################################################################################
+# Force IOB Flip Flop Use For Control Signals
+################################################################################
+#
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/REQ_IOB/IFD"                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/REQ_IOB/OFD"                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/REQO_OE"                               IOB = TRUE ;
+#
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/GNT_IOB/IFD"                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/GNT_IOB/OFD"                           IOB = TRUE ;
+#
+INST "pcim_top/PCI_CORE/PCI_LC/IDSEL/IFD"                                    IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/IDSEL/OFD"                                    IOB = TRUE ;
+#
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-PAR/OE_SERR_FF"                           IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/OE_FRAME/PERR_OE"                      IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/SERR/IFD"                                     IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/SERR/OFD"                                     IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PERR/IFD"                                     IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PERR/OFD"                                     IOB = TRUE ;
+#
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/OE_FRAME/OE_FRAME"                     IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/OE_FRAME/OE_IRDY"                      IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/FRAME/IFD"                                    IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/FRAME/OFD"                                    IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/IRDY/IFD"                                     IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/IRDY/OFD"                                     IOB = TRUE ;
+#
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-XOE/OE_DEVSEL"          IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-XOE/OE_STOP"            IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-XOE/OE_TRDY"            IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/DEVSEL/IFD"                                   IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/DEVSEL/OFD"                                   IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/STOP/IFD"                                     IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/STOP/OFD"                                     IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/TRDY/IFD"                                     IOB = TRUE ;
+INST "pcim_top/PCI_CORE/PCI_LC/TRDY/OFD"                                     IOB = TRUE ;
+#
+################################################################################
+# Location Constraints For AD TBUFs
+################################################################################
+#
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T15"                       LOC = "TBUF_R4C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T14"                       LOC = "TBUF_R4C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T13"                       LOC = "TBUF_R5C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T12"                       LOC = "TBUF_R5C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T11"                       LOC = "TBUF_R6C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T10"                       LOC = "TBUF_R6C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T9"                        LOC = "TBUF_R7C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T8"                        LOC = "TBUF_R7C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T7"                        LOC = "TBUF_R8C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T6"                        LOC = "TBUF_R8C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T5"                        LOC = "TBUF_R9C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T4"                        LOC = "TBUF_R9C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T3"                        LOC = "TBUF_R10C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T2"                        LOC = "TBUF_R10C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T1"                        LOC = "TBUF_R11C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/UPPER/T0"                        LOC = "TBUF_R11C1.1" ;
+#
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T15"                       LOC = "TBUF_R12C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T14"                       LOC = "TBUF_R12C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T13"                       LOC = "TBUF_R13C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T12"                       LOC = "TBUF_R13C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T11"                       LOC = "TBUF_R19C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T10"                       LOC = "TBUF_R20C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T9"                        LOC = "TBUF_R20C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T8"                        LOC = "TBUF_R21C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T7"                        LOC = "TBUF_R21C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T6"                        LOC = "TBUF_R22C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T5"                        LOC = "TBUF_R22C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T4"                        LOC = "TBUF_R23C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T3"                        LOC = "TBUF_R23C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T2"                        LOC = "TBUF_R24C1.0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T1"                        LOC = "TBUF_R24C1.1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/E/LOWER/T0"                        LOC = "TBUF_R25C1.0" ;
+#
+################################################################################
+# Placement Constraints For Control Signal "NS" Functions
+################################################################################
+#
+# **** NS_REQ **** (G, F)
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/REQ/REQ1"                   LOC = "CLB_R12C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/REQ/REQ3"                   LOC = "CLB_R12C1.S0" ;
+#
+# **** NS_DEVSEL **** (F, G, X)
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-DSEL/DSEL5"  LOC = "CLB_R13C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-DSEL/DSEL11" LOC = "CLB_R13C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-DSEL/DEVSEL" LOC = "CLB_R13C1.S0" ;
+#
+# **** NS_STOP **** (F, G, X)
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-STOP/STOP12" LOC = "CLB_R14C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-STOP/STOP13" LOC = "CLB_R14C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-STOP/STOP"   LOC = "CLB_R14C1.S0" ;
+#
+# **** NS_IRDY **** (F, G, X)
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/IRDY/IRDY3"                 LOC = "CLB_R14C1.S1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/IRDY/IRDY4"                 LOC = "CLB_R14C1.S1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/IRDY/IIRDY_I-"              LOC = "CLB_R14C1.S1" ;
+#
+# **** NS_TRDY **** (G, F, X)
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-TRDY/TRDY10" LOC = "CLB_R15C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-TRDY/TRDY11" LOC = "CLB_R15C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CNTL/PCI-OFCN/PCI-TRDY/TRDY"   LOC = "CLB_R15C1.S0" ;
+#
+# **** NS_FRAME **** (G, F, X)
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/FRAME/FRAME3"               LOC = "CLB_R16C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/FRAME/FRAME4"               LOC = "CLB_R16C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/MASTER/FRAME/IFRAME_I-"            LOC = "CLB_R16C1.S0" ;
+#
+# **** NS_PERR **** (G, F, X)
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-PAR/PERR_1"                    LOC = "CLB_R19C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-PAR/PERR_2"                    LOC = "CLB_R19C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-PAR/LC_PERR"                   LOC = "CLB_R19C1.S0" ;
+#
+################################################################################
+# Placement Constraints For Parity / Byte Enable "NS" Functions
+################################################################################
+#
+# **** NS_PAR **** (G, F)
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-PAR/PAR_1"                     LOC = "CLB_R19C1.S1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-PAR/PAR_2"                     LOC = "CLB_R19C1.S1" ;
+#
+# **** NS_CBE **** (F, G, F, G, F, G, F, G)
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO3/MAPF"                  LOC = "CLB_R18C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO3/MAPG"                  LOC = "CLB_R18C1.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO2/MAPF"                  LOC = "CLB_R18C1.S1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO2/MAPG"                  LOC = "CLB_R18C1.S1" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO1/MAPF"                  LOC = "CLB_R18C2.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO1/MAPG"                  LOC = "CLB_R18C2.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO0/MAPF"                  LOC = "CLB_R19C2.S0" ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO0/MAPG"                  LOC = "CLB_R19C2.S0" ;
+#
+################################################################################
+# Clock Buffer Placement
+################################################################################
+#
+INST "pcim_top/PCI_CORE/XPCI_CKA"                                 LOC = "GCLKBUF3" ;
+#
+################################################################################
+# I/O Time Names
+################################################################################
+#
+NET  "pcim_top/PCI_CORE/SERR_IO"                                  TNM = PADS:PCI_PADS_C ;
+NET  "pcim_top/PCI_CORE/PERR_IO"                                  TNM = PADS:PCI_PADS_C ;
+NET  "pcim_top/PCI_CORE/REQ_O"                                    TNM = PADS:PCI_PADS_G ;
+NET  "pcim_top/PCI_CORE/GNT_I"                                    TNM = PADS:PCI_PADS_G ;
+NET  "pcim_top/PCI_CORE/FRAME_IO"                                 TNM = PADS:PCI_PADS_C ;
+NET  "pcim_top/PCI_CORE/IRDY_IO"                                  TNM = PADS:PCI_PADS_C ;
+NET  "pcim_top/PCI_CORE/TRDY_IO"                                  TNM = PADS:PCI_PADS_C ;
+NET  "pcim_top/PCI_CORE/DEVSEL_IO"                                TNM = PADS:PCI_PADS_C ;
+NET  "pcim_top/PCI_CORE/STOP_IO"                                  TNM = PADS:PCI_PADS_C ;
+NET  "pcim_top/PCI_CORE/CBE_IO<3>"                                TNM = PADS:PCI_PADS_B ;
+NET  "pcim_top/PCI_CORE/CBE_IO<2>"                                TNM = PADS:PCI_PADS_B ;
+NET  "pcim_top/PCI_CORE/CBE_IO<1>"                                TNM = PADS:PCI_PADS_B ;
+NET  "pcim_top/PCI_CORE/CBE_IO<0>"                                TNM = PADS:PCI_PADS_B ;
+NET  "pcim_top/PCI_CORE/PAR_IO"                                   TNM = PADS:PCI_PADS_P ;
+NET  "pcim_top/PCI_CORE/IDSEL_I"                                  TNM = PADS:PCI_PADS_C ;
+NET  "pcim_top/PCI_CORE/INTA_O"                                   TNM = PADS:PCI_PADS_X ;
+NET  "pcim_top/PCI_CORE/RST_I"                                    TNM = PADS:PCI_PADS_X ;
+#
+NET  "pcim_top/PCI_CORE/AD_IO<31>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<30>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<29>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<28>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<27>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<26>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<25>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<24>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<23>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<22>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<21>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<20>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<19>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<18>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<17>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<16>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<15>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<14>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<13>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<12>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<11>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<10>"                                TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<9>"                                 TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<8>"                                 TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<7>"                                 TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<6>"                                 TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<5>"                                 TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<4>"                                 TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<3>"                                 TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<2>"                                 TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<1>"                                 TNM = PADS:PCI_PADS_D ;
+NET  "pcim_top/PCI_CORE/AD_IO<0>"                                 TNM = PADS:PCI_PADS_D ;
+#
+################################################################################
+# Special I/O Time Names
+################################################################################
+#
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO3/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO2/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO1/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-CBE/IO0/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+#
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO31/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO30/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO29/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO28/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO27/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO26/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO25/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO24/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO23/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO22/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO21/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO20/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO19/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO18/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO17/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO16/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO15/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO14/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO13/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO12/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO11/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO10/OFD"                   TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO9/OFD"                    TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO8/OFD"                    TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO7/OFD"                    TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO6/OFD"                    TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO5/OFD"                    TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO4/OFD"                    TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO3/OFD"                    TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO2/OFD"                    TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO1/OFD"                    TNM = FFS:PCI_FFS_OCE ;
+INST "pcim_top/PCI_CORE/PCI_LC/PCI-AD/IO0/OFD"                    TNM = FFS:PCI_FFS_OCE ;
+#
+INST "pcim_top/PCI_CORE/XPCI_CBQ3"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_CBQ2"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_CBQ1"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_CBQ0"                                TNM = FFS:PCI_FFS_ICE ;
+#
+INST "pcim_top/PCI_CORE/XPCI_ADQ31"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ30"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ29"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ28"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ27"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ26"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ25"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ24"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ23"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ22"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ21"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ20"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ19"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ18"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ17"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ16"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ15"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ14"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ13"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ12"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ11"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ10"                               TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ9"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ8"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ7"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ6"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ5"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ4"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ3"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ2"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ1"                                TNM = FFS:PCI_FFS_ICE ;
+INST "pcim_top/PCI_CORE/XPCI_ADQ0"                                TNM = FFS:PCI_FFS_ICE ;
+#
+################################################################################
+# Time Groups
+################################################################################
+#
+INST "pcim_top/PCI_CORE" TNM = FFS:PCIM_FFS ;
+TIMEGRP "ALL_FFS" = "PCIM_FFS" : "USER_FFS" ;
+TIMEGRP "FAST_FFS" = "PCI_FFS_ICE" : "PCI_FFS_OCE" ;
+TIMEGRP "SLOW_FFS" = "ALL_FFS" : EXCEPT : "FAST_FFS" ;
+#
+################################################################################
+# Time Specs
+################################################################################
+#
+# Important Note:  The timespecs used in this section cover all possible
+# paths.  Depending on the design options, some of the timespecs may
+# not contain any paths.  Such timespecs are ignored by PAR and TRCE.
+#
+# Note:  Timespecs are derived from the PCI Bus Specification, the minimum
+# clock delay of 0.000 ns, the maximum clock delay of 3.000 ns,
+# and a 90% tracking ratio between clock and data paths.
+#
+# Then, for paths on the primary global clock network:
+#
+#          1) Clk To Out   = 11.000ns - 3.000ns            = 8.000ns
+#          2) Setup        =  7.000ns + 90% * 0.000ns      = 7.000ns
+#          3) Grant Setup  = 10.000ns + 90% * 0.000ns      = 10.000ns
+#          4) AD_CBE Toff  = 28.000ns - 3.000ns            = 25.000ns
+#          5) AD_CBE Ton   = 30.000ns + 11.000ns - 3.000ns = 38.000ns
+#          6) Period       = 30.000ns
+#
+# The following timespecs are for setup specifications.  When using a
+# single clock, these timespecs are merged as pads-to-all.
+#
+TIMESPEC TS_ADF_SETUP = FROM : "PCI_PADS_D" : TO : "ALL_FFS" : 7.000 ;
+TIMESPEC TS_PAF_SETUP = FROM : "PCI_PADS_P" : TO : "ALL_FFS" : 7.000 ;
+TIMESPEC TS_BYF_SETUP = FROM : "PCI_PADS_B" : TO : "ALL_FFS" : 7.000 ;
+TIMESPEC TS_CNF_SETUP = FROM : "PCI_PADS_C" : TO : "ALL_FFS" : 7.000 ;
+TIMESPEC TS_GNF_SETUP = FROM : "PCI_PADS_G" : TO : "ALL_FFS" : 10.000 ;
+#
+# All critical input and output is registered to ensure clock to out
+# specifications are met by silicon.  When using a single clock, these
+# timespecs are merged as all-to-pads.
+#
+TIMESPEC TS_CNF_CKOUT = FROM : "ALL_FFS" : TO : "PCI_PADS_C" : 8.000 ;
+TIMESPEC TS_GNF_CKOUT = FROM : "ALL_FFS" : TO : "PCI_PADS_G" : 8.000 ;
+#
+# Similar to above, the critical input and output paths are registered
+# to ensure clock to out specifications are made by silicon.  Since this
+# interface uses address stepping, the clock to valid and clock to data
+# have different specifications.
+#
+TIMESPEC TS_ADF_CKOUT = FROM : "FAST_FFS" : TO : "PCI_PADS_D" : 8.000 ;
+TIMESPEC TS_ADS_TSOUT = FROM : "SLOW_FFS" : TO : "PCI_PADS_D" : 25.000 ;
+#
+TIMESPEC TS_BYF_CKOUT = FROM : "FAST_FFS" : TO : "PCI_PADS_B" : 8.000 ;
+TIMESPEC TS_BYS_TSOUT = FROM : "SLOW_FFS" : TO : "PCI_PADS_B" : 25.000 ;
+#
+TIMESPEC TS_PAF_CKOUT = FROM : "FAST_FFS" : TO : "PCI_PADS_P" : 8.000 ;
+TIMESPEC TS_PAS_TSOUT = FROM : "SLOW_FFS" : TO : "PCI_PADS_P" : 25.000 ;
+#
+# The design may be covered by a default period constraint.  This is
+# generally sufficient when using a single clock. The period should
+# be set at the minimum PCI Bus clock period.
+#
+NET "PCLK" PERIOD = 30.000;
+#
+################################################################################
+# User Time Names / User Time Groups
+################################################################################
+#
+# Note:  Change the instance name for the user application to match the
+# instance name in your custom design.  The example design, used here,
+# is called Ping.  This timegroup is used to form other timegroups needed
+# for the interface.  Do not remove it.  Flip flops in this group will be
+# constrained to operate at the nominal PCI Bus clock frequency.  If the
+# user application is partially asynchronous to the PCI Bus clock, this
+# timegroup must minimally contain the flip flops which are synchronous.
+#
+INST "pcim_top/USER_APP" TNM = FFS:USER_FFS ;
+#
+# You may add further time names and time groups specific to your custom
+# design as long as the do not interfere with the timegroups and time
+# specs used for the interface.
+#
+################################################################################
+# User Time Specs
+################################################################################
+#
+# This is the clock period for the CNET clock
+#
+
+NET "nclk" TNM_NET = "nclk" ;
+TIMESPEC "TS_nclk" = PERIOD "nclk" 16 ns HIGH 50 %;
+
+# NOTE: During ngdbuild some pins are pushed down into other modules, and
+# so these constraints need to reflect that.
+
+# Set up CPCI<->CNET pins in timing groups
+
+# CPCI -> CNET
+INST "cpci_addr<?>"  TNM = "P2N" ;
+INST "cpci_addr<??>" TNM = "P2N" ;
+INST "cpci_rd_wr_L" TNM = "P2N" ;
+INST "cpci_req" TNM = "P2N" ;
+INST "rp_init_b" TNM = "P2N" ;
+INST "rp_cclk" TNM = "P2N" ;
+INST "rp_rdwr_b" TNM = "P2N" ;
+INST "rp_cs_b" TNM = "P2N" ;
+INST "rp_prog_b" TNM = "P2N" ;
+INST "rp_data<?>" TNM = "P2N" ;
+INST "cpci_dma_op_code_req<?>" TNM = "P2N" ;
+INST "cpci_dma_op_queue_id<?>" TNM = "P2N" ;
+INST "cpci_dma_vld_c2n"        TNM = "P2N" ;
+INST "cpci_dma_q_nearly_full_c2n" TNM = "P2N" ;
+TIMEGRP "P2N" OFFSET = OUT 11 ns AFTER "nclk"  ;
+
+# Now CNET -> CPCI
+INST "cpci_rd_rdy" TNM = "N2P" ;
+NET "cpci_wr_rdy" TNM = "N2P" ;
+
+# INST "cpci_tx_full<?>" TNM = "N2P" ;
+INST "cpci_dma_op_code_ack<?>" TNM = "N2P" ;
+INST "cpci_dma_vld_n2c" TNM = "N2P" ;
+NET "cpci_dma_q_nearly_full_n2c" TNM = "N2P" ;
+TIMEGRP "N2P" OFFSET = IN 6.1 ns BEFORE "nclk"  ;
+
+# Now Bi-directional signals
+
+INST "cpci_data<?>"  TNM = "P2N2P" ;
+INST "cpci_data<??>" TNM = "P2N2P" ;
+INST "cpci_dma_data<?>"  TNM = "P2N2P" ;
+INST "cpci_dma_data<??>" TNM = "P2N2P" ;
+TIMEGRP "P2N2P" OFFSET = OUT 11 ns AFTER "nclk"  ;
+TIMEGRP "P2N2P" OFFSET = IN  5 ns BEFORE "nclk"  ;
+
+
+#
+################################################################################
+# User Constraints (Pinout, Placement, Etc.)
+################################################################################
+#
+NET "allow_reprog"  LOC = "D12" | IOSTANDARD = LVCMOS2 ;
+NET "cnet_err"  LOC = "AB14" | IOSTANDARD = LVCMOS2  | PULLDOWN;
+NET "cnet_reset"  LOC = "W13" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<0>"  LOC = "F18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<10>"  LOC = "H18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<11>"  LOC = "K22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<12>"  LOC = "J21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<13>"  LOC = "J22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<14>"  LOC = "K21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<15>"  LOC = "K19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<16>"  LOC = "K18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<17>"  LOC = "L17" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<18>"  LOC = "L18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<19>"  LOC = "L20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<1>"  LOC = "H21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<20>"  LOC = "M20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<21>"  LOC = "M22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<22>"  LOC = "L22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<23>"  LOC = "L21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<24>"  LOC = "Y10" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<25>"  LOC = "W10" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<26>"  LOC = "AB9" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<2>"  LOC = "G21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<3>"  LOC = "H19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<4>"  LOC = "F19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<5>"  LOC = "G20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<6>"  LOC = "G19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<7>"  LOC = "J20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<8>"  LOC = "J19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_addr<9>"  LOC = "J18" | IOSTANDARD = LVCMOS2 ;
+NET "cnet_clk_sel"  LOC = "U11" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<0>"  LOC = "B14" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<10>"  LOC = "C16" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<11>"  LOC = "D16" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<12>"  LOC = "E16" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<13>"  LOC = "D17" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<14>"  LOC = "C17" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<15>"  LOC = "B17" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<16>"  LOC = "A17" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<17>"  LOC = "A18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<18>"  LOC = "B18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<19>"  LOC = "C22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<1>"  LOC = "C14" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<20>"  LOC = "A19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<21>"  LOC = "B19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<22>"  LOC = "C18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<23>"  LOC = "E20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<24>"  LOC = "D21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<25>"  LOC = "D22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<26>"  LOC = "E22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<27>"  LOC = "E21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<28>"  LOC = "F21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<29>"  LOC = "F22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<2>"  LOC = "D14" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<30>"  LOC = "F20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<31>"  LOC = "G18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<3>"  LOC = "E14" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<4>"  LOC = "E15" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<5>"  LOC = "D15" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<6>"  LOC = "C15" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<7>"  LOC = "B15" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<8>"  LOC = "A15" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_data<9>"  LOC = "A16" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_clk<0>"  LOC = "Y9" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_clk<1>"  LOC = "AB8" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<0>"  LOC = "AB5" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<10>"  LOC = "AA8" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<11>"  LOC = "Y8" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<12>"  LOC = "W8" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<13>"  LOC = "V8" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<14>"  LOC = "V9" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<15>"  LOC = "W9" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<16>"  LOC = "AB13" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<17>"  LOC = "AA13" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<18>"  LOC = "Y13" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<19>"  LOC = "AA12" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<1>"  LOC = "W5" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<20>"  LOC = "Y12" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<21>"  LOC = "V12" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<22>"  LOC = "AB11" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<23>"  LOC = "V11" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<24>"  LOC = "W11" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<25>"  LOC = "V10" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<26>"  LOC = "AA10" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<27>"  LOC = "AB10" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<28>"  LOC = "AA9" | IOSTANDARD = LVCMOS2 ;
+#NET "cpci_debug_data<29>"  LOC = "Y10" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<2>"  LOC = "AB6" | IOSTANDARD = LVCMOS2 ;
+#NET "cpci_debug_data<30>"  LOC = "W10" | IOSTANDARD = LVCMOS2 ;
+#NET "cpci_debug_data<31>"  LOC = "AB9" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<3>"  LOC = "AA6" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<4>"  LOC = "Y6" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<5>"  LOC = "W6" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<6>"  LOC = "V7" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<7>"  LOC = "W7" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<8>"  LOC = "Y7" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_debug_data<9>"  LOC = "AA7" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<0>"  LOC = "M18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<10>"  LOC = "R19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<11>"  LOC = "R18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<12>"  LOC = "P18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<13>"  LOC = "P19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<14>"  LOC = "T19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<15>"  LOC = "T20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<16>"  LOC = "T21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<17>"  LOC = "R22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<18>"  LOC = "T18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<19>"  LOC = "U19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<1>"  LOC = "M19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<20>"  LOC = "U20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<21>"  LOC = "V21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<22>"  LOC = "V22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<23>"  LOC = "U21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<24>"  LOC = "U22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<25>"  LOC = "AA22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<26>"  LOC = "W21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<27>"  LOC = "W22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<28>"  LOC = "V20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<29>"  LOC = "AA20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<2>"  LOC = "N18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<30>"  LOC = "AA19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<31>"  LOC = "AB20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<3>"  LOC = "M17" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<4>"  LOC = "N19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<5>"  LOC = "N20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<6>"  LOC = "N21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<7>"  LOC = "P22" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<8>"  LOC = "P20" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_data<9>"  LOC = "P21" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_q_nearly_full_c2n"  LOC = "AA18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_q_nearly_full_n2c"  LOC = "D13" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_op_code_ack<0>"  LOC = "AB19" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_op_code_ack<1>"  LOC = "W18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_op_code_req<0>"  LOC = "AB18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_op_code_req<1>"  LOC = "V17" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_op_queue_id<0>"  LOC = "AB17" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_op_queue_id<1>"  LOC = "AA17" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_op_queue_id<2>"  LOC = "Y17" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_op_queue_id<3>"  LOC = "W17" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_vld_n2c"  LOC = "Y18" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_dma_vld_c2n"  LOC = "B13" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_id<0>"  LOC = "AA5" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_id<1>"  LOC = "AB4" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_id<2>"  LOC = "AA4" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_id<3>"  LOC = "AB3" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_jmpr"  LOC = "C12" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_led"  LOC = "B12" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_rd_rdy"  LOC = "A14" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_rd_wr_L"  LOC = "E13" | IOSTANDARD = LVCMOS2 ;
+NET "cpci_req"  LOC = "F12" | IOSTANDARD = LVCMOS2 ;
+#NET "cpci_tx_full<0>"  LOC = "C13" | IOSTANDARD=LVCMOS2;
+#NET "cpci_tx_full<1>"  LOC = "A13" | IOSTANDARD=LVCMOS2;
+#NET "cpci_tx_full<2>"  LOC = "B13" | IOSTANDARD=LVCMOS2;#used by cpci_dma_vld_c2n
+#NET "cpci_tx_full<3>"  LOC = "D13" | IOSTANDARD=LVCMOS2;#used by dma_q_nearly_full_n2c
+NET "cpci_wr_rdy"  LOC = "E12" | IOSTANDARD = LVCMOS2 ;
+NET "nclk"  LOC = "W12" | IOSTANDARD = LVCMOS2 ;
+NET "phy_int_b"  LOC = "D11" | IOSTANDARD = LVCMOS2 ;
+NET "rp_cclk"  LOC = "Y14" | IOSTANDARD = LVCMOS2 ;
+NET "rp_cs_b"  LOC = "AA14" | IOSTANDARD = LVCMOS2 ;
+NET "rp_data<0>"  LOC = "V13" | IOSTANDARD = LVCMOS2 ;
+NET "rp_data<1>"  LOC = "W14" | IOSTANDARD = LVCMOS2 ;
+NET "rp_data<2>"  LOC = "V14" | IOSTANDARD = LVCMOS2 ;
+NET "rp_data<3>"  LOC = "AA15" | IOSTANDARD = LVCMOS2 ;
+NET "rp_data<4>"  LOC = "AB16" | IOSTANDARD = LVCMOS2 ;
+NET "rp_data<5>"  LOC = "Y15" | IOSTANDARD = LVCMOS2 ;
+NET "rp_data<6>"  LOC = "W15" | IOSTANDARD = LVCMOS2 ;
+NET "rp_data<7>"  LOC = "AB15" | IOSTANDARD = LVCMOS2 ;
+NET "rp_done"  LOC = "V16" | IOSTANDARD = LVCMOS2 ;
+NET "rp_init_b"  LOC = "W16" | IOSTANDARD = LVCMOS2 ;
+NET "rp_prog_b"  LOC = "V15" | IOSTANDARD = LVCMOS2 ;
+NET "rp_rdwr_b"  LOC = "Y16" | IOSTANDARD = LVCMOS2 ;
+#
+################################################################################
+# End
+################################################################################

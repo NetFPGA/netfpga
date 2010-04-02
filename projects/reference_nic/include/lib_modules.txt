@@ -1,0 +1,17 @@
+io_queues/cpu_dma_queue
+io_queues/ethernet_mac
+input_arbiter/rr_input_arbiter
+nf2/generic_top
+nf2/reference_core
+output_port_lookup/nic
+output_queues/sram_rr_output_queues
+sram_arbiter/sram_weighted_rr
+user_data_path/reference_user_data_path
+io/mdio
+cpci_bus
+dma
+user_data_path/udp_reg_master
+io_queues/add_rm_hdr
+strip_headers/keep_length
+utils
+utils/generic_regs

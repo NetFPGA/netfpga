@@ -1,0 +1,58 @@
+#!/bin/sh
+# Author:         Neda Beheshti
+# Date:           Nov 1, 2007
+# Last Update:    Nov 7, 2007
+# Comments:       Entries in the Routing table are set automatically. The registers are then checked for correct
+#                 update.
+
+#---------------------------------------------------
+# File Names
+#---------------------------------------------------
+reg_fileName1="reg_test1.txt"
+reg_fileName2="reg_test2.txt"
+jar_file="$NF_ROOT/lib/java/gui/router_gui.jar"
+libdir="$NF_ROOT/lib/java/gui/lib"
+regdump_dir="$NF_ROOT/lib/C/router"
+
+if [ ! -x $regdump_dir/regdump ]; then
+        echo " Error! file $regdump_dir/regdump does not exit..."
+        exit 1
+fi
+
+
+$regdump_dir/regdump | grep "IP table entry" | awk '{print $14}' > $reg_fileName1;
+
+if ! java -Djna.library.path=$libdir -classpath $jar_file:$libdir/*:. RoutingTablePortTest; then
+	exit 1
+fi;
+
+$regdump_dir/regdump | grep "IP table entry" | awk '{print $14}' > $reg_fileName2;
+
+#rm regdump
+
+
+i=0
+while read line
+          do i=$(($i+1));
+          a1[$i]=$line;
+          #echo ${a1[$i]};
+done < $reg_fileName1
+
+
+i=0
+while read line
+         do i=$(($i+1));
+         a2[$i]=$line;
+         b=$((${a2[$i]}^${a1[$i]}));
+         if [ "$b" != "255" ]
+         then
+                 echo "ERROR! Routing table not updated correctly \n"
+                 echo "Entry $i - before update: ${a1[$i]}, after update: ${a2[$i]}"
+                 exit 1
+         fi
+done < $reg_fileName2
+
+echo "Test passed..."
+exit 0
+
+

@@ -1,0 +1,33 @@
+# This file contains a template for topology configuration
+
+# list all the machines and their interfaces here
+# the machine name (or IP address) should be the
+# one that can be used to ssh to the machine
+
+print "Reading config file.\n";
+
+%machines=( "192.168.0.2" => {eth1  => [],
+			      eth2  => [],
+			      nf2c0 => []},
+
+	    "192.168.1.2" => {eth1  => [],
+			      nf2c0 => [],
+			      nf2c1 => []},
+
+	    "192.168.2.2" => {eth1  => [],
+			      eth2  => []}
+	  );
+
+# Describe the connections
+add_link("192.168.0.2", "eth1",
+	"192.168.1.2", "eth1");
+
+add_link("192.168.0.2", "eth2",
+	"192.168.1.2", "nf2c0");
+
+add_link("192.168.0.2", "nf2c0",
+	"192.168.2.2", "eth2");
+
+add_link("192.168.1.2", "nf2c1",
+	"192.168.2.2", "eth1");
+

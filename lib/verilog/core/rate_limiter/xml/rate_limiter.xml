@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>rate_limiter</nf:name>
+	<nf:prefix>rate_limit</nf:prefix>
+	<nf:location>udp</nf:location>
+	<nf:description>Event Capture Registers</nf:description>
+	<nf:blocksize>64</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+		  <nf:name>enable</nf:name>
+			<nf:description>enable the Rate Limiter</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+    <nf:register>
+		  <nf:name>shift</nf:name>
+			<nf:description>rate limit</nf:description>
+			<nf:type>software32</nf:type>
+  	</nf:register>
+	</nf:registers>
+	<nf:constants>
+	</nf:constants>
+	<nf:types>
+	</nf:types>
+</nf:module>

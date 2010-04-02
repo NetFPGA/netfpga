@@ -1,0 +1,15 @@
+#!/bin/sh
+
+#
+# Test that the driver compiles
+#
+
+# Change to the working directory
+cd $NF_ROOT/lib/C/kernel
+
+# Make the kernel
+#
+# Don't do a make clean as we don't need to compile every time -- only
+# when something changes.
+#make clean
+make

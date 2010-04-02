@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>reg_reflect</nf:name>
+	<nf:prefix>reg_reflect_test</nf:prefix>
+	<nf:location>core</nf:location>
+	<nf:description>Test module that returns the register address as the register value</nf:description>
+	<nf:blocksize>256k</nf:blocksize>
+	<nf:registers>
+	</nf:registers>
+	<nf:constants>
+	</nf:constants>
+	<nf:types>
+	</nf:types>
+</nf:module>

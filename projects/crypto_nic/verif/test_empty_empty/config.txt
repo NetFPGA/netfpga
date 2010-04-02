@@ -1,0 +1,2 @@
+test_desc = Empty test used for register generation
+finish = 5000

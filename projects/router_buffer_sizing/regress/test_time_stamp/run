@@ -1,0 +1,62 @@
+#!/usr/bin/perl
+# Author:         Neda Beheshti
+# Date:           Nov 1, 2007
+# Last Update:    Nov 7, 2007
+# Comments:       Event Counter Test
+
+#use File::Find;
+
+my $pid;
+if ( !( $pid = fork ) ) {
+        # Run Parser from this process
+	close(STDOUT);
+	open(STDOUT, "> time1.txt");
+        exec "../../sw/rcv_evts -v";
+        die "Failed to parser: $!";
+} else {
+
+   sleep 1;
+   system "./send_pkt";
+   sleep 1;
+
+    #kill the Parser
+    kill 9, $pid;
+
+    sleep 1;
+
+    `grep \"Store  Event     : Q: 2\" time1.txt > time2.txt`;
+    `awk '{print \$10}' time2.txt > time3.txt`;
+
+     open (FILE, "< time3.txt") or die "$!";
+
+     my $last_line = 0;
+     my $h = 0;
+     my $time_diff = 0;
+     my $line_number = 0;
+
+     while ( <FILE> ) {
+     $h = hex ($_) - hex($last_line);
+     chomp;
+     #print hex($_) . "\n";
+     $time_diff = 8E-9 * $h;
+
+     # print "$line_number $time_diff $h \n";
+     if ( ($line_number > 0) && ($time_diff > 0.05) ) {
+          print "FAIL: time difference between packets more than 50ms \n";
+          exit 1;
+     }
+
+     $last_line = $_;
+     $line_number++;
+     }
+
+     close FILE;
+
+     `rm time1.txt time2.txt time3.txt`;
+
+     print "success!";
+     exit 0;
+
+};
+
+

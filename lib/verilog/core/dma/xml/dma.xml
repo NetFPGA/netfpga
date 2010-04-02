@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>dma</nf:name>
+	<nf:prefix>dma</nf:prefix>
+	<nf:location>core</nf:location>
+	<nf:description>DMA transfer module</nf:description>
+	<nf:blocksize>256k</nf:blocksize>
+</nf:module>

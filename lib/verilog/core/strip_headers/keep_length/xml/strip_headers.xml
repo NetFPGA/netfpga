@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>strip_headers</nf:name>
+	<nf:prefix>strip_headers</nf:prefix>
+	<nf:location>udp</nf:location>
+	<nf:description>Strip headers from data</nf:description>
+	<nf:blocksize>256</nf:blocksize>
+</nf:module>

@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+
+use Getopt::Long;
+use NF::RegressLib;
+
+my %ifaceNameMap;
+
+# Process command line options
+unless ( GetOptions (
+    "help" => \$help,
+    "map=s" => \$mapFile
+    )
+    and ($help eq '')
+  ) { usage(); exit 1 }
+
+#
+# Verify that the mapfile exists
+#
+if (defined($mapFile)) {
+  nftest_process_iface_map($mapFile);
+}
+
+my $device = nftest_get_iface('nf2c0');
+system("nf_download  -i $device $ENV{NF_ROOT}/bitfiles/reference_router.bit") == 0
+  or die "Download Failed: $?\n";
+
+`/sbin/ifconfig nf2c0 10.10.0.1 netmask 255.255.255.0`;
+`/sbin/ifconfig nf2c1 10.10.1.1 netmask 255.255.255.0`;
+`/sbin/ifconfig nf2c2 10.10.2.1 netmask 255.255.255.0`;
+`/sbin/ifconfig nf2c3 10.10.3.1 netmask 255.255.255.0`;
+
+`/sbin/iptables -I FORWARD 1 --src 10.10.0.0/16 -j ACCEPT`;

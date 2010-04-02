@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:project xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+  <nf:name>CPCI</nf:name>
+  <nf:description>NetFPGA PCI interface</nf:description>
+  <!--
+  // CPCI Version numbers
+
+  // Major, minor and revision translated as follows:
+  //
+  // CPCI_ID: {minor[8], major[24]}
+  //
+  // ie. the revision number is *ignored*
+
+  // Version 1: NF2.0
+  //   Rev 6: Fixed bug in dma_engine whereby an extra word would be
+  //          insterted at the start of a packet.
+  //
+  // Version 2: NF2.1
+  //   Rev 2: DLL on nclk
+  //   Rev 3: DMA rx interface change
+  //   Rev 4: DMA engine split into submodules
+  //
+  // Version 3: NF 2.1 with dedicated DMA bus (bi-directional)
+  //   Rev 1: Initial version
+  //   Rev 2: Fixed bug with PCI retries on writes to Virtex (retries
+  //          were not being generated)
+  //   Rev 3: Fixed bug preventing programming of the Virtex via JTAG
+  //          immediately after CPCI reprogramming.
+  //   Rev 4: Uses the new register system (Revs 3 and 4 should
+  //          be indistinguishable externally).
+  -->
+  <nf:version_major>3</nf:version_major>
+  <nf:version_minor>4</nf:version_minor>
+  <nf:version_revision>0</nf:version_revision>
+  <nf:use_modules>
+  </nf:use_modules>-
+  <nf:memalloc layout="cpci">
+    <nf:group name="cpci">
+      <nf:instance name="cpci" />
+    </nf:group>
+  </nf:memalloc>
+</nf:project>

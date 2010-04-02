@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>output_queues</nf:name>
+	<nf:prefix>oq</nf:prefix>
+	<nf:location>udp</nf:location>
+	<nf:description>DRAM-based output queue using round-robin removal</nf:description>
+	<nf:blocksize>4k</nf:blocksize>
+	<nf:registers>
+		<!-- Counters-->
+		<nf:register_group>
+			<nf:name>queue</nf:name>
+			<nf:instances>:NUM_OUTPUT_QUEUES</nf:instances>
+		<nf:register>
+			<nf:name>num_pkts_stored</nf:name>
+			<nf:description>Number of packets stored</nf:description>
+			<nf:type>dram_pkt_cnt</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_pkts_dropped</nf:name>
+			<nf:description>Number of packets dropped</nf:description>
+			<nf:type>dram_pkt_cnt</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_pkts_removed</nf:name>
+			<nf:description>Number of packets removed</nf:description>
+			<nf:type>dram_pkt_cnt</nf:type>
+		</nf:register>
+                <nf:register>
+		  	<nf:name>input_words</nf:name>
+			<nf:description>number of input words (72bit)</nf:description>
+			<nf:type>dram_word_cnt</nf:type>
+  		</nf:register>
+                <nf:register>
+		  	<nf:name>output_words</nf:name>
+			<nf:description>number of shortcut words (72bit)</nf:description>
+			<nf:type>dram_word_cnt</nf:type>
+  		</nf:register>
+                <nf:register>
+		  	<nf:name>shortcut_words</nf:name>
+			<nf:description>number of shortcut words (144bit)</nf:description>
+			<nf:type>dram_word_cnt</nf:type>
+  		</nf:register>
+                <nf:register>
+		  	<nf:name>dram_wr_words</nf:name>
+			<nf:description>number of dram write words (144bit)</nf:description>
+			<nf:type>dram_word_cnt</nf:type>
+  		</nf:register>
+                <nf:register>
+		  	<nf:name>dram_rd_words</nf:name>
+			<nf:description>number of dram read words (144bit)</nf:description>
+			<nf:type>dram_word_cnt</nf:type>
+  		</nf:register>
+		<!-- Software Registers-->
+		<nf:register>
+			<nf:name>ctrl</nf:name>
+			<nf:description>Control register</nf:description>
+			<nf:type>oq_control</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>addr_lo</nf:name>
+			<nf:description>Queue low address</nf:description>
+			<nf:type>dram_addr</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>addr_hi</nf:name>
+			<nf:description>Queue high address</nf:description>
+			<nf:type>dram_addr</nf:type>
+		</nf:register>
+		<nf:register>
+		  	<nf:name>shortcut_disable</nf:name>
+			<nf:description>disable shortcut path</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+		<!-- Hardware Registers-->
+		<nf:register>
+			<nf:name>wr_addr</nf:name>
+			<nf:description>Queue write address</nf:description>
+			<nf:type>dram_addr</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rd_addr</nf:name>
+			<nf:description>Queue read address</nf:description>
+			<nf:type>dram_addr</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_pkts_in_q</nf:name>
+			<nf:description>Number of packets in the queue</nf:description>
+			<nf:type>dram_pkt_cnt</nf:type>
+		</nf:register>
+		</nf:register_group>
+	</nf:registers>
+	<nf:constants>
+		<!-- Note: OQ_DEFAULT_ADDR_LOW and OQ_DEFAULT_ADDR_HIGH should be
+		declared in a Verilog defines file since they are 'functions' and
+		are specific to the Verilog implementation. -->
+		<nf:constant>
+			<nf:name>:NUM_OUTPUT_QUEUES</nf:name>
+			<nf:value>8</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>:DRAM_DATA_WIDTH</nf:name>
+			<nf:value>72</nf:value>
+		</nf:constant>
+		<!-- 64Mbytes/2kBytes block-->
+		<nf:constant>
+			<nf:name>:DRAM_BLOCK_RDWR_ADDR_WIDTH</nf:name>
+			<nf:value>15</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>DEFAULT_MAX_PKTS</nf:name>
+			<nf:width>DRAM_PKT_CNT_WIDTH</nf:width>
+			<nf:value>0xffffffff</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>DRAM_PKT_CNT_WIDTH</nf:name>
+			<nf:value>:DRAM_ADDR_WIDTH</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>DRAM_WORD_CNT_WIDTH</nf:name>
+			<nf:value>:DRAM_ADDR_WIDTH</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>DRAM_BYTE_CNT_WIDTH</nf:name>
+			<nf:value>:DRAM_ADDR_WIDTH</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>DISABLE_SEND_BIT_NUM</nf:name>
+			<nf:value>0</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>INITIALIZE_OQ_BIT_NUM</nf:name>
+			<nf:value>1</nf:value>
+		</nf:constant>
+	</nf:constants>
+	<nf:types>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>dram_pkt_cnt</nf:name>
+			<nf:width>DRAM_PKT_CNT_WIDTH</nf:width>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>dram_word_cnt</nf:name>
+			<nf:width>DRAM_WORD_CNT_WIDTH</nf:width>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>dram_byte_cnt</nf:name>
+			<nf:width>DRAM_BYTE_CNT_WIDTH</nf:width>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>dram_addr</nf:name>
+			<nf:width>:DRAM_ADDR_WIDTH</nf:width>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>oq_control</nf:name>
+			<nf:width>2</nf:width>
+			<nf:bitmask>
+				<nf:name>disable_send</nf:name>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>initialize_oq</nf:name>
+				<nf:pos>1</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+	</nf:types>
+</nf:module>

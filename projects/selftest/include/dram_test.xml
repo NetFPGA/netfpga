@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>dram_test</nf:name>
+	<nf:prefix>dram_test</nf:prefix>
+	<nf:location>core</nf:location>
+	<nf:description>DRAM selftest</nf:description>
+	<nf:blocksize>256k</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+			<nf:name>err_cnt</nf:name>
+			<nf:description>Number of errors seen</nf:description>
+			<nf:type>generic_counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>iter_num</nf:name>
+			<nf:description>Current iteration number</nf:description>
+			<nf:type>generic_counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>bad_runs</nf:name>
+			<nf:description>Number of iterations with errors</nf:description>
+			<nf:type>generic_counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>good_runs</nf:name>
+			<nf:description>Number of iterations without errors</nf:description>
+			<nf:type>generic_counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>status</nf:name>
+			<nf:description>Test status</nf:description>
+			<nf:type>dram_test_status</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>en</nf:name>
+			<nf:description>Tests enabled</nf:description>
+			<nf:type>dram_test_enable</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>ctrl</nf:name>
+			<nf:description>DRAM test control</nf:description>
+			<nf:type>dram_test_ctrl</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rand_seed</nf:name>
+			<nf:description>Random seed value</nf:description>
+			<nf:type>generic_software32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>log_addr</nf:name>
+			<nf:description>Error log -- address of error</nf:description>
+			<nf:type>generic_software32</nf:type>
+			<nf:addr>0x20000</nf:addr>
+		</nf:register>
+		<nf:register>
+			<nf:name>log_exp_data</nf:name>
+			<nf:description>Error log -- expected data</nf:description>
+			<nf:type>dram_test_word</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>log_rd_data</nf:name>
+			<nf:description>Error log -- read data</nf:description>
+			<nf:type>dram_test_word</nf:type>
+		</nf:register>
+	</nf:registers>
+	<nf:constants>
+		<nf:constant>
+			<nf:name>log_offset</nf:name>
+			<nf:description>Offset between consecutive error log entries</nf:description>
+			<nf:value>0x20</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>num_patterns</nf:name>
+			<nf:description>Number of DRAM test patterns</nf:description>
+			<nf:value>5</nf:value>
+		</nf:constant>
+	</nf:constants>
+	<nf:types>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>dram_test_status</nf:name>
+			<nf:description>DRAM test status</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>done</nf:name>
+				<nf:description>Tests completed</nf:description>
+				<nf:pos_lo>0</nf:pos_lo>
+				<nf:pos_hi>0 + num_patterns - 1</nf:pos_hi>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>fail</nf:name>
+				<nf:description>Tests failed</nf:description>
+				<nf:pos_lo>8</nf:pos_lo>
+				<nf:pos_hi>8 + num_patterns - 1</nf:pos_hi>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>dram_test_enable</nf:name>
+			<nf:description>DRAM test status</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>enable</nf:name>
+				<nf:description>Tests enabled</nf:description>
+				<nf:pos_lo>0</nf:pos_lo>
+				<nf:pos_hi>0 + num_patterns - 1</nf:pos_hi>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>dram_test_ctrl</nf:name>
+			<nf:description>DRAM test status</nf:description>
+			<nf:width>2</nf:width>
+			<nf:bitmask>
+				<nf:name>run</nf:name>
+				<nf:description>Global enable</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>repeat</nf:name>
+				<nf:description>Run in non-stop mode</nf:description>
+				<nf:pos>1</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>dram_test_word</nf:name>
+			<nf:description>DRAM word</nf:description>
+			<nf:width>64</nf:width>
+		</nf:type>
+	</nf:types>
+</nf:module>

@@ -1,0 +1,58 @@
+##############################################################
+#
+# Xilinx Core Generator version IP1_J.12
+# Date: Sat Mar 10 02:05:00 2007
+#
+##############################################################
+#
+#  This file contains the customisation parameters for a
+#  Xilinx CORE Generator IP GUI. It is strongly recommended
+#  that you do not manually alter this file as it may cause
+#  unexpected and unsupported behavior.
+#
+##############################################################
+#
+# BEGIN Project Options
+SET addpads = False
+SET asysymbol = False
+SET busformat = BusFormatAngleBracketNotRipped
+SET createndf = False
+SET designentry = Verilog
+SET device = xc2s200
+SET devicefamily = spartan2
+SET flowvendor = Foundation_iSE
+SET formalverification = False
+SET foundationsym = False
+SET implementationfiletype = Ngc
+SET package = fg456
+SET removerpms = False
+SET simulationfiles = Behavioral
+SET speedgrade = -6
+SET verilogsim = True
+SET vhdlsim = False
+# END Project Options
+# BEGIN Select
+SELECT PCI_32-bit_Interface_(Spartan_Only) family Xilinx,_Inc. 3.161
+# END Select
+# BEGIN Parameters
+CSET base_address_register_0=08000000
+CSET base_address_register_1=00000000
+CSET base_address_register_2=00000000
+CSET cap_ptr=00
+CSET class_code=020000
+CSET component_name=pci_top
+CSET device_id=0001
+CSET enable_66mhz=false
+CSET inta_enable=true
+CSET max_lat=00
+CSET min_gnt=00
+CSET rev_id=00
+CSET subsystem_id=0000
+CSET subvendor_id=FEED
+CSET use_global_clock=false
+CSET user_config_space=false
+CSET vendor_id=FEED
+# END Parameters
+GENERATE
+# CRC: cea07d32
+

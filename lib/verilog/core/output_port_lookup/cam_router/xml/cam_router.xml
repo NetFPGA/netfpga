@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>router_op_lut</nf:name>
+	<nf:prefix>router_op_lut</nf:prefix>
+	<nf:location>udp</nf:location>
+	<nf:description>Output port lookup for IPv4 router (CAM based)</nf:description>
+	<nf:blocksize>256</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+			<nf:name>arp_num_misses</nf:name>
+			<nf:description>Number of arp misses</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>lpm_num_misses</nf:name>
+			<nf:description>Number of longest prefix match misses</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_cpu_pkts_sent</nf:name>
+			<nf:description>Number of cpu packets sent</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_bad_opts_ver</nf:name>
+			<nf:description>Number of packets with bad options or version</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_bad_chksums</nf:name>
+			<nf:description>Number of packets with bad checksums</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_bad_ttls</nf:name>
+			<nf:description>Number of packets with bad ttls</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_non_ip_rcvd</nf:name>
+			<nf:description>Number of non-IP packets received</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_pkts_forwarded</nf:name>
+			<nf:description>Number if packets forwarded</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_wrong_dest</nf:name>
+			<nf:description>Number of packets with wrong destination</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_filtered_pkts</nf:name>
+			<nf:description>Number of packets filtered</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>mac_0</nf:name>
+			<nf:description>MAC address zero</nf:description>
+			<nf:type>ethernet_addr</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>mac_1</nf:name>
+			<nf:description>MAC address one</nf:description>
+			<nf:type>ethernet_addr</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>mac_2</nf:name>
+			<nf:description>MAC address two</nf:description>
+			<nf:type>ethernet_addr</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>mac_3</nf:name>
+			<nf:description>MAC address three</nf:description>
+			<nf:type>ethernet_addr</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>route_table</nf:name>
+			<nf:description>Route table</nf:description>
+			<nf:type>route_table</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>arp_table</nf:name>
+			<nf:description>ARP table</nf:description>
+			<nf:type>arp_table</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>dst_ip_filter_table</nf:name>
+			<nf:description>Destination IP filter table for IPs to send to the CPU</nf:description>
+			<nf:type>dst_ip_filter_table</nf:type>
+		</nf:register>
+	</nf:registers>
+	<nf:constants>
+		<nf:constant>
+			<nf:name>ARP_TABLE_DEPTH</nf:name>
+			<nf:description>Number of entrties in the ARP table</nf:description>
+			<nf:value>32</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>ROUTE_TABLE_DEPTH</nf:name>
+			<nf:description>Number of entrties in the routing table table</nf:description>
+			<nf:value>32</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>DST_IP_FILTER_TABLE_DEPTH</nf:name>
+			<nf:description>Number of entrties in the destination IP filter table</nf:description>
+			<nf:value>32</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>DEFAULT_MAC_0</nf:name>
+			<nf:description>Default MAC address for port 0</nf:description>
+			<nf:width>48</nf:width>
+			<nf:value>0xcafef00d0001</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>DEFAULT_MAC_1</nf:name>
+			<nf:description>Default MAC address for port 1</nf:description>
+			<nf:width>48</nf:width>
+			<nf:value>0xcafef00d0002</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>DEFAULT_MAC_2</nf:name>
+			<nf:description>Default MAC address for port 2</nf:description>
+			<nf:width>48</nf:width>
+			<nf:value>0xcafef00d0003</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>DEFAULT_MAC_3</nf:name>
+			<nf:description>Default MAC address for port 3</nf:description>
+			<nf:width>48</nf:width>
+			<nf:value>0xcafef00d0004</nf:value>
+		</nf:constant>
+	</nf:constants>
+	<nf:types>
+		<nf:type xsi:type="nf:CompoundType">
+			<nf:name>arp_table_entry</nf:name>
+			<nf:description>An entry in the ARP table -- contains an IP address and a corresponding Ethernet MAC address</nf:description>
+			<nf:field>
+				<nf:name>mac</nf:name>
+				<nf:description>ARP MAC</nf:description>
+				<nf:type>ethernet_addr</nf:type>
+			</nf:field>
+			<nf:field>
+				<nf:name>next_hop_ip</nf:name>
+				<nf:description>ARP next hop IP address</nf:description>
+				<nf:type>ip_addr</nf:type>
+			</nf:field>
+		</nf:type>
+		<nf:type xsi:type="nf:TableType" table_type="indirect">
+			<nf:name>arp_table</nf:name>
+			<nf:description>The ARP table for mapping IPs to MACs</nf:description>
+			<nf:depth>ARP_TABLE_DEPTH</nf:depth>
+			<nf:entry_type>arp_table_entry</nf:entry_type>
+			<nf:width>3 * 32</nf:width>
+		</nf:type>
+		<nf:type xsi:type="nf:CompoundType">
+			<nf:name>route_table_entry</nf:name>
+			<nf:description>An entry in the routing table -- contains the IP, mask, next-hop IP and output port</nf:description>
+			<nf:field>
+				<nf:name>ip</nf:name>
+				<nf:description>Route table IP address</nf:description>
+				<nf:type>ip_addr</nf:type>
+			</nf:field>
+			<nf:field>
+				<nf:name>mask</nf:name>
+				<nf:description>Route table mask</nf:description>
+				<nf:type>ip_addr</nf:type>
+			</nf:field>
+			<nf:field>
+				<nf:name>next_hop_ip</nf:name>
+				<nf:description>Route table next hop IP address</nf:description>
+				<nf:type>ip_addr</nf:type>
+			</nf:field>
+			<nf:field>
+				<nf:name>output_port</nf:name>
+				<nf:description>Route table output port</nf:description>
+				<nf:width>16</nf:width>
+			</nf:field>
+		</nf:type>
+		<nf:type xsi:type="nf:TableType" table_type="indirect">
+			<nf:name>route_table</nf:name>
+			<nf:description>The routing table for forwarding decisions</nf:description>
+			<nf:depth>ROUTE_TABLE_DEPTH</nf:depth>
+			<nf:entry_type>route_table_entry</nf:entry_type>
+			<nf:width>4 * 32</nf:width>
+		</nf:type>
+		<nf:type xsi:type="nf:CompoundType">
+			<nf:name>dst_ip_filter_table_entry</nf:name>
+			<nf:description>An entry in the destination IP filter table</nf:description>
+			<nf:field>
+				<nf:name>ip</nf:name>
+				<nf:description>Destination IP filter IP address</nf:description>
+				<nf:type>ip_addr</nf:type>
+			</nf:field>
+		</nf:type>
+		<nf:type xsi:type="nf:TableType" table_type="indirect">
+			<nf:name>dst_ip_filter_table</nf:name>
+			<nf:description>Destination IP filter table for IP addresses to forward to CPU</nf:description>
+			<nf:depth>DST_IP_FILTER_TABLE_DEPTH</nf:depth>
+			<nf:entry_type>dst_ip_filter_table_entry</nf:entry_type>
+			<nf:width>32</nf:width>
+		</nf:type>
+	</nf:types>
+</nf:module>

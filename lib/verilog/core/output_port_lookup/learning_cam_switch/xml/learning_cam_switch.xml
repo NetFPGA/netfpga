@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>learning_cam_switch</nf:name>
+	<nf:prefix>switch_op_lut</nf:prefix>
+	<nf:location>udp</nf:location>
+	<nf:description>Output port lookup for learning switch</nf:description>
+	<nf:blocksize>256</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+			<nf:name>ports_mac_hi</nf:name>
+			<nf:description>Ports and MAC HI register</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>mac_lo</nf:name>
+			<nf:description>MAC LO register</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_hits</nf:name>
+			<nf:description>number of hits</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_misses</nf:name>
+			<nf:description>number of misses</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>mac_lut_rd_addr</nf:name>
+			<nf:description>MAC lut read address</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>mac_lut_wr_addr</nf:name>
+			<nf:description>MAC lut write address</nf:description>
+			<nf:type>software32</nf:type>
+		</nf:register>
+	</nf:registers>
+	<nf:constants>
+	</nf:constants>
+	<nf:types>
+	</nf:types>
+</nf:module>

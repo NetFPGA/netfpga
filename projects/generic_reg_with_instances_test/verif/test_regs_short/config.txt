@@ -1,0 +1,2 @@
+test_desc = Test the generic registers
+finish = 40000

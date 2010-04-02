@@ -1,0 +1,26 @@
+#!/bin/sh
+
+#
+# Test that modprobe can load the driver
+#
+
+for i in `seq 0 3`; do
+	/sbin/ifconfig nf2c$i down
+done
+
+# Unload the driver if necessary
+if [ `/sbin/lsmod | grep -c nf2` -ne 0 ] ; then
+	/sbin/rmmod nf2
+fi
+
+# Allow some time to pass for driver remove event to complete
+sleep 1
+
+# Attempt to load the driver
+/sbin/modprobe nf2 || exit 1
+
+# Verify that the driver is loaded
+if [ `/sbin/lsmod | grep -c nf2` -ne 1 ] ; then
+	echo "ERROR: Driver not found in lsmod output"
+	exit 1
+fi

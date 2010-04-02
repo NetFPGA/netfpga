@@ -1,0 +1,2 @@
+test_desc = NF 2.1 Reference Switch
+finish = 1500000

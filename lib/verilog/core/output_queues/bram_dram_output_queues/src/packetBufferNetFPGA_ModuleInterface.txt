@@ -1,0 +1,173 @@
+BRAM-DRAM Packet Buffer Module Interfaces
+
+last updated on 05/21/2008
+
+//===================================================
+//tail cache module:
+//interface to user datapath
+//input:
+ol_data [63:0]
+ol_ctrl [7:0]
+ol_wr
+
+//output:
+tc_rdy
+
+//interface to head cache arbiter and head cache
+//input:
+hca_tc_queue_num [2:0]
+hca_tc_queue_rd
+
+//output:
+tc_hc_data_ctrl [143:0]
+tc_hc_wr
+
+//interface to tail cache arbiter and DRAM controller
+//input:
+tca_queue_num [2:0]
+tca_queue_rd
+
+//output:
+tc_dram_data_ctrl [143:0]
+tc_dram_wr
+
+//status signals to tail cache arbiter and head cache arbiter
+//output:
+//max value=32. one word is 64-bit data and 8-bit ctrl info
+tc_que_occupy_word_cnt_0, [5:0]
+tc_que_occupy_word_cnt_1, [5:0]
+...
+tc_que_occupy_word_cnt_7, [5:0]
+//===================================================
+
+
+
+
+
+
+//===================================================
+//tail cache arbiter module:
+//interface to tail cache
+//input:
+tc_que_occupy_word_cnt_0,
+...
+tc_que_occupy_word_cnt_7,
+
+//output:
+tca_queue_num [2:0]
+tca_queue_rd
+
+//interface to DRAM controller
+//input:
+dram_que_occupy_word_cnt_0,
+......
+dram_que_occupy_word_cnt_7,
+//===================================================
+
+
+
+
+
+//===================================================
+//head cache module
+//interface to MAC TX fifo
+//input:
+hc_out_rdy_0
+
+//output:
+hc_out_data_0 [63:0]
+hc_out_ctrl_0 [7:0]
+hc_out_wr_0
+
+//repeat above for queues 1~7
+
+//interface to tail cache
+//input:
+tc_hc_data [63:0]
+tc_hc_ctrl [7:0]
+tc_hc_wr
+
+//interface to DRAM controller
+//input:
+dram_data [63:0]
+dram_ctrl [7:0]
+dram_wr
+
+//interface to head cache arbiter
+//input:
+hca_queue_vld
+hca_queue_num [2:0]
+hca_feeder_src //0: from DRAM; 1: from tail cache x
+
+//output:
+hc_que_occupy_word_cnt_0, [5:0] //max value=32. one word is 64-bit data and 8-bit ctrl info
+......
+hc_que_occupy_word_cnt_7, [5:0] //max value=32. one word is 64-bit data and 8-bit ctrl info
+//===================================================
+
+
+
+
+
+//===================================================
+//head cache arbiter module
+//interface to head cache
+//input:
+hc_que_occupy_word_cnt_0, [5:0] //max value=32. one word is 64-bit data and 8-bit ctrl info
+......
+hc_que_occupy_word_cnt_7, [5:0] //max value=32. one word is 64-bit data and 8-bit ctrl info
+
+//interface to DRAM controller
+//input:
+dram_que_occupy_word_cnt_0,
+.....
+dram_que_occupy_word_cnt_7,
+
+//output:
+hca_dram_queue_num [2:0]
+hca_dram_queue_rd
+
+//interface to tail cache
+//input:
+tc_que_occupy_word_cnt_0, [5:0] //max value=32. one word is 64-bit data and 8-bit ctrl info
+.....
+tc_que_occupy_word_cnt_7, [5:0] //max value=32. one word is 64-bit data and 8-bit ctrl info
+
+//output:
+hca_tc_queue_num [2:0]
+hca_tc_queue_rd
+
+//interface to head cache
+//output:
+hca_queue_vld
+hca_feeder_src //0: from DRAM; 1: from tail cache
+//===================================================
+
+//===================================================
+//DRAM controller module
+//interface to tail cache
+//input:
+tca_queue_num [2:0]
+tc_dram_data_ctrl [143:0]
+tc_dram_wr
+
+//interface to head cache arbiter and head cache
+//input:
+hca_dram_queue_num [2:0]
+hca_dram_queue_rd
+
+//output:
+dram_data_ctrl [143:0]
+dram_wr
+
+//status signals to head cache arbiter and tail cache arbiter
+//output:
+dram_que_occupy_blk_cnt_0,
+.....
+dram_que_occupy_blk_cnt_7
+//===================================================
+
+
+
+
+

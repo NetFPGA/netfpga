@@ -1,0 +1,6 @@
+nf2/reference_core
+io/mdio
+cpci_bus
+dma
+ddr2_controller
+utils

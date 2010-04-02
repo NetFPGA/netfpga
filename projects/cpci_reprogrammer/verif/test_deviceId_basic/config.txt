@@ -1,0 +1,2 @@
+test_desc = Device ID module test
+finish = 60000

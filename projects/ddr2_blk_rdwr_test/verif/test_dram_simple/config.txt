@@ -1,0 +1,4 @@
+test_desc = NF2.1 DDR2 block read/write self-test
+finish = 500000
+extra_files = testbench_inc
+

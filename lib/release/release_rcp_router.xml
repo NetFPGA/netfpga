@@ -1,0 +1,24 @@
+<build>
+	<base name="LICENSE" />
+	<base name="bitfiles" />
+
+	<release name="rcp_router" version="1.0">
+		<project name="rcp_router" project_verilog_only="1"/>
+
+		<!-- Exclude all modules from Base Package -->
+		<exclude name="cpci" />
+		<exclude name="cpci_reprogrammer" />
+		<exclude name="selftest" />
+		<exclude name="driver" />
+		<exclude name="reference_nic" />
+		<exclude name="reference_switch" />
+		<exclude name="reference_router" />
+		<exclude name="dram_queue_test" />
+		<exclude name="router_buffer_sizing" />
+		<exclude name="scone" />
+		<exclude name="gui_scone" />
+		<exclude name="router_kit" />
+		<exclude name="dram_router" />
+
+	</release>
+</build>

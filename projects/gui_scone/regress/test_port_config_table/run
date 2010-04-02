@@ -1,0 +1,67 @@
+#!/bin/sh
+# Author:         Neda Beheshti
+# Date:           Nov 1, 2007
+# Last Update:    Nov 7, 2007
+# Comments:       All entries in the Port Config table are set automatically. The registers are then checked for
+#                 correct update.
+
+#---------------------------------------------------
+# File Names
+#---------------------------------------------------
+reg_fileName="reg_test.txt"
+jar_file="$NF_ROOT/lib/java/gui/router_gui.jar"
+regdump_dir="$NF_ROOT/lib/C/router"
+libdir="$NF_ROOT/lib/java/gui/lib"
+
+if [ ! -x $regdump_dir/regdump ]; then
+        echo " Error! file $regdump_dir/regdump does not exit..."
+        exit 1
+fi
+
+if ! java -Djna.library.path=$libdir -classpath $jar_file:$libdir/*:. PortConfigTest; then
+	exit 1
+fi;
+
+$regdump_dir/regdump | grep "ROUTER_OP_LUT_MAC" | awk '{print $2}' > $reg_fileName;
+
+#rm regdump
+
+mac_add[0]=a0:b0:c0:d0:e0:f0
+mac_add[1]=a1:b1:c1:d1:e1:f1
+mac_add[2]=a2:b2:c2:d2:e2:f2
+mac_add[3]=a3:b3:c3:d3:e3:f3
+
+exec < $reg_fileName;
+
+read add_FromReg[0]
+if [ "${mac_add[0]}" != "${add_FromReg[0]}" ]
+then
+           echo "ERROR! MAC address table not updated correctly at entry 0\n"
+           exit 1
+fi
+
+read add_FromReg[1]
+if [ "${mac_add[1]}" != "${add_FromReg[1]}" ]
+then
+           echo "ERROR! MAC address table not updated correctly at entry 1\n"
+           exit 1
+fi
+
+read add_FromReg[2]
+if [ "${mac_add[2]}" != "${add_FromReg[2]}" ]
+then
+           echo "ERROR! MAC address table not updated correctly at entry 2\n"
+           exit 1
+fi
+
+read add_FromReg[3]
+if [ "${mac_add[3]}" != "${add_FromReg[3]}" ]
+then
+           echo "ERROR! MAC address table not updated correctly at entry 3\n"
+           exit 1
+fi
+
+echo "Test passed..."
+exit 0
+
+

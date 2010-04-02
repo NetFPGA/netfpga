@@ -1,0 +1,25 @@
+# To use the tools for the NetFPGA2 project, you should source this file.
+# Add the following to your ~/.cshrc file AFTER you set the NF_ROOT variable.
+#   source ${NF_ROOT}/bin/nf2_cshrc
+
+# We really need NF_ROOT to be set....
+if (! $?NF_ROOT) then
+   echo "ERROR: the variable NF_ROOT is not set."
+   echo "       Please set the variable NF_ROOT to the root directory of your"
+   echo "       NetFPGA installation and then re-run this script."
+   echo "\n       For example: setenv NF_ROOT /usr/share/netfpga"
+   exit 1
+endif
+
+# Project scripts, etc.
+setenv PATH "${NF_ROOT}/bin:${PATH}"
+
+
+# Many of the NetFPGA scripts are Perl scripts, and need certain Perl libraries.
+# So here we set up the Perl 5 library variable to include our libraries.
+
+if (! $?PERL5LIB) then
+	setenv PERL5LIB
+endif
+setenv PERL5LIB "${NF_DESIGN_DIR}/verif/src/:${NF_DESIGN_DIR}/lib/Perl5:${NF_ROOT}/lib/Perl5:${PERL5LIB}"
+

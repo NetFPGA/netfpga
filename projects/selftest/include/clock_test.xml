@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>clock_test</nf:name>
+	<nf:prefix>clock_test</nf:prefix>
+	<nf:location>core</nf:location>
+	<nf:description>Test the clock by measuring clock ticks</nf:description>
+	<nf:blocksize>256k</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+		  <nf:name>ticks</nf:name>
+			<nf:description>Number of clock ticks counted</nf:description>
+			<nf:type>generic_hardware32</nf:type>
+		</nf:register>
+	</nf:registers>
+	<nf:constants>
+	</nf:constants>
+	<nf:types>
+	</nf:types>
+</nf:module>

@@ -1,0 +1,9 @@
+#!/usr/bin/perl
+
+use Getopt::Long;
+use NF::TestLib;
+
+`/sbin/ifconfig nf2c0 up`;
+`/sbin/ifconfig nf2c1 up`;
+`/sbin/ifconfig nf2c2 up`;
+`/sbin/ifconfig nf2c3 up`;

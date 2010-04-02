@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>drop_nth_pkt</nf:name>
+	<nf:prefix>drop_nth</nf:prefix>
+	<nf:location>udp</nf:location>
+	<nf:description>Drop Nth Packet Registers</nf:description>
+	<nf:blocksize>32</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+			<nf:name>pkt_en</nf:name>
+			<nf:description>Module enable</nf:description>
+			<nf:type>generic_software32</nf:type>
+	  	</nf:register>
+		<nf:register>
+			<nf:name>pkt</nf:name>
+			<nf:description>Which packet to drop</nf:description>
+			<nf:type>generic_software32</nf:type>
+	  	</nf:register>
+	</nf:registers>
+	<nf:constants>
+	</nf:constants>
+	<nf:types>
+	</nf:types>
+</nf:module>

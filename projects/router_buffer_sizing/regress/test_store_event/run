@@ -1,0 +1,69 @@
+#!/usr/bin/perl
+# Author:         Neda Beheshti
+# Date:           Nov 1, 2007
+# Last Update:    Nov 7, 2007
+# Comments:       Event Counter Test
+
+#use File::Find;
+
+use Getopt::Long;
+use NF::RegressLib;
+
+# Process command line options
+unless ( GetOptions (
+                "map=s" => \$mapFile
+          )
+          and ($help eq '')
+        ) { usage(); exit 1 }
+
+$args = '';
+
+if ( defined($mapFile) ) {
+  $args .= "--map $mapFile ";
+}
+
+my $pid;
+if ( !( $pid = fork ) ) {
+        # Run Parser from this process
+	close(STDOUT);
+	open(STDOUT, "> store1.txt");
+        exec "../../sw/rcv_evts -v";
+        die "Failed to parser: $!";
+} else {
+
+       sleep 2;
+       system "./send_pkt $args";
+       sleep 2;
+
+       #kill the Parser
+       kill 9, $pid;
+       sleep 2;
+
+       `grep \"Store  Event     : Q: 2\" store1.txt > store2.txt`;
+
+       my $num_lines = 0;
+
+       open (FILE, "< store2.txt") or die "$!";
+
+       while ( <FILE> ) {
+       $num_lines++;
+       }
+
+       `rm store1.txt`;
+       'rm store2.txt';
+
+if ($num_lines==1000) {
+  print "SUCCESS!\n";
+        exit 0;
+}
+else {
+  print "FAIL: 1000 packets sent, $num_lines packets recorded\n";
+        exit 1;
+}
+
+
+};
+
+
+
+

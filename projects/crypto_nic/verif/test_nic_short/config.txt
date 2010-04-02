@@ -1,0 +1,2 @@
+test_desc = Simple NIC test
+finish = 20000

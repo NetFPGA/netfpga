@@ -1,0 +1,46 @@
+#!/usr/bin/python
+# Author: David Erickson
+# Date: 10/31/07
+
+import netfpga;
+import os;
+import signal;
+import sys;
+import time;
+
+# Move the working directory to the scone dir
+os.chdir("../../sw");
+# Build the full path to the scone executable
+scone = os.getcwd() + "/scone";
+
+# Get a dictionary of the available NETFPGA registers
+reg_dict = netfpga.parseRegisterDefines(["../../reference_router/lib/C/reg_defines_reference_router.h", "../../../lib/C/common/nf2.h"]);
+
+# Reset the NETFPGA Hardware
+netfpga.writeReg(reg_dict["CPCI_REG_CTRL"], 0x00010100);
+time.sleep(1);
+
+# Start SCONE
+pid = os.spawnvp(os.P_NOWAIT, scone, [scone, '-r', 'rtable.netfpga']);
+time.sleep(1);
+
+# List of expected addresses
+# 192.168.0.2, 192.168.1.2, 192.168.2.2, 192.168.3.2, 224.0.0.5
+expectedAddrs = ["0xC0A80002L", "0xC0A80102L", "0xC0A80202L", "0xC0A80302L", "0xE0000005L"];
+
+# Check IP Filter 0
+for i in range(32):
+	netfpga.writeReg(reg_dict["ROUTER_OP_LUT_DST_IP_FILTER_TABLE_RD_ADDR_REG"], i);
+	val = netfpga.readReg(reg_dict["ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP_REG"]);
+	hexVal = hex(val);
+	if (hexVal in expectedAddrs):
+		expectedAddrs.remove(hexVal);
+
+# Kill SCONE
+os.kill(pid, signal.SIGKILL);
+
+if (len(expectedAddrs) > 0):
+	print "Failed to set the following ip filters: ",;
+	for addr in expectedAddrs:
+		print addr,;
+	sys.exit(1);

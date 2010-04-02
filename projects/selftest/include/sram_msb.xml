@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>sram_msb</nf:name>
+	<nf:prefix>sram_msb</nf:prefix>
+	<nf:location>core</nf:location>
+	<nf:description>SRAM most-significant bits registers</nf:description>
+	<nf:blocksize>256k</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+		  <nf:name>sram1_rd</nf:name>
+			<nf:description>MSBs read from SRAM 1</nf:description>
+			<nf:type>generic_software32</nf:type>
+		</nf:register>
+		<nf:register>
+		  <nf:name>sram1_wr</nf:name>
+			<nf:description>MSBs to write to SRAM 1</nf:description>
+			<nf:type>generic_hardware32</nf:type>
+		</nf:register>
+		<nf:register>
+		  <nf:name>sram2_rd</nf:name>
+			<nf:description>MSBs read from SRAM 2</nf:description>
+			<nf:type>generic_software32</nf:type>
+		</nf:register>
+		<nf:register>
+		  <nf:name>sram2_wr</nf:name>
+			<nf:description>MSBs to write to SRAM 2</nf:description>
+			<nf:type>generic_hardware32</nf:type>
+		</nf:register>
+	</nf:registers>
+	<nf:constants>
+	</nf:constants>
+	<nf:types>
+	</nf:types>
+</nf:module>

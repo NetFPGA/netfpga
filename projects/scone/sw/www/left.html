@@ -1,0 +1,49 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="main.css">
+		</link>
+    <SCRIPT LANGUAGE="JavaScript" SRC="prototype.js"/>
+    <SCRIPT LANGUAGE="JavaScript" SRC="our_router.js"/>
+	</head>
+	<body>
+		<div id="left_wrapper">
+			<h4>Software</h4>
+			<ul>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20ip%20interface', false);">interfaces</a> <a href="#" onclick="loadURL('command.html?command=show%20ip%20interface', true);"><img src="refresh.png" border="0"/></a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20ip%20route', false);">route table</a> <a href="#" onclick="loadURL('command.html?command=show%20ip%20route', true);"><img src="refresh.png" border="0"/></a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=nuke%20arp', false);">nuke arp cache</a></li>
+			</ul>
+			<h4>Hardware</h4>
+			<ul>
+				<li><a href="#" onclick="loadURL('command.html?command=hw%20info', false);">info</a> <a href="#" onclick="loadURL('command.html?command=hw%20info', true);"><img src="refresh.png" border="0"/></a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20hw%20arp', false);">arp cache</a> <a href="#" onclick="loadURL('command.html?command=show%20hw%20arp', true);"><img src="refresh.png" border="0"/></a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20hw%20rtable', false);">route table</a> <a href="#" onclick="loadURL('command.html?command=show%20hw%20rtable', true);"><img src="refresh.png" border="0"/></a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20hw%20iface', false);">interfaces</a> <a href="#" onclick="loadURL('command.html?command=show%20hw%20iface', true);"><img src="refresh.png" border="0"/></a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=hw%20pckts%20fwd', false);">packets forwarded</a> <a href="#" onclick="loadURL('command.html?command=hw%20pckts%20fwd', true);"><img src="refresh.png" border="0"/></a></li>
+			</ul>
+			<h4>PWOSPF</h4>
+			<ul>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20pwospf%20info', false);">info</a> <a href="#" onclick="loadURL('command.html?command=show%20pwospf%20info', true);"><img src="refresh.png" border="0"/></a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20pwospf%20iface', false);">interfaces</a> <a href="#" onclick="loadURL('command.html?command=show%20pwospf%20iface', true);"><img src="refresh.png" border="0"/></a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20pwospf%20router', false);">routers</a> <a href="#" onclick="loadURL('command.html?command=show%20pwospf%20router', true);"><img src="refresh.png" border="0"/></a></li>
+			</ul>
+			<!--
+			<h4>NAT</h4>
+			<ul>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20nat%20table', false);">table</a> <a href="#" onclick="loadURL('command.html?command=show%20nat%20table', true);"><img src="refresh.png" border="0"/></a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20hw%20nat%20table', false);">hw table</a> <a href="#" onclick="loadURL('command.html?command=show%20hw%20nat%20table', true);"><img src="refresh.png" border="0"/></a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=nat%20reset', false);">clear table</a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=nat%20set%20off', false);">disable</a></li>
+			</ul>
+			-->
+			<h4>VNS</h4>
+			<ul>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20vns%20user', false);">user</a> <a href="#" onclick="loadURL('command.html?command=show%20vns%20lhost', false);">lhost</a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20vns%20vhost', false);">vhost</a> <a href="#" onclick="loadURL('command.html?command=show%20vns%20server', false);">server</a></li>
+				<li><a href="#" onclick="loadURL('command.html?command=show%20vns%20topology', false);">topology</a></li>
+			</ul>
+			<br/>
+			<a href="#" onclick="loadURL('list.html', false);">Command List</a><br/>
+		</div>
+	</body>
+</html>

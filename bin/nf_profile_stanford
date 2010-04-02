@@ -1,0 +1,48 @@
+# Set up the tools -- I don't know if this is the best place but we
+# can move it later
+
+############ XILINX
+XILINX_VER="10.1"
+if [ -r ${XILINX_ROOT}/ise${XILINX_VER}/settings.sh ] ; then
+	source ${XILINX_ROOT}/ise${XILINX_VER}/settings.sh
+elif [ -r ${XILINX_ROOT}/ise${XILINX_VER}/ISE/settings32.sh ] ; then
+	source ${XILINX_ROOT}/ise${XILINX_VER}/ISE/settings32.sh
+fi
+XILINX_EDK_VER="10.1i"
+if [ -r ${XILINX_ROOT}/EDK${XILINX_EDK_VER}/setup.sh ] ; then
+	source ${XILINX_ROOT}/EDK${XILINX_EDK_VER}/setup.sh
+fi
+export XILINXD_LICENSE_FILE=7193@cadlic0.stanford.edu
+
+## enable SWIFT and SMARTMODEL
+export LMC_HOME=${XILINX_ROOT}/ise${XILINX_VER}/smartmodel/lin/installed_lin
+export VCS_SWIFT_NOTES=1
+export LD_LIBRARY_PATH=${LMC_HOME}/lib/linux.lib:${LD_LIBRARY_PATH}
+
+############ ChipScope
+if [ -d ${XILINX_ROOT}/chipscope9.1i ] ; then
+	export CHIPSCOPE=${XILINX_ROOT}/chipscope9.1i
+	export PATH="${PATH}:${CHIPSCOPE}/bin/lin"
+fi
+
+
+############ MODELSIM  (MENTOR)
+MODELSIM_VER="SE_6.3F"
+if [ "$MODELSIMDIR" = "" ] ; then
+	MODELSIMDIR="/cad/mentor/ModelSim/$MODELSIM_VER/modeltech"
+fi
+
+if [ -x ${MODELSIMDIR}/bin/vsim ] ; then
+	export PATH="${MODELSIMDIR}/bin:${PATH}"
+	export LM_LICENSE_FILE="1717@cadlic0.stanford.edu:${LM_LICENSE_FILE}"
+	export MODEL_TECH="${MODELSIMDIR}/bin"
+
+	if [ ! -r "${NF_ROOT}/modelsim.ini" ] ; then
+		if [ -r "${XILINX}/modelsim.ini" ] ; then
+			cp "${XILINX}/modelsim.ini" "${NF_ROOT}/modelsim.ini"
+			export MODELSIM="${NF_ROOT}/modelsim.ini"
+		fi
+	else
+		export MODELSIM="${NF_ROOT}/modelsim.ini"
+	fi
+fi

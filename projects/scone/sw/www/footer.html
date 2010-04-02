@@ -1,0 +1,18 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="main.css">
+		</link>
+    <SCRIPT LANGUAGE="JavaScript" SRC="prototype.js"/>
+    <SCRIPT LANGUAGE="JavaScript" SRC="our_router.js"/>
+	</head>
+	<body>
+		<div id="footer_wrapper">
+			<div id="footer">
+				<form id="command_line" action="command.html" method="get" onSubmit="commandSubmit(); return false;">
+					<input type="text" class="command_input" name="command" maxlength="255" size="70"/>
+					<input type="button" value="Send Command" onclick="commandSubmit();"/>
+				</form>
+			</div>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,2 @@
+test_desc = NF 2.1 packet DMA transfer (TX) test
+finish = 85000

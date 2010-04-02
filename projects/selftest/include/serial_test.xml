@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>serial_test</nf:name>
+	<nf:prefix>serial_test</nf:prefix>
+	<nf:location>core</nf:location>
+	<nf:description>Serial test registers for Selftest</nf:description>
+	<nf:blocksize>256k</nf:blocksize>
+	<nf:registers>
+		<nf:register>
+			<nf:name>ctrl</nf:name>
+			<nf:description>Global control for serial interfaces</nf:description>
+			<nf:type>serial_test_glbl_ctrl</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>status</nf:name>
+			<nf:description>Global status for serial interfaces</nf:description>
+			<nf:type>serial_test_glbl_status</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>ctrl_0</nf:name>
+			<nf:description>Control for serial interface 0</nf:description>
+			<nf:type>serial_test_iface_ctrl</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>status_0</nf:name>
+			<nf:description>Status for serial interface 0</nf:description>
+			<nf:type>serial_test_iface_status</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_frames_sent_0</nf:name>
+			<nf:description>Number of frames sent from serial interface 0</nf:description>
+			<nf:type>serial_counter</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_frames_rcvd_0</nf:name>
+			<nf:description>Number of frames received by serial interface 0</nf:description>
+			<nf:type>serial_counter</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>ctrl_1</nf:name>
+			<nf:description>Control for serial interface 1</nf:description>
+			<nf:type>serial_test_iface_ctrl</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>status_1</nf:name>
+			<nf:description>Status for serial interface 1</nf:description>
+			<nf:type>serial_test_iface_status</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_frames_sent_1</nf:name>
+			<nf:description>Number of frames sent from serial interface 1</nf:description>
+			<nf:type>serial_counter</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>num_frames_rcvd_1</nf:name>
+			<nf:description>Number of frames received by serial interface 1</nf:description>
+			<nf:type>serial_counter</nf:type>
+		</nf:register>
+	</nf:registers>
+	<nf:constants>
+		<nf:constant>
+			<nf:name>error_count_mask</nf:name>
+			<nf:description>Mask to select only the error count (after shifting)</nf:description>
+			<nf:value>0xffff</nf:value>
+		</nf:constant>
+	</nf:constants>
+	<nf:types>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>serial_test_glbl_ctrl</nf:name>
+			<nf:description>Global serial test control</nf:description>
+			<nf:width>3</nf:width>
+			<nf:bitmask>
+				<nf:name>restart</nf:name>
+				<nf:description>Restart the test</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>nonstop</nf:name>
+				<nf:description>Run non-stop</nf:description>
+				<nf:pos>1</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>serial_test_iface_ctrl</nf:name>
+			<nf:description>Per-interface serial test control</nf:description>
+			<nf:width>4</nf:width>
+			<nf:bitmask>
+				<nf:name>reset</nf:name>
+				<nf:description>Reset the interface</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>loopback</nf:name>
+				<nf:description>Loopback control</nf:description>
+				<nf:pos_lo>2</nf:pos_lo>
+				<nf:pos_hi>3</nf:pos_hi>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>serial_test_glbl_status</nf:name>
+			<nf:description>Global serial test status</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>successful</nf:name>
+				<nf:description>Test completed successfully</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>done</nf:name>
+				<nf:description>Test completed</nf:description>
+				<nf:pos>1</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>running</nf:name>
+				<nf:description>Test is currently running</nf:description>
+				<nf:pos>2</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>count</nf:name>
+				<nf:description>Test iterations completed (divided by 8)</nf:description>
+				<nf:pos_lo>3</nf:pos_lo>
+				<nf:pos_hi>31</nf:pos_hi>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>serial_test_iface_status</nf:name>
+			<nf:description>Per-interface serial test status</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>lane_up</nf:name>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>channel_up</nf:name>
+				<nf:pos>1</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>hard_error</nf:name>
+				<nf:description>Seen a hard error</nf:description>
+				<nf:pos>2</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>soft_error</nf:name>
+				<nf:description>Seen a soft error</nf:description>
+				<nf:pos>3</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>frame_error</nf:name>
+				<nf:description>Seen a frame error</nf:description>
+				<nf:pos>4</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>error_count</nf:name>
+				<nf:description>Count of errors</nf:description>
+				<nf:pos_lo>8</nf:pos_lo>
+				<nf:pos_hi>23</nf:pos_hi>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>serial_counter</nf:name>
+			<nf:description>64-bit counter</nf:description>
+			<nf:width>64</nf:width>
+		</nf:type>
+	</nf:types>
+</nf:module>

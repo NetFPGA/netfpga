@@ -1,0 +1,37 @@
+File: README
+Date: Tue Feb 03 15:57:46 PST 2004
+Last Modified: Wed Apr 04 06:18:07 PDT 2007
+Author: Martin Casado
+
+This directory contains the code base for developing a functional
+internet router that supports TCP and user level programs.
+
+Decsription of Files:
+
+ - sr_main.c :  The entry point to the full system.  This starts the
+                lower level routing functionality in a seperate thread
+                and then idles in a sleep(..) loop.  'User level' network
+                code that use the standard bsd sockets can be run from main,
+                and if linked correctly will use the sr network underlayer.
+
+ - sr_base.c :  Entry point to the full low level networking code.  sr_base
+                is responsible for housing the "global" instance of the
+                router, starting the transport subsystem, and managing the
+                connection to the VNS.
+
+ - sr_integration.c : Contains all the methods which need to be
+                      extended to support a full running router.  This
+                      includes callback methods for each packet, methods
+                      to send packets, methods which pass in hardware
+                      information etc.
+
+ - sr_vns.c  :  handles communication with the VNS server
+
+ - sr_dumper.c : Methods supporting writing packets in pcap format
+
+ - sr_lwtcp_glue.c : compatibility methods for integrating with lwip
+
+ - sr_cpu_extension_nf2.c : Contains code for interfacing with the hardware.
+                            This file contains two methods that have to be
+                            completed by the students and should be extended to
+                            add support for register reads/writes.

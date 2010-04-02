@@ -1,0 +1,2 @@
+test_learning_sw/run.pl
+test_simple_broadcast/run.pl

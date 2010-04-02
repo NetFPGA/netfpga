@@ -1,0 +1,278 @@
+#!/usr/bin/perl -w
+
+use strict;
+use NF::Base "projects/reference_router/lib/Perl5";
+use NF::RegressLib;
+use NF::PacketLib;
+use RegressRouterLib;
+
+use reg_defines_dram_router;
+
+use constant NUM_TBL_ENTRIES => 32;
+
+my @interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2");
+nftest_init(\@ARGV,\@interfaces,);
+nftest_start(\@interfaces,);
+
+# Reset the NetFPGA
+nftest_fpga_reset('nf2c0');
+`sleep 1`;
+
+my $routerMAC0 = "00:ca:fe:00:00:01";
+my $routerMAC1 = "00:ca:fe:00:00:02";
+my $routerMAC2 = "00:ca:fe:00:00:03";
+my $routerMAC3 = "00:ca:fe:00:00:04";
+
+my $routerIP0 = "192.168.0.40";
+my $routerIP1 = "192.168.1.40";
+my $routerIP2 = "192.168.2.40";
+my $routerIP3 = "192.168.3.40";
+
+my $dstIP0 = "192.168.0.50";
+my $dstIP1 = "192.168.1.50";
+my $dstIP2 = "192.168.2.50";
+my $dstIP3 = "192.168.3.50";
+
+my $dstMac0 = "aa:bb:cc:dd:ee:01";
+my $dstMac1 = "aa:bb:cc:dd:ee:02";
+my $dstMac2 = "aa:bb:cc:dd:ee:03";
+my $dstMac3 = "aa:bb:cc:dd:ee:04";
+
+my $ALLSPFRouters = "224.0.0.5";
+
+# clear LPM table
+for (my $i = 0; $i < NUM_TBL_ENTRIES; $i++)
+{
+        nftest_invalidate_LPM_table_entry('nf2c0', $i);
+}
+
+# clear ARP table
+for (my $i = 0; $i < NUM_TBL_ENTRIES; $i++)
+{
+        nftest_invalidate_ARP_table_entry('nf2c0', $i);
+}
+
+######### You should skip this section for tests with router SCONE
+# Write the mac and IP addresses doesn't matter which of the nf2c0..3 you write to.
+nftest_add_dst_ip_filter_entry ('nf2c0', 0, $routerIP0);
+nftest_add_dst_ip_filter_entry ('nf2c0', 1, $routerIP1);
+nftest_add_dst_ip_filter_entry ('nf2c0', 2, $routerIP2);
+nftest_add_dst_ip_filter_entry ('nf2c0', 3, $routerIP3);
+nftest_add_dst_ip_filter_entry ('nf2c0', 4, $ALLSPFRouters);
+
+# For these it does matter which interface you write to
+nftest_set_router_MAC ('nf2c0', $routerMAC0);
+nftest_set_router_MAC ('nf2c1', $routerMAC1);
+nftest_set_router_MAC ('nf2c2', $routerMAC2);
+nftest_set_router_MAC ('nf2c3', $routerMAC3);
+
+# PHY in loop back
+nftest_phy_loopback('nf2c2');
+nftest_phy_loopback('nf2c3');
+
+`sleep 1`;
+
+# set the oq sram boundaries
+nftest_regwrite("nf2c0", OQ_QUEUE_0_ADDR_HI_REG(), 0x1); #2k * 2(DRAM) + 2k (head cache) + 2k (tail cache) = 8k
+nftest_regwrite("nf2c0", OQ_QUEUE_0_ADDR_LO_REG(), 0x0);
+nftest_regwrite("nf2c0", OQ_QUEUE_0_CTRL_REG(), (1<<OQ_INITIALIZE_OQ_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_0_CTRL_REG(), (0<<OQ_INITIALIZE_OQ_BIT_NUM()));
+
+nftest_regwrite("nf2c0", OQ_QUEUE_1_ADDR_HI_REG(), 0x3);
+nftest_regwrite("nf2c0", OQ_QUEUE_1_ADDR_LO_REG(), 0x2);
+nftest_regwrite("nf2c0", OQ_QUEUE_1_CTRL_REG(), (1<<OQ_INITIALIZE_OQ_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_1_CTRL_REG(), (0<<OQ_INITIALIZE_OQ_BIT_NUM()));
+
+nftest_regwrite("nf2c0", OQ_QUEUE_2_ADDR_HI_REG(), 0x5);
+nftest_regwrite("nf2c0", OQ_QUEUE_2_ADDR_LO_REG(), 0x4);
+nftest_regwrite("nf2c0", OQ_QUEUE_2_CTRL_REG(), (1<<OQ_INITIALIZE_OQ_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_2_CTRL_REG(), (0<<OQ_INITIALIZE_OQ_BIT_NUM()));
+
+nftest_regwrite("nf2c0", OQ_QUEUE_3_ADDR_HI_REG(), 0x7);
+nftest_regwrite("nf2c0", OQ_QUEUE_3_ADDR_LO_REG(), 0x6);
+nftest_regwrite("nf2c0", OQ_QUEUE_3_CTRL_REG(), (1<<OQ_INITIALIZE_OQ_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_3_CTRL_REG(), (0<<OQ_INITIALIZE_OQ_BIT_NUM()));
+
+nftest_regwrite("nf2c0", OQ_QUEUE_4_ADDR_HI_REG(), 0x9);
+nftest_regwrite("nf2c0", OQ_QUEUE_4_ADDR_LO_REG(), 0x8);
+nftest_regwrite("nf2c0", OQ_QUEUE_4_CTRL_REG(), (1<<OQ_INITIALIZE_OQ_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_4_CTRL_REG(), (0<<OQ_INITIALIZE_OQ_BIT_NUM()));
+
+nftest_regwrite("nf2c0", OQ_QUEUE_5_ADDR_HI_REG(), 0xb);
+nftest_regwrite("nf2c0", OQ_QUEUE_5_ADDR_LO_REG(), 0xa);
+nftest_regwrite("nf2c0", OQ_QUEUE_5_CTRL_REG(), (1<<OQ_INITIALIZE_OQ_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_5_CTRL_REG(), (0<<OQ_INITIALIZE_OQ_BIT_NUM()));
+
+nftest_regwrite("nf2c0", OQ_QUEUE_6_ADDR_HI_REG(), 0xd);
+nftest_regwrite("nf2c0", OQ_QUEUE_6_ADDR_LO_REG(), 0xc);
+nftest_regwrite("nf2c0", OQ_QUEUE_6_CTRL_REG(), (1<<OQ_INITIALIZE_OQ_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_6_CTRL_REG(), (0<<OQ_INITIALIZE_OQ_BIT_NUM()));
+
+nftest_regwrite("nf2c0", OQ_QUEUE_7_ADDR_HI_REG(), 0xf);
+nftest_regwrite("nf2c0", OQ_QUEUE_7_ADDR_LO_REG(), 0xe);
+nftest_regwrite("nf2c0", OQ_QUEUE_7_CTRL_REG(), (1<<OQ_INITIALIZE_OQ_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_7_CTRL_REG(), (0<<OQ_INITIALIZE_OQ_BIT_NUM()));
+
+`sleep 1`;
+
+# Enable all Output Queues. Later on some Output Queues are selectively disabled
+nftest_regwrite("nf2c0", OQ_QUEUE_0_CTRL_REG(), (0 << OQ_DISABLE_SEND_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_1_CTRL_REG(), (0 << OQ_DISABLE_SEND_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_2_CTRL_REG(), (0 << OQ_DISABLE_SEND_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_3_CTRL_REG(), (0 << OQ_DISABLE_SEND_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_4_CTRL_REG(), (0 << OQ_DISABLE_SEND_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_5_CTRL_REG(), (0 << OQ_DISABLE_SEND_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_6_CTRL_REG(), (0 << OQ_DISABLE_SEND_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_7_CTRL_REG(), (0 << OQ_DISABLE_SEND_BIT_NUM()));
+
+`sleep 1`;
+
+# set parameters
+my $DA = $routerMAC0;
+my $SA = "aa:bb:cc:dd:ee:ff";
+my $TTL = 64;
+my $DST_IP = "192.168.101.2";
+my $SRC_IP = "192.168.100.2";;
+my $nextHopMAC = "dd:55:dd:66:dd:77";
+
+# create mac header
+my $MAC_hdr = NF::Ethernet_hdr->new(DA => $DA,
+                                     SA => $SA,
+                                     Ethertype => 0x800
+                                    );
+
+#create IP header
+my $IP_hdr = NF::IP_hdr->new(ttl => $TTL,
+                              src_ip => $SRC_IP,
+                              dst_ip => $DST_IP
+                             );
+
+$IP_hdr->checksum(0);  # make sure its zero before we calculate it.
+$IP_hdr->checksum($IP_hdr->calc_checksum);
+
+my $num_precreated = 20;
+my $start_val = $MAC_hdr->length_in_bytes() + $IP_hdr->length_in_bytes()+1;
+
+# precreate (1024-8)=1016 byte sized packets
+$MAC_hdr->DA($routerMAC0);
+my @precreated0 = nftest_precreate_pkts($num_precreated,
+                                        $MAC_hdr->packed . $IP_hdr->packed, 1016, 1016);
+$MAC_hdr->DA($routerMAC1);
+my @precreated1 = nftest_precreate_pkts($num_precreated,
+                                        $MAC_hdr->packed . $IP_hdr->packed, 1016, 1016);
+$MAC_hdr->DA($routerMAC2);
+my @precreated2 = nftest_precreate_pkts($num_precreated,
+                                        $MAC_hdr->packed . $IP_hdr->packed, 1016, 1016);
+$MAC_hdr->DA($routerMAC3);
+my @precreated3 = nftest_precreate_pkts($num_precreated,
+                                        $MAC_hdr->packed . $IP_hdr->packed, 1016, 1016);
+
+my $pkt;
+
+print "Start testing MAC OQ sizes \n";
+
+print "Disabling servicing MAC output queues\n";
+nftest_regwrite("nf2c0", OQ_QUEUE_0_CTRL_REG(), (1 << OQ_DISABLE_SEND_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_2_CTRL_REG(), (1 << OQ_DISABLE_SEND_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_4_CTRL_REG(), (1 << OQ_DISABLE_SEND_BIT_NUM()));
+nftest_regwrite("nf2c0", OQ_QUEUE_6_CTRL_REG(), (1 << OQ_DISABLE_SEND_BIT_NUM()));
+
+print "Clear counter values for MAC output queues \n";
+nftest_regwrite("nf2c0", OQ_QUEUE_0_NUM_PKTS_DROPPED_REG(), 0);
+nftest_regwrite("nf2c0", OQ_QUEUE_2_NUM_PKTS_DROPPED_REG(), 0);
+nftest_regwrite("nf2c0", OQ_QUEUE_4_NUM_PKTS_DROPPED_REG(), 0);
+nftest_regwrite("nf2c0", OQ_QUEUE_6_NUM_PKTS_DROPPED_REG(), 0);
+
+nftest_regwrite("nf2c0", OQ_QUEUE_0_NUM_PKTS_REMOVED_REG(), 0);
+nftest_regwrite("nf2c0", OQ_QUEUE_2_NUM_PKTS_REMOVED_REG(), 0);
+nftest_regwrite("nf2c0", OQ_QUEUE_4_NUM_PKTS_REMOVED_REG(), 0);
+nftest_regwrite("nf2c0", OQ_QUEUE_6_NUM_PKTS_REMOVED_REG(), 0);
+
+`sleep 1`;
+
+# This is the max number of pkts that a MAC OQ can store
+my $NUM_PKTS_IN_MAC_OQ = 9; #All 8 packets can be accomodated
+
+for(my $i=0; $i<$NUM_PKTS_IN_MAC_OQ; $i++){
+  $pkt = $precreated0[int(rand($num_precreated))];
+  nftest_send('nf2c0', $pkt);
+  nftest_expect('eth1', $pkt);
+
+  $pkt = $precreated1[int(rand($num_precreated))];
+  nftest_send('nf2c1', $pkt);
+  nftest_expect('eth2', $pkt);
+
+  $pkt = $precreated2[int(rand($num_precreated))];
+  nftest_send('nf2c2', $pkt);
+  nftest_expect('nf2c2', $pkt);
+
+  $pkt = $precreated3[int(rand($num_precreated))];
+  nftest_send('nf2c3', $pkt);
+  nftest_expect('nf2c3', $pkt);
+
+}
+
+print "MAC OQs should be full. Start to drop received pkts\n";
+
+$pkt = $precreated0[int(rand($num_precreated))];
+nftest_send('nf2c0', $pkt);
+
+$pkt = $precreated1[int(rand($num_precreated))];
+nftest_send('nf2c1', $pkt);
+
+$pkt = $precreated2[int(rand($num_precreated))];
+nftest_send('nf2c2', $pkt);
+
+$pkt = $precreated3[int(rand($num_precreated))];
+nftest_send('nf2c3', $pkt);
+
+`sleep 1`;
+
+print "Verifying that the packets are stored in the output queues\n";
+nftest_regread_expect("nf2c0", OQ_QUEUE_0_NUM_PKTS_IN_Q_REG(), $NUM_PKTS_IN_MAC_OQ);
+nftest_regread_expect("nf2c0", OQ_QUEUE_2_NUM_PKTS_IN_Q_REG(), $NUM_PKTS_IN_MAC_OQ);
+nftest_regread_expect("nf2c0", OQ_QUEUE_4_NUM_PKTS_IN_Q_REG(), $NUM_PKTS_IN_MAC_OQ);
+nftest_regread_expect("nf2c0", OQ_QUEUE_6_NUM_PKTS_IN_Q_REG(), $NUM_PKTS_IN_MAC_OQ);
+
+print "Verifying dropped pkts counter\n";
+nftest_regread_expect("nf2c0", OQ_QUEUE_0_NUM_PKTS_DROPPED_REG(), 1);
+nftest_regread_expect("nf2c0", OQ_QUEUE_2_NUM_PKTS_DROPPED_REG(), 1);
+nftest_regread_expect("nf2c0", OQ_QUEUE_4_NUM_PKTS_DROPPED_REG(), 1);
+nftest_regread_expect("nf2c0", OQ_QUEUE_6_NUM_PKTS_DROPPED_REG(), 1);
+
+print "Start servicing the MAC OQ again. Packets should be sent out\n";
+nftest_regwrite("nf2c0", OQ_QUEUE_0_CTRL_REG(), 0 << OQ_DISABLE_SEND_BIT_NUM());
+nftest_regwrite("nf2c0", OQ_QUEUE_2_CTRL_REG(), 0 << OQ_DISABLE_SEND_BIT_NUM());
+nftest_regwrite("nf2c0", OQ_QUEUE_4_CTRL_REG(), 0 << OQ_DISABLE_SEND_BIT_NUM());
+nftest_regwrite("nf2c0", OQ_QUEUE_6_CTRL_REG(), 0 << OQ_DISABLE_SEND_BIT_NUM());
+
+`sleep 1`;
+
+nftest_regread_expect("nf2c0", OQ_QUEUE_0_NUM_PKTS_REMOVED_REG(), $NUM_PKTS_IN_MAC_OQ);
+nftest_regread_expect("nf2c0", OQ_QUEUE_2_NUM_PKTS_REMOVED_REG(), $NUM_PKTS_IN_MAC_OQ);
+nftest_regread_expect("nf2c0", OQ_QUEUE_4_NUM_PKTS_REMOVED_REG(), $NUM_PKTS_IN_MAC_OQ);
+nftest_regread_expect("nf2c0", OQ_QUEUE_6_NUM_PKTS_REMOVED_REG(), $NUM_PKTS_IN_MAC_OQ);
+
+print "Done testing MAC OQ sizes \n";
+print "\n";
+
+my $unmatched_hoh = nftest_finish();
+nftest_reset_phy();
+sleep 1;
+
+my $total_errors = 0;
+
+print "Checking pkt errors\n";
+$total_errors += nftest_print_errors($unmatched_hoh);
+
+my @badReads = nftest_get_badReads();
+$total_errors += (0+@badReads);
+
+if ($total_errors==0) {
+  print "Test PASSES\n";
+  exit 0;
+}
+else {
+  print "Test FAILED: $total_errors errors\n";
+  exit 1;
+}

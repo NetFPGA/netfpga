@@ -1,0 +1,25 @@
+<build>
+	<base name="LICENSE" />
+	<base name="bin/packet_generator_setup.pl" />
+	<base name="bitfiles" />
+
+	<release name="packet_generator" version="1.0.1">
+		<project name="packet_generator" />
+
+		<!-- Exclude all modules from Base Package -->
+		<exclude name="cpci" />
+		<exclude name="cpci_reprogrammer" />
+		<exclude name="selftest" />
+		<exclude name="driver" />
+		<exclude name="reference_nic" />
+		<exclude name="reference_switch" />
+		<exclude name="reference_router" />
+		<exclude name="dram_queue_test" />
+		<exclude name="router_buffer_sizing" />
+		<exclude name="scone" />
+		<exclude name="gui_scone" />
+		<exclude name="router_kit" />
+		<exclude name="dram_router" />
+
+	</release>
+</build>

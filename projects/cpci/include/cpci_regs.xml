@@ -1,0 +1,554 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:module xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+	<nf:name>cpci</nf:name>
+	<nf:prefix>cpci</nf:prefix>
+	<nf:location>cpci</nf:location>
+	<nf:description>CPCI registers</nf:description>
+	<nf:blocksize>4M</nf:blocksize>
+	<nf:registers>
+                <nf:register>
+                        <nf:name>ID</nf:name>
+                        <nf:description>Version and revision ID (Version ID: low 24 bits, Revision ID: high 8 bits)</nf:description>
+                        <nf:type>cpci_id</nf:type>
+                        <nf:addr>0x000</nf:addr>
+                </nf:register>
+                <nf:register>
+                        <nf:name>Board_ID</nf:name>
+                        <nf:description>Board ID number (set by rotary switch on board)</nf:description>
+                        <nf:type>cpci_board_id</nf:type>
+                </nf:register>
+                <nf:register>
+                        <nf:name>Ctrl</nf:name>
+                        <nf:description>Control register
+                          (Host is little-endian: bit 16,
+                           CNET reset: bit 8,
+                           Staus LED: bit 0)
+                        </nf:description>
+                        <nf:type>cpci_ctrl</nf:type>
+                </nf:register>
+                <nf:register>
+                        <nf:name>Reset</nf:name>
+                        <nf:description>Reset the board (bit 0)</nf:description>
+                        <nf:type>cpci_reset</nf:type>
+                </nf:register>
+                <nf:register>
+                        <nf:name>Error</nf:name>
+                        <nf:description>Error reporting. Defined as follows:
+                                assign error_flags = {
+                                            // 31:24
+                                            6'b0,
+                                            cnet_rd_timeout,
+                                            cnet_err,
+
+                                            // 23:16
+                                            6'b0,
+                                            prog_overflow,
+                                            prog_error,
+
+                                            // 15:8
+                                            5'b0,
+                                            dma_timeout,
+                                            dma_retry_expire,
+                                            dma_buf_overflow,
+
+                                            // 7:0
+                                            1'b0,
+                                            dma_rd_size_err,
+                                            dma_wr_size_err,
+                                            dma_rd_addr_err,
+                                            dma_wr_addr_err,
+                                            dma_rd_mac_err,
+                                            dma_wr_mac_err,
+                                            dma_fatal_err
+                                   };
+                        </nf:description>
+                        <nf:type>cpci_error</nf:type>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>Dummy</nf:name>
+                        <nf:description>Dummy register for reading/writing. Not connected to anything.</nf:description>
+                        <nf:addr>0x020</nf:addr>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>Interrupt_Mask</nf:name>
+                        <nf:description>Interrupt mask. Set bits to 1 to mask the corresponding interrupt.</nf:description>
+                        <nf:type>cpci_interrupt</nf:type>
+                        <nf:addr>0x040</nf:addr>
+                </nf:register>
+                <nf:register>
+                        <nf:name>Interrupt_Status</nf:name>
+                        <nf:description>Interrupt status. Bits defined as follows:
+                                assign new_interrupt_flags = {
+                                            dma_rd_intr,
+                                            dma_wr_intr,
+                                            phy_intr &amp; prog_done,
+                                            20'b0,
+                                            pkt_avail_intr_req &amp; prog_done,
+                                            2'b0,
+                                            cnet_err &amp; prog_done,
+                                            cnet_rd_timeout,
+                                            prog_overflow | prog_error,
+                                            dma_timeout | dma_retry_expire,
+                                            (dma_buf_overflow &amp; prog_done) |
+                                            dma_rd_size_err | dma_wr_size_err |
+                                            dma_rd_addr_err | dma_wr_addr_err |
+                                            dma_rd_mac_err | dma_wr_mac_err,
+                                            dma_fatal_err
+                                   };
+                        </nf:description>
+                        <nf:type>cpci_interrupt</nf:type>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>CNET_Clk_Sel</nf:name>
+                        <nf:description>Clock select for Virtex (1 = 125 MHz, 0 = 62.5 MHz)</nf:description>
+                        <nf:type>cpci_cnet_clk_sel</nf:type>
+                        <nf:addr>0x050</nf:addr>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>Reprog_Data</nf:name>
+                        <nf:description>Programming data to write to Virtex</nf:description>
+                        <nf:type>generic_software32</nf:type>
+                        <nf:addr>0x100</nf:addr>
+                </nf:register>
+                <nf:register>
+                        <nf:name>Reprog_Status</nf:name>
+                        <nf:description>Programming status (Bits: prog_init = 16, prog_done = 8, empty = 1, reprog = 0)</nf:description>
+                        <nf:type>cpci_reprog_status</nf:type>
+                </nf:register>
+                <nf:register>
+                        <nf:name>Reprog_Ctrl</nf:name>
+                        <nf:description>Programming control (bit 0 = reset)</nf:description>
+                        <nf:type>cpci_reprog_ctrl</nf:type>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>DMA_Addr_I</nf:name>
+                        <nf:description>DMA ingress address (relative to driver: NetFPGA-&gt;host)</nf:description>
+                        <nf:type>generic_software32</nf:type>
+                        <nf:addr>0x140</nf:addr>
+                </nf:register>
+                <nf:register>
+                        <nf:name>DMA_Addr_E</nf:name>
+                        <nf:description>DMA egress address (relative to driver: host-&gt;NetFPGA)</nf:description>
+                        <nf:type>generic_software32</nf:type>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>DMA_Size_I</nf:name>
+                        <nf:description>DMA ingress size (relative to driver: NetFPGA-&gt;host)</nf:description>
+                        <nf:type>generic_hardware32</nf:type>
+                </nf:register>
+                <nf:register>
+                        <nf:name>DMA_Size_E</nf:name>
+                        <nf:description>DMA egress size (relative to driver: host-&gt;NetFPGA)</nf:description>
+                        <nf:type>generic_software32</nf:type>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>DMA_Ctrl_I</nf:name>
+                        <nf:description>DMA ingress control (relative to driver: NetFPGA-&gt;host) Owner = bit 0 (1 = NetFPGA, 0 = host), MAC = bits 9:8</nf:description>
+                        <nf:type>cpci_dma_ctrl</nf:type>
+                </nf:register>
+                <nf:register>
+                        <nf:name>DMA_Ctrl_E</nf:name>
+                        <nf:description>DMA egress control (relative to driver: host-&gt;NetFPGA) Owner = bit 0 (1 = NetFPGA, 0 = host), MAC = bits 9:8</nf:description>
+                        <nf:type>cpci_dma_ctrl</nf:type>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>DMA_Xfer_Time</nf:name>
+                        <nf:description>Maximum time (in PCI clock cycles) allowed for a DMA transfer</nf:description>
+                        <nf:type>generic_software32</nf:type>
+                        <nf:addr>0x180</nf:addr>
+                </nf:register>
+                <nf:register>
+                        <nf:name>DMA_Retries</nf:name>
+                        <nf:description>Number of retries to allow during a DMA transfer</nf:description>
+                        <nf:type>generic_software32</nf:type>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>CNET_Read_Time</nf:name>
+                        <nf:description>Amount of time (in XXXX clock cycles) to wait for a read from the Virtex</nf:description>
+                        <nf:type>generic_software32</nf:type>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>DMA_Ingress_Pkt_Cnt</nf:name>
+                        <nf:description>Number of DMA ingress packets (relative to driver: NetFPGA-&gt;host)</nf:description>
+                        <nf:type>generic_counter32</nf:type>
+                        <nf:addr>0x400</nf:addr>
+                </nf:register>
+                <nf:register>
+                        <nf:name>DMA_Egress_Pkt_Cnt</nf:name>
+                        <nf:description>Number of DMA egress packets (relative to driver: NetFPGA-&gt;host)</nf:description>
+                        <nf:type>generic_counter32</nf:type>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>CPCI_Reg_Read_Cnt</nf:name>
+                        <nf:description>CPCI register read counter</nf:description>
+                        <nf:type>generic_counter32</nf:type>
+                </nf:register>
+                <nf:register>
+                        <nf:name>CPCI_Reg_Write_Cnt</nf:name>
+                        <nf:description>CPCI register write counter</nf:description>
+                        <nf:type>generic_counter32</nf:type>
+                </nf:register>
+
+                <nf:register>
+                        <nf:name>CNET_Reg_Read_Cnt</nf:name>
+                        <nf:description>Virtex register read counter</nf:description>
+                        <nf:type>generic_counter32</nf:type>
+                </nf:register>
+                <nf:register>
+                        <nf:name>CNET_Reg_Write_Cnt</nf:name>
+                        <nf:description>Virtex register write counter</nf:description>
+                        <nf:type>generic_counter32</nf:type>
+                </nf:register>
+
+
+                <nf:register>
+                        <nf:name>Clock_check_n_clk</nf:name>
+                        <nf:description>Clock verification: number of CPCI&lt;-&gt;Virtex clocks (62.5 MHz)</nf:description>
+                        <nf:type>generic_hardware32</nf:type>
+                        <nf:addr>0x500</nf:addr>
+                </nf:register>
+                <nf:register>
+                        <nf:name>Clock_check_p_max</nf:name>
+                        <nf:description>Clock verification: number of PCI clocks to count (33 MHz)</nf:description>
+                        <nf:type>generic_software32</nf:type>
+                </nf:register>
+                <nf:register>
+                        <nf:name>Clock_check_n_exp</nf:name>
+                        <nf:description>Clock verification: expected number of CPCI&lt;-&gt;Virtex clocks (62.5 MHz)</nf:description>
+                        <nf:type>generic_software32</nf:type>
+                </nf:register>
+                <nf:register>
+                        <nf:name>PCI_clk_cnt</nf:name>
+                        <nf:description>Clock verification: Free-running PCI clock counter</nf:description>
+                        <nf:type>generic_counter32</nf:type>
+                        <nf:addr>0x510</nf:addr>
+                </nf:register>
+                <nf:register>
+                        <nf:name>CPCI_reset_cnt</nf:name>
+                        <nf:description>Number of CPCI resets since CPCI was last programmed</nf:description>
+                        <nf:addr>0x520</nf:addr>
+                        <nf:type>generic_counter32</nf:type>
+                </nf:register>
+	</nf:registers>
+	<nf:constants>
+                <!--
+                // // Defaults for timers/counters
+                -->
+                <nf:constant>
+                  <nf:name>DMA_Xfer_Time_default</nf:name>
+                  <nf:description>Default maximum time for DMA transfers (in clock cycles)</nf:description>
+                  <nf:value>30000</nf:value>
+                  <nf:width>32</nf:width>
+                </nf:constant>
+                <nf:constant>
+                  <nf:name>DMA_Retries_default</nf:name>
+                  <nf:description>Default maximum number of retries for DMA transactions</nf:description>
+                  <nf:value>0xffff</nf:value>
+                  <nf:width>16</nf:width>
+                </nf:constant>
+                <nf:constant>
+                  <nf:name>CNET_Read_Time_default</nf:name>
+                  <nf:description>Default maximum Virtex register read time</nf:description>
+                  <nf:value>4000</nf:value>
+                  <nf:width>32</nf:width>
+                </nf:constant>
+
+                <!--
+                // These are default values for clock checker module.
+                // We time for 1/10th sec by default, so these are the
+                // number of clock ticks expected.
+                // So if you change one, then you must change the other.
+                -->
+                <nf:constant>
+                        <nf:name>P_MAX_default</nf:name>
+                        <nf:description>Number of PCI cycles in an interation</nf:description>
+                        <nf:value>3333333</nf:value>
+                </nf:constant>
+                <nf:constant>
+                        <nf:name>N_EXP_default</nf:name>
+                        <nf:description>Expected number of CPCI-Virtex clocks in the PCI period defined above</nf:description>
+                        <nf:value>6250000</nf:value>
+                </nf:constant>
+	</nf:constants>
+        <nf:types>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>cpci_id</nf:name>
+			<nf:description>CPCI ID</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>version</nf:name>
+				<nf:description>Version number (major)</nf:description>
+				<nf:pos_lo>0</nf:pos_lo>
+				<nf:pos_hi>23</nf:pos_hi>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>revision</nf:name>
+				<nf:description>Revision number (minor)</nf:description>
+				<nf:pos_lo>24</nf:pos_lo>
+				<nf:pos_hi>31</nf:pos_hi>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>cpci_board_id</nf:name>
+			<nf:description>CPCI board ID</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>jmpr</nf:name>
+                                <nf:description>State of jumper/dip switch on board</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>rotary</nf:name>
+				<nf:description>Position of rotary dial</nf:description>
+				<nf:pos_lo>8</nf:pos_lo>
+				<nf:pos_hi>11</nf:pos_hi>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>cpci_ctrl</nf:name>
+                        <nf:description>Control register</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>led</nf:name>
+                                <nf:description>LED control (1 = on)</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>cnet_reset</nf:name>
+                                <nf:description>Reset the CNET (Spartan)</nf:description>
+				<nf:pos>8</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>little_endian</nf:name>
+				<nf:description>Specify that the host is little-endian</nf:description>
+				<nf:pos>16</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>cpci_reset</nf:name>
+                        <nf:description>Reset the board</nf:description>
+			<nf:width>1</nf:width>
+			<nf:bitmask>
+				<nf:name>reset</nf:name>
+                                <nf:description>Reset the board</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>cpci_error</nf:name>
+                        <nf:description>CPCI error</nf:description>
+			<nf:width>32</nf:width>
+			<!-- 31:24 -->
+			<nf:bitmask>
+				<nf:name>cnet_rd_timeout</nf:name>
+				<nf:description>Register read from Virtex took too long</nf:description>
+				<nf:pos>25</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>cnet_err</nf:name>
+				<nf:description>Error signalled by Virtex</nf:description>
+				<nf:pos>24</nf:pos>
+			</nf:bitmask>
+
+			<!-- 23:16 -->
+			<nf:bitmask>
+				<nf:name>prog_overflow</nf:name>
+				<nf:description>Programming buffer overflow</nf:description>
+				<nf:pos>17</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>prog_error</nf:name>
+				<nf:description>Error while programming Virtex</nf:description>
+				<nf:pos>16</nf:pos>
+			</nf:bitmask>
+
+			<!-- 15:8 -->
+			<nf:bitmask>
+				<nf:name>dma_timeout</nf:name>
+				<nf:description>DMA transfer took too long -- probably corrupt transaction</nf:description>
+				<nf:pos>10</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_retry_expire</nf:name>
+				<nf:description>Too many PCI retries during DMA transaction</nf:description>
+				<nf:pos>9</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_buf_overflow</nf:name>
+				<nf:description>DMA buffer in Spartan has overflowed</nf:description>
+				<nf:pos>8</nf:pos>
+			</nf:bitmask>
+
+			<!-- 7:0 -->
+			<nf:bitmask>
+				<nf:name>dma_rd_size_err</nf:name>
+				<nf:description>Invalid DMA read size</nf:description>
+				<nf:pos>6</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_wr_size_err</nf:name>
+				<nf:description>Invalid DMA write size</nf:description>
+				<nf:pos>5</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_rd_addr_err</nf:name>
+				<nf:description>Invalid DMA read address</nf:description>
+				<nf:pos>4</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_wr_addr_err</nf:name>
+				<nf:description>Invalid DMA write address</nf:description>
+				<nf:pos>3</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_rd_mac_err</nf:name>
+				<nf:description>Invalid MAC specified for DMA read (possibly no data)</nf:description>
+				<nf:pos>2</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_wr_mac_err</nf:name>
+				<nf:description>Invalid MAC specified for DMA write (possibly no space)</nf:description>
+				<nf:pos>1</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_fatal_err</nf:name>
+                                <nf:description>DMA fatal error</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>cpci_interrupt</nf:name>
+                        <nf:description>CPCI error</nf:description>
+			<nf:width>32</nf:width>
+			<!-- 31:24 -->
+			<nf:bitmask>
+				<nf:name>dma_rd_done</nf:name>
+				<nf:description>DMA read done</nf:description>
+				<nf:pos>31</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_wr_done</nf:name>
+				<nf:description>DMA write done</nf:description>
+				<nf:pos>30</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>phy_intr</nf:name>
+				<nf:description>Interrupt received from PHY</nf:description>
+				<nf:pos>29</nf:pos>
+			</nf:bitmask>
+
+			<!-- 23:16 -->
+
+			<!-- 15:8 -->
+			<nf:bitmask>
+				<nf:name>pkt_avail</nf:name>
+				<nf:description>Packet available for DMA transfer</nf:description>
+				<nf:pos>8</nf:pos>
+			</nf:bitmask>
+
+			<!-- 7:0 -->
+			<nf:bitmask>
+				<nf:name>cnet_err</nf:name>
+				<nf:description>Error interrupt asserted by Virtex</nf:description>
+				<nf:pos>5</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>cnet_rd_timeout</nf:name>
+				<nf:description>Timeout reading a register from the Virtex</nf:description>
+				<nf:pos>4</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>prog_error</nf:name>
+				<nf:description>Virtex programming error</nf:description>
+				<nf:pos>3</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_timeout</nf:name>
+				<nf:description>DMA transfer timeout (timout or excessive retries)</nf:description>
+				<nf:pos>2</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_general</nf:name>
+				<nf:description>General DMA error (invalid value in setup up DMA xfer)</nf:description>
+				<nf:pos>1</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>dma_fatal</nf:name>
+                                <nf:description>DMA fatal error</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>cpci_cnet_clk_sel</nf:name>
+			<nf:description>CNET (Virtex) clock selection</nf:description>
+			<nf:width>1</nf:width>
+			<nf:bitmask>
+				<nf:name>clk_125</nf:name>
+                                <nf:description>Run at 125 MHz (bit set) or 62.5 MHz (bit cleared)</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>cpci_reprog_status</nf:name>
+			<nf:description>CNET (Virtex) reprogramming status</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>reprog</nf:name>
+                                <nf:description>Reprog flag (see Xilinx programming documentation)</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>empty</nf:name>
+                                <nf:description>Programming FIFO empty (1 = empty)</nf:description>
+				<nf:pos>1</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>done</nf:name>
+                                <nf:description>Programming complete</nf:description>
+				<nf:pos>8</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>init</nf:name>
+                                <nf:description>Init flag (see Xilinx programming documentation)</nf:description>
+				<nf:pos>16</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>cpci_reprog_ctrl</nf:name>
+			<nf:description>CNET (Virtex) reprogramming control</nf:description>
+			<nf:width>1</nf:width>
+			<nf:bitmask>
+				<nf:name>reset</nf:name>
+                                <nf:description>Reset the reprogramming engine</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>cpci_dma_ctrl</nf:name>
+			<nf:description>DMA control</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>nf2_is_owner</nf:name>
+                                <nf:description>NetFPGA is the owner of this DMA channel. (Do not modify DMA registers.)</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>port</nf:name>
+                                <nf:description>Port to perform DMA transfer on</nf:description>
+				<nf:pos_lo>8</nf:pos_lo>
+				<nf:pos_hi>9</nf:pos_hi>
+			</nf:bitmask>
+		</nf:type>
+	</nf:types>
+</nf:module>

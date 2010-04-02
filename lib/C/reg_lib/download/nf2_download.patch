@@ -1,0 +1,15 @@
+--- nf_download.c	2008-10-10 07:26:41.000000000 -0700
++++ nf_download.c	2008-10-10 07:36:18.000000000 -0700
+@@ -22,9 +22,9 @@
+ #include <unistd.h>
+ */
+ #include "nf_download.h"
+-#include "../common/nf2.h"
+-#include "../common/nf2util.h"
+-#include "../common/reg_defines.h"
++#include "../../common/nf2.h"
++#include "../../common/nf2util.h"
++#include "../../common/reg_defines.h"
+
+ #include <net/if.h>
+

@@ -1,0 +1,202 @@
++------------------------------------------------------------------------
+| $Id$
+|
+| Author: Jad Naous <first initial last name at stanford period edu>
+| Description: Quick intro to NetFPGA
++------------------------------------------------------------------------
+
+CONTENTS:
+1.0 Tree structure
+2.0 Getting started with design
+        2.1 Using modules
+        2.2 Adding your own code
+        2.3 Overriding library code
+        2.4 Coregen
+3.0 Environment setup
+4.0 Simulation
+5.0 Implementation
+6.0 Running the hardware
+        6.1 Kernel Driver
+        6.2 Download
+7.0 Contacts
+
++-----------------------------------------------------------------------
+| 1.0 Tree structure
++-----------------------------------------------------------------------
+
+The tree is structured as follows:
+
+NetFPGA2.1-x.y
+|
++------ bin (contains scripts for running simulations
+|            and setting up the environment)
+|
++------ lib (contains stable modules and common parts
+|       |    that are needed for simulation/synthesis/design)
+|       |
+|       +---- C (contains common software and code for reference designs)
+|       |
+|       +---- verilog (contains modules and files that can be reused for design)
+|       |
+|       +---- Makefiles (various makefiles for simulation and synthesis)
+|       |
+|       +---- Perl5 (contains common libraries to interact with
+|                    reference designs and aid in simulation)
+|
++------ projects (contains user projects including the reference designs)
+        |
+        +---- reference_nic
+        |       |
+        |       +---- src (contains all the verilog code to be used for
+        |       |          synthesis and simulation)
+        |       |
+        |       +---- synth (contains user .xco files to generate cores
+        |       |            and Makefile to implement the design)
+        |       |
+        |       +---- sw (contains all software parts for the project)
+        |       |
+        |       +---- include (contains files that define macros and other
+        |                files to be included for simulation and/or synthesis)
+        |
+        +---- reference_router (reference 4-port IPv4 router)
+        |
+        +---- CPCI2.1 (code for the Spartan device)
+
+The tree was design to enable modularity and common code sharing between the
+library and the user projects.
+
+The scripts used for synthesis and simulation should be flexible enough to
+allow the user to add her own code without changing or understanding how the
+scripts work. But this is outside the scope of this README.
+
++-----------------------------------------------------------------------
+| 2.0 Getting started with Design
++-----------------------------------------------------------------------
+The best way to learn how to use the tree is by example. If you look at
+the reference_nic project, you will notice several things:
+1- The src directory is empty: This is because the project only uses
+   library modules.
+2- The sw directory is empty: This is because the software for the
+   switch is also in the library
+3- There is one file under include: lib_modules.txt. This file specifies the
+   library modules to use.
+
+The best way to start a design is by copying either the reference_switch or the
+reference_router directories and adding/modifying files in the new directory.
+
+* 2.1 USING LIBRARY MODULES
+
+The lib_modules.txt file specifies a list of modules to use from the library.
+The modules are specified relative to the NetFPGA2.1-x.y/lib/verilog directory.
+You can choose to use different modules simply by changing the module path in
+the lib_modules.txt file.
+
+* 2.2 ADDING YOUR OWN CODE
+
+To add your own code, write the verilog files and put them in the src directory.
+You can also choose to partition them into separate directories under src. Note
+that only one level of hierarchy is usable.
+
+You can choose to use some, all, or even none of the original library modules.
+You can copy the library code and modify it in your project directory. Take out
+the library modules you are not using from the lib_modules.txt file.
+
+* 2.3 OVERRIDING LIBRARY CODE
+
+You might decide that you only need to change one file of a library module. You
+don't need to copy all the sources and remove the library module from
+lib_modules.txt. Simply copy the file you wish to modify to your project's src
+directory and modify it there.
+
+* 2.4 COREGEN
+
+If you need to use IP cores generated with Xilinx's Coregen, copy the .xco file
+that was generated to your project's synth directory. You don't need any of the
+other files. The scripts will take care of it.
+
++-----------------------------------------------------------------------
+| 3.0 Environment setup
++-----------------------------------------------------------------------
+The following environment variables need to be set:
+
+NF_ROOT - set to the root directory of the tree (NetFPGA2.1-x.y)
+NF_DESIGN_DIR - set to the project's directory
+                 (e.g. $NF_ROOT/projects/reference_nic)
+NF_WORK_DIR - set to the working directory (somewhere with lots of space)
+
+If you are running BASH you will then need to source
+${NF_ROOT}/lib/bin/nf2_profile. Otherwise, if you are running CSH then
+you will need to source ${NF_ROOT}/lib/bin/nf2_cshrc.
+
+NOTE: Please make sure that the settings in these two files correspond
+to your setup. THE DEFAULTS WILL *NOT* WORK!
+
+
++-----------------------------------------------------------------------
+| 4.0 Simulation
++-----------------------------------------------------------------------
+
+To simulate your design, there are several libraries to help. Take a look
+at reference_router/verif/test_router_full to see how to use the perl
+library functions. To create your own testbench, copy one of the test_*
+directories and make sure its name has 3 parts test_major_minor. You
+can then modify the make_pkts file to your liking.
+
+The Perl libraries used live in lib/Perl5. You can add your own libraries
+your project's verif/src dir.
+
+To run the simulation, use the following command:
+nf21_run_test.pl --major x --minor y
+
+To run it with a gui, add the --gui switch. Type nf21_run_test.pl --help
+for full details.
+
+NOTE: coregen needs X. Make sure that you are running from a graphical
+console if IP cores are being built (for example the first time you are
+simulating or implementing a design.)
+
++-----------------------------------------------------------------------
+| 5.0 Implementation
++-----------------------------------------------------------------------
+
+To implement your design, cd to the synth directory and type make. If all
+goes well, you should end up with nf2_top_par.bit file that you can use
+to download to the FPGA.
+
+If problems occur, make sure that you have all the .xco files for the user
+generated IP cores in the synth directory. Make sure to look at nf2_top_par.twr
+to make sure that your design has passed timing checks. Also make sure to
+heed the note in section 4.0 above.
+
++-----------------------------------------------------------------------
+| 6.0 Running the hardware
++-----------------------------------------------------------------------
+
+To run the hardware, there are two steps:
+1- load the kernel module
+2- download the .bin file
+
+* 6.1 KERNEL DRIVER
+1- cd to the lib/C/kernel directory, and type make.
+2- as root, type insmod nf2.ko
+
+If all goes well, you should see nf2c0, nf2c1, nf2c2, and nf2c3 when you do
+ifconfig -a. If not, check that the card is plugged in properly and see if
+it is identified by the lspci command.
+
+* 6.2 DOWNLOAD
+1- cd to lib/C/download and type make
+2- as root, type nf_download /path/to/nf2_top_par.bin
+
+That's it! Your hardware is loaded on the device and should be working.
+Browse through the tools under lib/C/switch, lib/C/router, and lib/C/tools
+for tools to use to interact with real hardware.
+
++-----------------------------------------------------------------------
+| 7.0 Contacts
++-----------------------------------------------------------------------
+
+Public discussion forums: http://netfpga.org/forums/
+Direct e-mail:            info@netfpga.org
+
+Web:                      http://netfpga.org/

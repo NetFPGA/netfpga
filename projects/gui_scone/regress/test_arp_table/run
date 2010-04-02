@@ -1,0 +1,132 @@
+#!/bin/sh
+# Author:         Neda Beheshti
+# Date:           Nov 1, 2007
+# Last Update:    Nov 11, 2007
+# Comments:       All entries in the Arp table are set automatically. The registers are then checked for correct
+#                 update.
+
+
+#---------------------------------------------------
+# File Names
+#---------------------------------------------------
+mac_fileName="arp_mac_address.txt"
+ip_fileName="arp_ip_address.txt"
+jar_file="$NF_ROOT/lib/java/gui/router_gui.jar"
+libdir="$NF_ROOT/lib/java/gui/lib"
+regdump_dir="$NF_ROOT/lib/C/router"
+#----------------------------------------------------
+
+if [ ! -x $regdump_dir/regdump ]; then
+        echo " Error! file $regdump_dir/regdump does not exit..."
+        exit 1
+fi
+
+#jar xf router_modified.jar regdump
+#chmod og=rwx regdump
+if ! java -Djna.library.path=$libdir -classpath $jar_file:$libdir/*:. ArpTableTest; then
+  exit 1
+fi
+
+$regdump_dir/regdump | grep "ARP table entry" | awk '{print $6}' > $mac_fileName;
+$regdump_dir/regdump | grep "ARP table entry" | awk '{print $8}' > $ip_fileName;
+
+
+#rm regdump
+
+mac_add[0]=aa:bb:cc:dd:ee:00
+mac_add[1]=aa:bb:cc:dd:ee:01
+mac_add[2]=aa:bb:cc:dd:ee:02
+mac_add[3]=aa:bb:cc:dd:ee:03
+mac_add[4]=aa:bb:cc:dd:ee:04
+mac_add[5]=aa:bb:cc:dd:ee:05
+mac_add[6]=aa:bb:cc:dd:ee:06
+mac_add[7]=aa:bb:cc:dd:ee:07
+mac_add[8]=aa:bb:cc:dd:ee:08
+mac_add[9]=aa:bb:cc:dd:ee:09
+mac_add[10]=aa:bb:cc:dd:ee:0a
+mac_add[11]=aa:bb:cc:dd:ee:0b
+mac_add[12]=aa:bb:cc:dd:ee:0c
+mac_add[13]=aa:bb:cc:dd:ee:0d
+mac_add[14]=aa:bb:cc:dd:ee:0e
+mac_add[15]=aa:bb:cc:dd:ee:0f
+mac_add[16]=aa:bb:cc:dd:ee:10
+mac_add[17]=aa:bb:cc:dd:ee:11
+mac_add[18]=aa:bb:cc:dd:ee:12
+mac_add[19]=aa:bb:cc:dd:ee:13
+mac_add[20]=aa:bb:cc:dd:ee:14
+mac_add[21]=aa:bb:cc:dd:ee:15
+mac_add[22]=aa:bb:cc:dd:ee:16
+mac_add[23]=aa:bb:cc:dd:ee:17
+mac_add[24]=aa:bb:cc:dd:ee:18
+mac_add[25]=aa:bb:cc:dd:ee:19
+mac_add[26]=aa:bb:cc:dd:ee:1a
+mac_add[27]=aa:bb:cc:dd:ee:1b
+mac_add[28]=aa:bb:cc:dd:ee:1c
+mac_add[29]=aa:bb:cc:dd:ee:1d
+mac_add[30]=aa:bb:cc:dd:ee:1e
+mac_add[31]=aa:bb:cc:dd:ee:1f
+
+ip_add[0]=0.0.0.0
+ip_add[1]=0.0.0.1
+ip_add[2]=0.0.0.2
+ip_add[3]=0.0.0.3
+ip_add[4]=0.0.0.4
+ip_add[5]=0.0.0.5
+ip_add[6]=0.0.0.6
+ip_add[7]=0.0.0.7
+ip_add[8]=0.0.0.8
+ip_add[9]=0.0.0.9
+ip_add[10]=0.0.0.10
+ip_add[11]=0.0.0.11
+ip_add[12]=0.0.0.12
+ip_add[13]=0.0.0.13
+ip_add[14]=0.0.0.14
+ip_add[15]=0.0.0.15
+ip_add[16]=0.0.0.16
+ip_add[17]=0.0.0.17
+ip_add[18]=0.0.0.18
+ip_add[19]=0.0.0.19
+ip_add[20]=0.0.0.20
+ip_add[21]=0.0.0.21
+ip_add[22]=0.0.0.22
+ip_add[23]=0.0.0.23
+ip_add[24]=0.0.0.24
+ip_add[25]=0.0.0.25
+ip_add[26]=0.0.0.26
+ip_add[27]=0.0.0.27
+ip_add[28]=0.0.0.28
+ip_add[29]=0.0.0.29
+ip_add[30]=0.0.0.30
+ip_add[31]=0.0.0.31
+
+exec < $mac_fileName
+for ((i=0;i<32;i+=1));
+do
+#echo $i
+         read regdump_mac
+         if [ "${mac_add[$i]}" != "$regdump_mac" ];
+         then
+                 echo "ERROR! ARP table not updated correctly."
+                 echo "MAC address at entry $i not consistent with regdump output."
+                 exit 1
+         fi
+done
+
+
+exec < $ip_fileName
+for ((i=0;i<32;i+=1));
+do
+         read regdump_ip
+         if [ "${ip_add[$i]}" != "$regdump_ip" ];
+         then
+                 echo "ERROR! ARP table not updated correctly."
+                 echo "IP address at entry $i not consistent with regdump output."
+                 exit 1
+         fi
+done
+
+
+echo "Test passed..."
+exit 0
+
+

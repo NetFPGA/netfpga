@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nf:global xmlns:nf="http://www.NetFPGA.org/NF2_register_system" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.NetFPGA.org/NF2_register_system NF2_register_system.xsd ">
+  <nf:constants>
+	<!--
+	============================================================
+	Clock related constants
+	============================================================
+	-->
+  	<nf:constant>
+  		<nf:name>FAST_CLK_PERIOD</nf:name>
+		<nf:description>Clock period of 125 MHz clock in ns</nf:description>
+  		<nf:value>8</nf:value>
+  	</nf:constant>
+  	<nf:constant>
+  		<nf:name>SLOW_CLK_PERIOD</nf:name>
+		<nf:description>Clock period of 62.5 MHz clock in ns</nf:description>
+  		<nf:value>16</nf:value>
+  	</nf:constant>
+	<!--
+	============================================================
+	Header words
+	============================================================
+	-->
+  	<nf:constant>
+  		<nf:name>IO_QUEUE_STAGE_NUM</nf:name>
+		<nf:description>Header value used by the IO queues</nf:description>
+  		<nf:width>8</nf:width>
+  		<nf:value>0xff</nf:value>
+  	</nf:constant>
+	<!--
+	============================================================
+	Need to put core blocks here... more thought needed :-/
+	============================================================
+	-->
+  	<nf:constant>
+  		<nf:name>DATA_WIDTH</nf:name>
+		<nf:description>Data path data width</nf:description>
+  		<nf:value>64</nf:value>
+  	</nf:constant>
+  	<nf:constant>
+  		<nf:name>CTRL_WIDTH</nf:name>
+		<nf:description>Data path control width</nf:description>
+		<nf:value>DATA_WIDTH / 8</nf:value>
+  	</nf:constant>
+  </nf:constants>
+  <nf:types>
+	<!--
+	============================================================
+	Types used by the IO queue header
+	============================================================
+	-->
+  	<nf:type xsi:type="nf:CompoundType">
+  		<nf:name>ioq_hdr</nf:name>
+		<nf:description>Header data placed on a packet by the IO queues. Summarizes: src/dest ports, pkt len (bytes/words)</nf:description>
+  		<nf:field>
+  			<nf:name>byte_len</nf:name>
+  			<nf:description>Packet length (bytes)</nf:description>
+  			<nf:width>16</nf:width>
+  		</nf:field>
+  		<nf:field>
+  			<nf:name>src_port</nf:name>
+  			<nf:description>Source port -- binary encoded</nf:description>
+  			<nf:width>16</nf:width>
+  		</nf:field>
+		<nf:field>
+			<!-- Note: I'd like to split this to indicate pkt/hdr len -->
+  			<nf:name>word_len</nf:name>
+  			<nf:description>Packet length (words)</nf:description>
+  			<nf:width>16</nf:width>
+  		</nf:field>
+  		<nf:field>
+  			<nf:name>dst_port</nf:name>
+  			<nf:description>Destination port -- n-hot encoded</nf:description>
+  			<nf:width>16</nf:width>
+  		</nf:field>
+  	</nf:type>
+	<!--
+	============================================================
+	Datapath related types
+	============================================================
+	-->
+	<nf:type xsi:type="nf:SimpleType">
+		<nf:name>dataword</nf:name>
+		<nf:description>Data word in the data path</nf:description>
+		<nf:width>DATA_WIDTH</nf:width>
+	</nf:type>
+	<nf:type xsi:type="nf:SimpleType">
+		<nf:name>ctrlword</nf:name>
+		<nf:description>Control word in the data path</nf:description>
+		<nf:width>CTRL_WIDTH</nf:width>
+	</nf:type>
+  </nf:types>
+</nf:global>

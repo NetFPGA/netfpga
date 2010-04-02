@@ -1,0 +1,232 @@
+#!/usr/bin/perl
+# vim:set shiftwidth=2 softtabstop=2 expandtab:
+
+#############################################################
+# $Id: run 2874 2007-11-13 06:03:55Z grg $
+#
+# Test to verify that packets are correctly dropped at the output
+# queues when the queues overflow.
+#
+# Revisions:
+#
+##############################################################
+
+use strict;
+use NF::Base "projects/reference_router/lib/Perl5";
+use NF::RegressLib;
+use NF::PacketLib;
+use RegressRouterLib;
+
+use reg_defines_dram_queue_test;
+
+use constant NUM_PKTS_PER_PORT => 500;
+use constant PKT_SIZE =>          1514;
+
+my @interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2");
+nftest_init(\@ARGV, \@interfaces);
+
+# Reset the NetFPGA
+nftest_fpga_reset('nf2c0');
+
+# Disable all output queues
+nftest_regwrite('nf2c0', OQ_QUEUE_0_CTRL_REG, 0x0);
+nftest_regwrite('nf2c0', OQ_QUEUE_2_CTRL_REG, 0x0);
+nftest_regwrite('nf2c0', OQ_QUEUE_4_CTRL_REG, 0x0);
+nftest_regwrite('nf2c0', OQ_QUEUE_6_CTRL_REG, 0x0);
+
+my $routerMAC0 = "00:ca:fe:00:00:01";
+my $routerMAC1 = "00:ca:fe:00:00:02";
+my $routerMAC2 = "00:ca:fe:00:00:03";
+my $routerMAC3 = "00:ca:fe:00:00:04";
+
+my $routerIP0 = "192.168.0.40";
+my $routerIP1 = "192.168.1.40";
+my $routerIP2 = "192.168.2.40";
+my $routerIP3 = "192.168.3.40";
+
+my $total_errors = 0;
+
+# Number of words in the queues before sending packets
+my $nwords_before_0 = nftest_regread("nf2c0", OQ_QUEUE_0_NUM_WORDS_LEFT_REG);
+my $nwords_before_2 = nftest_regread("nf2c0", OQ_QUEUE_2_NUM_WORDS_LEFT_REG);
+my $nwords_before_4 = nftest_regread("nf2c0", OQ_QUEUE_4_NUM_WORDS_LEFT_REG);
+my $nwords_before_6 = nftest_regread("nf2c0", OQ_QUEUE_6_NUM_WORDS_LEFT_REG);
+
+
+# Generate NUM_PKTS_PER_PORT packets to fill up the output queues
+my @pkts;
+for (my $i = 0; $i < 4; $i++) {
+  print "Generating packets for nf2c$i...\n";
+  my @portPkts = nftest_precreate_pkts(NUM_PKTS_PER_PORT, "", PKT_SIZE, PKT_SIZE);
+  @pkts[$i] = \@portPkts;
+}
+
+# Send in the packets
+print "Sending packets while output queues disabled...\n";
+nftest_start(\@interfaces);
+for (my $i = 0; $i < 4; $i++) {
+  my $portPkts = $pkts[$i];
+  foreach my $pkt (@$portPkts) {
+    nftest_send("nf2c$i", $pkt);
+  }
+}
+
+# Wait for a while
+sleep 2;
+
+# Verify that the correct number of packets have been received
+for (my $i = 0; $i < 4; $i++) {
+  my $pktsStored = nftest_regread('nf2c0', OQ_QUEUE_0_NUM_PKTS_STORED_REG + $i * 0x400);
+  my $pktsDropped = nftest_regread('nf2c0', OQ_QUEUE_0_NUM_PKTS_DROPPED_REG + $i * 0x400);
+  my $pktsRemoved = nftest_regread('nf2c0', OQ_QUEUE_0_NUM_PKTS_REMOVED_REG + $i * 0x400);
+
+  my $bytesStored = nftest_regread('nf2c0', OQ_QUEUE_0_NUM_PKT_BYTES_STORED_REG + $i * 0x400);
+  my $bytesRemoved = nftest_regread('nf2c0', OQ_QUEUE_0_NUM_PKT_BYTES_REMOVED_REG + $i * 0x400);
+
+  if ($pktsStored + $pktsDropped != NUM_PKTS_PER_PORT) {
+    print "Error: packets stored plus dropped not equal to number sent\n";
+    print "Packets Stored: $pktsStored   Dropped: $pktsDropped   Total:   " . $pktsStored + $pktsDropped . "\n";
+    print "Expected: " . NUM_PKTS_PER_PORT . "\n";
+    $total_errors++;
+  }
+
+  if ($pktsRemoved != 0) {
+    print "Error: packets removed should be zero\n";
+    print "Removed: $pktsRemoved\n";
+    $total_errors++;
+  }
+
+  if ($pktsStored * PKT_SIZE != $bytesStored) {
+    print "Error: bytes stored not equal to number expected\n";
+    print "Bytes Stored: $bytesStored   Expected: " . $pktsStored * PKT_SIZE . "\n";
+    $total_errors++;
+  }
+
+  # # Expect the packets (as they should come out after the queues are reenabled
+  # if ($i < 2) {
+  #   my $portPkts = $pkts[$i];
+  #   for (my $j = 0; $j < $pktsStored; $j++) {
+  #     my $pkt = $$portPkts[$j];
+  #     nftest_expect("eth" . ($i + 1), $pkt);
+  #   }
+  # }
+}
+
+# number of header bytes of each packet
+my $header_bytes_re = nftest_regread("nf2c0", OQ_QUEUE_0_NUM_OVERHEAD_BYTES_REMOVED_REG);
+my $header_bytes = nftest_regread("nf2c0", OQ_QUEUE_0_NUM_OVERHEAD_BYTES_STORED_REG);
+my $num_packets = nftest_regread("nf2c0", OQ_QUEUE_0_NUM_PKTS_STORED_REG);
+my $header= ($num_packets *8);
+if ($header_bytes !=  $header){
+  $total_errors++;
+}
+printf "queue 0 -> header stored: (%d) header removed: (%d)\n", $header_bytes, $header_bytes_re;
+
+my $header_bytes_re = nftest_regread("nf2c0", OQ_QUEUE_0_NUM_OVERHEAD_BYTES_REMOVED_REG);
+$header_bytes = nftest_regread("nf2c0", OQ_QUEUE_2_NUM_OVERHEAD_BYTES_STORED_REG);
+$num_packets = nftest_regread("nf2c0", OQ_QUEUE_2_NUM_PKTS_STORED_REG);
+$header= ($num_packets *8);
+if ($header_bytes !=  $header){
+  $total_errors++;
+}
+printf "queue 2 -> header stored: (%d) header removed: (%d)\n", $header_bytes, $header_bytes_re;
+
+my $header_bytes_re = nftest_regread("nf2c0", OQ_QUEUE_0_NUM_OVERHEAD_BYTES_REMOVED_REG);
+$header_bytes = nftest_regread("nf2c0", OQ_QUEUE_4_NUM_OVERHEAD_BYTES_STORED_REG);
+$num_packets = nftest_regread("nf2c0", OQ_QUEUE_4_NUM_PKTS_STORED_REG);
+$header= ($num_packets *8);
+if ($header_bytes !=  $header){
+  $total_errors++;
+}
+printf "queue 4 -> header stored: (%d) header removed: (%d)\n", $header_bytes, $header_bytes_re;
+
+my $header_bytes_re = nftest_regread("nf2c0", OQ_QUEUE_0_NUM_OVERHEAD_BYTES_REMOVED_REG);
+$header_bytes = nftest_regread("nf2c0", OQ_QUEUE_6_NUM_OVERHEAD_BYTES_STORED_REG);
+$num_packets = nftest_regread("nf2c0", OQ_QUEUE_6_NUM_PKTS_STORED_REG);
+$header= ($num_packets *8);
+if ($header_bytes !=  $header){
+  $total_errors++;
+}
+printf "queue 6 -> header stored: (%d) header removed: (%d)\n", $header_bytes, $header_bytes_re;
+
+# Queue address in the SRAM
+my $address_hi = nftest_regread("nf2c0", OQ_QUEUE_0_ADDR_HI_REG);
+my $address_lo = nftest_regread("nf2c0", OQ_QUEUE_0_ADDR_LO_REG);
+printf "address queue 0: (%x%x)\n",$address_hi, $address_lo;
+
+$address_hi = nftest_regread("nf2c0", OQ_QUEUE_2_ADDR_HI_REG);
+$address_lo = nftest_regread("nf2c0", OQ_QUEUE_2_ADDR_LO_REG);
+printf "address queue 2: (%x%x)\n",$address_hi, $address_lo;
+
+$address_hi = nftest_regread("nf2c0", OQ_QUEUE_4_ADDR_HI_REG);
+$address_lo = nftest_regread("nf2c0", OQ_QUEUE_4_ADDR_LO_REG);
+printf "address queue 4: (%x%x)\n",$address_hi, $address_lo;
+
+$address_hi = nftest_regread("nf2c0", OQ_QUEUE_6_ADDR_HI_REG);
+$address_lo = nftest_regread("nf2c0", OQ_QUEUE_6_ADDR_LO_REG);
+printf "address queue 6: (%x%x)\n",$address_hi, $address_lo;
+
+
+# Reenable output queue 0 and 2 and verify that the packets are seen on eth 1 and 2
+print "Enabling output queues and verifying that queued packets are sent...\n";
+nftest_regwrite('nf2c0', OQ_QUEUE_0_CTRL_REG, 1 << OQ_ENABLE_SEND_BIT_NUM);
+nftest_regwrite('nf2c0', OQ_QUEUE_2_CTRL_REG, 1 << OQ_ENABLE_SEND_BIT_NUM);
+nftest_regwrite('nf2c0', OQ_QUEUE_4_CTRL_REG, 1 << OQ_ENABLE_SEND_BIT_NUM);
+nftest_regwrite('nf2c0', OQ_QUEUE_6_CTRL_REG, 1 << OQ_ENABLE_SEND_BIT_NUM);
+
+# Wait a few seconds for the packets to drain
+sleep 2;
+
+# Number of words in the queues after sending packets
+my $nwords_after_0 = nftest_regread("nf2c0", OQ_QUEUE_0_NUM_WORDS_LEFT_REG);
+my $nwords_after_2 = nftest_regread("nf2c0", OQ_QUEUE_2_NUM_WORDS_LEFT_REG);
+my $nwords_after_4 = nftest_regread("nf2c0", OQ_QUEUE_4_NUM_WORDS_LEFT_REG);
+my $nwords_after_6 = nftest_regread("nf2c0", OQ_QUEUE_6_NUM_WORDS_LEFT_REG);
+
+if ($nwords_before_0 != $nwords_after_0){$total_errors++;}
+if ($nwords_before_2 != $nwords_after_2){$total_errors++;}
+if ($nwords_before_4 != $nwords_after_4){$total_errors++;}
+if ($nwords_before_6 != $nwords_after_6){$total_errors++;}
+
+# Verify that the correct number of packets have been received
+for (my $i = 0; $i < 4; $i++) {
+  my $pktsStored = nftest_regread('nf2c0', OQ_QUEUE_0_NUM_PKTS_STORED_REG + $i * 0x400);
+  my $pktsRemoved = nftest_regread('nf2c0', OQ_QUEUE_0_NUM_PKTS_REMOVED_REG + $i * 0x400);
+
+  my $bytesStored = nftest_regread('nf2c0', OQ_QUEUE_0_NUM_PKT_BYTES_STORED_REG + $i * 0x400);
+  my $bytesRemoved = nftest_regread('nf2c0', OQ_QUEUE_0_NUM_PKT_BYTES_REMOVED_REG + $i * 0x400);
+
+  if ($pktsStored != $pktsRemoved) {
+    print "Error: packets stored not equal to packets removed\n";
+    print "Packets Stored: $pktsStored   Removed: $pktsRemoved\n";
+    $total_errors++;
+  }
+
+  if ($bytesStored != $bytesRemoved) {
+    print "Error: bytes stored not equal to bytes removed\n";
+    print "Bytes Stored: $bytesStored   Removed: $bytesRemoved\n";
+    $total_errors++;
+  }
+}
+
+
+
+nftest_restart;
+
+# Wait a few seconds for transmit/receive to complete
+sleep 2;
+
+# Finish the test and check how many packets are unmatched
+my $unmatched_hoh = nftest_finish();
+$total_errors += nftest_print_errors($unmatched_hoh);
+
+# Print success/failure
+if ($total_errors==0) {
+  print "SUCCESS!\n";
+	exit 0;
+}
+else {
+  print "FAIL: $total_errors errors\n";
+	exit 1;
+}
+

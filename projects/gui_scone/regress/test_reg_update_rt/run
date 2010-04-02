@@ -1,0 +1,59 @@
+#!/bin/sh
+# Author:         Neda Beheshti
+# Date:           Nov 1, 2007
+# Last Update:    Nov 14, 2007
+# Comments:       IP routing table registerd are set. Entries in the GUI Routing table are checked for correct
+#                 update.
+
+#---------------------------------------------------
+# File Names
+#---------------------------------------------------
+#reg_fileName1="reg_test1.txt"
+#reg_fileName2="reg_test2.txt"
+#jar_file="$NF_ROOT/lib/java/NetFPGAFrontEnd/bin/router.jar"
+#regdump_dir="$NF_ROOT/lib/C/router"
+
+ROUTER_OP_LUT_ARP_MAC_HI_REG=0x2000100
+ROUTER_OP_LUT_ARP_MAC_LO_REG=0x2000104
+ROUTER_OP_LUT_ARP_NEXT_HOP_IP_REG=0x2000108
+ROUTER_OP_LUT_ARP_LUT_RD_ADDR_REG=0x200010c
+ROUTER_OP_LUT_ARP_LUT_WR_ADDR_REG=0x2000110
+ROUTER_OP_LUT_RT_IP_REG=0x2000114
+ROUTER_OP_LUT_RT_MASK_REG=0x2000118
+ROUTER_OP_LUT_RT_NEXT_HOP_IP_REG=0x200011c
+ROUTER_OP_LUT_RT_OUTPUT_PORT_REG=0x2000120
+ROUTER_OP_LUT_RT_LUT_RD_ADDR_REG=0x2000124
+ROUTER_OP_LUT_RT_LUT_WR_ADDR_REG=0x2000128
+ROUTER_OP_LUT_MAC_0_HI_REG=0x200012c
+ROUTER_OP_LUT_MAC_0_LO_REG=0x2000130
+ROUTER_OP_LUT_MAC_1_HI_REG=0x2000134
+ROUTER_OP_LUT_MAC_1_LO_REG=0x2000138
+ROUTER_OP_LUT_MAC_2_HI_REG=0x200013c
+ROUTER_OP_LUT_MAC_2_LO_REG=0x2000140
+ROUTER_OP_LUT_MAC_3_HI_REG=0x2000144
+ROUTER_OP_LUT_MAC_3_LO_REG=0x2000148
+ROUTER_OP_LUT_DST_IP_FILTER_IP_REG=0x200014c
+ROUTER_OP_LUT_DST_IP_FILTER_RD_ADDR_REG=0x2000150
+ROUTER_OP_LUT_DST_IP_FILTER_WR_ADDR_REG=0x2000154
+
+for ((i=0;i<32;i=i+1));
+do
+ip_val=0xaaaaaaaa
+mask_val=0x11111111
+next_hop_val=0x22222222
+port_val=0x33333333
+
+regwrite $ROUTER_OP_LUT_RT_IP_REG $ip_val
+
+regwrite $ROUTER_OP_LUT_RT_MASK_REG $mask_val
+
+regwrite $ROUTER_OP_LUT_RT_NEXT_HOP_IP_REG $next_hop_val
+
+regwrite $ROUTER_OP_LUT_RT_OUTPUT_PORT_REG $port_val
+
+regwrite $ROUTER_OP_LUT_RT_LUT_WR_ADDR_REG $i
+
+done
+
+
+

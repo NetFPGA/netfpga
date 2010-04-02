@@ -1,0 +1,31 @@
+.TH rkd 8 "December 2007" "NetFPGA2" "NetFPGA2 Manual"
+
+.SH NAME
+rkd \- Mirror Linux ipv4 forwarding state to NetFPGA reference router
+
+.SH SYNOPSIS
+.B rkd
+[OPTIONS]
+
+.SH DESCRIPTION
+\fBrkd\fR mirrors Linux software forwarding state associated with
+NetFPGA2 interfaces by reading \fB/proc/net/route\fR and
+\fB/proc/net/arp\fR and writing to NetFPGA2's register interface.
+
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\^\-help
+Prints a brief help message to the console.
+
+.TP
+.BR \-f ", " \-\^\-daemon
+Run rkd in the background.
+
+.SH COMMANDS
+.TP
+.BI \-p ", " \-\^\-interval " MS"
+Specify the polling interval in milliseconds.
+
+.SH BUGS
+Currently doesn't take advantage of netlink for updates to routing table, but rather relies on
+more expensive polling.

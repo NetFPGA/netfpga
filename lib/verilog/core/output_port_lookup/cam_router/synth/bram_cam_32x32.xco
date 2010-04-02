@@ -1,0 +1,56 @@
+##############################################################
+#
+# Xilinx Core Generator version IP1_J.12
+# Date: Mon May 28 00:07:44 2007
+#
+##############################################################
+#
+#  This file contains the customisation parameters for a
+#  Xilinx CORE Generator IP GUI. It is strongly recommended
+#  that you do not manually alter this file as it may cause
+#  unexpected and unsupported behavior.
+#
+##############################################################
+#
+# BEGIN Project Options
+SET addpads = False
+SET asysymbol = True
+SET busformat = BusFormatAngleBracketNotRipped
+SET createndf = False
+SET designentry = Verilog
+SET device = xc2vp50
+SET devicefamily = virtex2p
+SET flowvendor = Foundation_iSE
+SET formalverification = False
+SET foundationsym = False
+SET implementationfiletype = Ngc
+SET package = ff1152
+SET removerpms = False
+SET simulationfiles = Behavioral
+SET speedgrade = -7
+SET verilogsim = True
+SET vhdlsim = False
+# END Project Options
+# BEGIN Select
+SELECT Content_Addressable_Memory family Xilinx,_Inc. 5.1
+# END Select
+# BEGIN Parameters
+CSET address_resolution=lowest
+CSET component_name=bram_cam_32x32
+CSET data_width=32
+CSET depth=32
+CSET enable=false
+CSET load_initialization_file=false
+CSET match_address_type=binary_encoded
+CSET memory_type=block
+CSET multiple_match_flag=false
+CSET read_only_cam=false
+CSET read_warning_flag=false
+CSET register_outputs=false
+CSET simultaneous_read_write=true
+CSET single_match_flag=false
+CSET ternary_mode=ternary_mode_off
+# END Parameters
+GENERATE
+# CRC: 74e54036
+

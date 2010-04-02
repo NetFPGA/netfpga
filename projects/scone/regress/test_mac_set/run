@@ -1,0 +1,73 @@
+#!/usr/bin/python
+# Author: David Erickson
+# Date: 10/31/07
+
+import netfpga;
+import os;
+import signal;
+import sys;
+import time;
+
+# Move the working directory to the scone dir
+os.chdir("../../sw");
+# Build the full path to the scone executable
+scone = os.getcwd() + "/scone";
+
+# Get a dictionary of the available NETFPGA registers
+reg_dict = netfpga.parseRegisterDefines(["../../reference_router/lib/C/reg_defines_reference_router.h", "../../../lib/C/common/nf2.h"]);
+
+# Reset the NETFPGA Hardware
+netfpga.writeReg(reg_dict["CPCI_REG_CTRL"], 0x00010100);
+time.sleep(1);
+
+# Start SCONE
+pid = os.spawnvp(os.P_NOWAIT, scone, [scone, '-r', 'rtable.netfpga']);
+time.sleep(2);
+
+exitcode = 0;
+
+# Check that it correctly wrote the MAC Addresses to HW
+val = netfpga.readReg(reg_dict["ROUTER_OP_LUT_MAC_0_HI_REG"]);
+if (0x0 != val):
+	print "ROUTER_OP_LUT_MAC_0_HI_REG should be 0x0, found %x" % val;
+	exitcode = 1;
+
+val = netfpga.readReg(reg_dict["ROUTER_OP_LUT_MAC_0_LO_REG"]);
+if (0x1 != val):
+	print "ROUTER_OP_LUT_MAC_0_LO_REG should be 0x1, found %x" % val;
+	exitcode = 1;
+
+val = netfpga.readReg(reg_dict["ROUTER_OP_LUT_MAC_1_HI_REG"]);
+if (0x0 != val):
+	print "ROUTER_OP_LUT_MAC_1_HI_REG should be 0x0, found %x" % val;
+	exitcode = 1;
+
+val = netfpga.readReg(reg_dict["ROUTER_OP_LUT_MAC_1_LO_REG"]);
+if (0x2 != val):
+	print "ROUTER_OP_LUT_MAC_1_LO_REG should be 0x2, found %x" % val;
+	exitcode = 1;
+
+val = netfpga.readReg(reg_dict["ROUTER_OP_LUT_MAC_2_HI_REG"]);
+if (0x0 != val):
+	print "ROUTER_OP_LUT_MAC_2_HI_REG should be 0x0, found %x" % val;
+	exitcode = 1;
+
+val = netfpga.readReg(reg_dict["ROUTER_OP_LUT_MAC_2_LO_REG"]);
+if (0x3 != val):
+	print "ROUTER_OP_LUT_MAC_2_LO_REG should be 0x3, found %x" % val;
+	exitcode = 1;
+
+val = netfpga.readReg(reg_dict["ROUTER_OP_LUT_MAC_3_HI_REG"]);
+if (0x0 != val):
+	print "ROUTER_OP_LUT_MAC_3_HI_REG should be 0x0, found %x" % val;
+	exitcode = 1;
+
+val = netfpga.readReg(reg_dict["ROUTER_OP_LUT_MAC_3_LO_REG"]);
+if (0x4 != val):
+	print "ROUTER_OP_LUT_MAC_3_LO_REG should be 0x4, found %x" % val;
+	exitcode = 1;
+
+# Kill SCONE
+os.kill(pid, signal.SIGKILL);
+
+sys.exit(exitcode);

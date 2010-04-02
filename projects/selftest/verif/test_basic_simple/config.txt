@@ -1,0 +1,4 @@
+test_desc = NF 2.1 board self-test
+finish = 25000
+extra_files = testbench_inc
+opts = -g/testbench_inc/NF21_SELFTEST_NO_DRAM_TEST=1 -g/testbench_inc/NF21_SELFTEST_NO_PHY_TEST=1 -g/testbench_inc/NF21_SELFTEST_NO_SRAM_TEST=1

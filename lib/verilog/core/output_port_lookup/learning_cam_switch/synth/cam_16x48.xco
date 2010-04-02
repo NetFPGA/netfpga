@@ -1,0 +1,41 @@
+# BEGIN Project Options
+SET flowvendor = Other
+SET vhdlsim = False
+SET verilogsim = True
+SET speedgrade = -7
+SET simulationfiles = Behavioral
+SET asysymbol = False
+SET addpads = False
+SET device = xc2vp50
+SET implementationfiletype = Ngc
+SET busformat = BusFormatAngleBracketNotRipped
+SET foundationsym = False
+SET package = ff1152
+SET createndf = False
+SET designentry = Verilog
+SET devicefamily = virtex2p
+SET formalverification = False
+SET removerpms = False
+# END Project Options
+# BEGIN Select
+SELECT Content_Addressable_Memory family Xilinx,_Inc. 5.1
+# END Select
+# BEGIN Parameters
+CSET read_warning_flag=false
+CSET address_resolution=lowest
+CSET memory_type=srl16e
+CSET match_address_type=binary_encoded
+CSET depth=16
+CSET data_width=48
+CSET multiple_match_flag=false
+CSET register_outputs=false
+CSET ternary_mode=ternary_mode_off
+CSET enable=false
+CSET component_name=cam_16x48
+CSET read_only_cam=false
+CSET single_match_flag=false
+CSET simultaneous_read_write=true
+CSET load_initialization_file=false
+# END Parameters
+GENERATE
+

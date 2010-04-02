@@ -1,0 +1,30 @@
+#!/bin/sh
+
+#
+# Test that the driver installs
+#
+
+# Driver install location
+DRIVER_LOCATION=/lib/modules/`uname -r`/kernel/drivers/nf2.ko
+
+# Change to the working directory
+cd $NF_ROOT/lib/C/kernel
+
+# The kernel should already be made. Only try the install if we are root
+if [ ! $UID -eq 0 ] ; then
+	echo "WARNING: Not running as root. Not installing kernel module"
+else
+	# Remove the driver if it exists
+	if [ -f $DRIVER_LOCATION ] ; then
+		rm -f $DRIVER_LOCATION
+	fi
+
+	# Install the driver
+	make install || exit 1
+
+	# Verify the driver
+	if [ ! -f $DRIVER_LOCATION ] ; then
+		echo "ERROR: Driver not found in $DRIVER_LOCATION"
+		exit 1
+	fi
+fi

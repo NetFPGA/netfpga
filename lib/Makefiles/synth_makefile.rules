@@ -1,0 +1,220 @@
+##################################################################
+# Rules
+#
+# Note: all necessary variables should be set before including this file
+
+all: $(TOP).scr registers cores $(TOP).ucf $(TOP).prj $(TOP)_par.ncd $(TOP)_par.twr $(TOP)_par.bit $(NF_ROOT)/bitfiles/$(PROJECT).bit
+	@echo Made all...
+
+$(TOP).scr: $(GENERIC_TOP)/synth/$(TOP).scr
+	@if [ -r $(GENERIC_TOP)/synth/$(TOP).scr ] ; then \
+		cp -p $? . ; \
+		echo "$(INC_LINE)" >> $@ ; \
+	fi
+
+# Only source the shared UCF file if LOCAL_UCF is not defined
+ifeq ($(origin LOCAL_UCF), undefined)
+$(TOP).ucf: $(GENERIC_TOP)/synth/$(TOP).ucf
+	@if [ -r $(GENERIC_TOP)/synth/$(TOP).ucf ] ; then \
+		cp -p $? . ; \
+	fi
+endif
+
+.PHONY: cores registers
+cores: $(CORE_NAMES)
+	@echo "Made cores."
+
+registers:
+	@echo "+++testStarted:build.registers.$(PROJECT)"
+	@if [ -f $(PROJECT_XML_FILE) ] ; then \
+		$(NF_ROOT)/bin/nf2_register_gen.pl --project $(PROJECT) ; \
+	fi
+	@echo "Processed registers."
+	@echo "+++testFinished:build.registers.$(PROJECT)"
+
+cpci-registers:
+	@echo "+++testStarted:build.registers.$(CPCI_PROJ)"
+	@if [ -f $(CPCI_XML_FILE) ] ; then \
+		$(NF_ROOT)/bin/nf2_register_gen.pl --project $(CPCI_PROJ) ; \
+	fi
+	@echo "Processed registers."
+	@echo "+++testFinished:build.registers.$(CPCI_PROJ)"
+
+$(INC_DIR)/registers.v: registers
+
+$(CPCI_DIR)/include/registers.v: cpci-registers
+
+define LIB_CORE_COPY_template
+ $(notdir $(1)): $(1)
+	@cp -p $$< $$@
+endef
+
+# Copy the cores not yet generated
+$(foreach core,$(LIB_CORES),$(eval $(call LIB_CORE_COPY_template,$(core))))
+
+# Copy the presynth cores across as well
+$(foreach core,$(LIB_PRESYNTH_CORES),$(eval $(call LIB_CORE_COPY_template,$(core))))
+
+
+# Invoke coregen to create edn or ngc files etc needed for ngdbuild
+# we create a temporary work directory, generate all the files and
+# copy the verilog/edn/ngc files to the right places then remove the
+# temp dir
+#
+%.edn %.ngc:: %.xco
+	@echo ==================================================
+	@echo "=== Invoking coregen to rebuild $(notdir $@)"
+	@echo ==================================================
+	@echo "+++testStarted:build.core.$(notdir $@)"
+	@if [ -d $(dir $@)$(COREGEN_WORK_DIR) ] ; then \
+		rm -rf $(dir $@)$(COREGEN_WORK_DIR)/* ; \
+	else \
+		mkdir $(dir $@)$(COREGEN_WORK_DIR) ; \
+	fi
+	@echo Running coregen...
+	@cd $(dir $@)$(COREGEN_WORK_DIR) ; \
+	if [ `basename $<` = '$<' ] ; then \
+		coregen -b $$OLDPWD/$< ; \
+	else \
+		coregen -b $< ; \
+	fi ; \
+	cd -
+	@if [ ! -r $(dir $@)$(COREGEN_WORK_DIR)/$(notdir $@) ] ; then \
+		echo "Could not find target file '$(notdir $@)'" ; \
+		exit 1 ; \
+	else \
+		cp $(dir $@)$(COREGEN_WORK_DIR)/$(notdir $@) $(dir $@) ; \
+		if [ -r $(dir $@)$(COREGEN_WORK_DIR)/*.v ]; then \
+			echo "Copying $(dir $@)$(COREGEN_WORK_DIR)/*.v to $(dir $@)$(COREGEN_SRC_DIR)/" ;\
+			if [ ! -d $(dir $@)$(COREGEN_SRC_DIR) ] ; then \
+				mkdir $(dir $@)$(COREGEN_SRC_DIR) ; \
+			fi ; \
+			cp $(dir $@)$(COREGEN_WORK_DIR)/*.v $(dir $@)$(COREGEN_SRC_DIR) ; \
+		fi \
+	fi
+	@rm -rf $(dir $@)$(COREGEN_WORK_DIR)
+	@echo "+++testFinished:build.core.$(notdir $@)"
+
+# generate the prj file from the sources
+$(TOP).prj: $(ALL_SRCS)
+	@rm -f $(TOP).prj
+	@for src in $(ALL_SRCS) ; do echo "verilog work $$src" >> $(TOP).prj ; done
+	@echo "Generated prj file"
+
+# Copy the bitstream to the bitfiles directory
+$(NF_ROOT)/bitfiles/$(PROJECT).bit: $(TOP)_par.bit
+	@cp $(TOP)_par.bit $(NF_ROOT)/bitfiles/$(PROJECT).bit
+
+# Generate Bit Stream
+%_par.bit: %_par.ncd
+	@echo ==================================================
+	@echo "=== Generate bit stream file from ncd"
+	@echo ==================================================
+	@echo "+++testStarted:build.bitgen.$@"
+	bitgen -intstyle ise -g Binary:No -w $*_par.ncd
+	@echo "+++testFinished:build.bitgen.$@"
+
+# Run timing analysis ( add -u for unconstrained paths)
+%_par.twr: %_par.ncd
+	@echo ==================================================
+	@echo "=== Run Post Place and Route Timing (trce)"
+	@echo ==================================================
+	@echo "+++testStarted:build.trce.$@"
+	trce -e 3 $*_par.ncd $*.pcf | tee -a $(REPORT)
+	@echo "+++testFinished:build.trce.$@"
+
+# Run PaR
+%_par.ncd: %.ncd
+	@echo ==================================================
+	@echo "=== Run Place and Route (PAR)"
+	@echo ==================================================
+	@echo "+++testStarted:build.par.$@"
+	if par -intstyle ise -ol high $(SMARTGUIDE) -w $*.ncd $*_par.ncd ;\
+	then \
+		echo "Place and Route passed." ;\
+		cat $*_par.par >> $(REPORT) ;\
+	else \
+		echo "Place and Route failed - see $*_par.par for details." ;\
+		exit 1 ;\
+	fi
+	@echo "+++testFinished:build.par.$@"
+
+# Run map
+%.ncd: %.ngd
+	@echo ==================================================
+	@echo "=== Run MAP"
+	@echo ==================================================
+	@echo "+++testStarted:build.map.$@"
+	$(SMARTGUIDE_CP)
+	if map -intstyle ise $(timing_switch) $(MAP_OPTIONS) -detail -ol high -cm speed -register_duplication $(SMARTGUIDE) -ignore_keep_hierarchy -pr b -k 4 -c 100 -tx off $* ;\
+	then \
+		echo "map passed." ;\
+		cat $*.mrp >> $(REPORT) ;\
+	else \
+		echo "map failed - see $*.mrp for details." ;\
+		exit 1 ;\
+	fi
+	@echo "+++testFinished:build.map.$@"
+
+# Run ngdbuild (would also pull in core .ngo files)
+#$(TOP).ngd: $(TOP).ngc $(TOP).ucf
+%.ngd: %.ngc %.ucf
+	@echo ==================================================
+	@echo "=== Run NGDBUILD"
+	@echo ==================================================
+	@echo "+++testStarted:build.ngdBuild.$@"
+	@if ngdbuild -intstyle ise $* ; \
+	then \
+	   echo "ngdbuild passed." ; \
+		cat $*.bld >> $(REPORT) ;\
+	else \
+		echo "ngdbuild failed - see $*.bld for details." ;\
+	   exit 1 ;\
+	fi
+	@echo "+++testFinished:build.ngdBuild.$@"
+
+# Run synthesis
+$(TOP).ngc: $(ALL_SRCS) $(ALL_CORES) $(TOP).scr $(TOP).prj $(LIB_MODULES_FILE)
+	@echo ==================================================
+	@echo "=== Run Synthesis (XST)"
+	@echo ==================================================
+	@echo "+++testStarted:build.xst.$@"
+	@if xst -intstyle ise -ifn $(TOP).scr ; \
+	then \
+		echo "Synthesis passed." ; \
+		cat $(TOP).srp >> $(REPORT) ;\
+	else \
+		echo "Synthesis failed - see $(TOP).srp for details." ;\
+		exit 1 ;\
+	fi
+	@echo "+++testFinished:build.xst.$@"
+
+#Generate Post-synthesis Verilog and SDF:
+psv: $(TOP)_par.ncd
+	@echo ==================================================
+	@echo "=== Generate post-synthesis verilog and SDF"
+	@echo ==================================================
+	@echo "+++testStarted:build.netgen.$@"
+	netgen -w -sim -ofmt verilog nf2_top_par.ncd
+	@echo "+++testFinished:build.netgen.$@"
+
+.PHONY: clean
+clean::
+	rm -rf *.bld *.lso *.mrp *.ncd *.ngr *.ngm *.pad.* *.par *.twr *.bit *.drc *.bgn *.grf
+	rm -rf *.pcf *.xpi *.srp *vhdl.prj *pad.txt *.pad *pad.csv netlist.lst xst
+	rm -rf $(TOP).ngc *~ $(TOP)_par.v $(TOP)_par.sdf $(TOP)_par.bin $(TOP).ncd $(TOP)_par.ncd
+	rm -rf $(REPORT) $(TOP).prj
+	rm -rf coregen  $(notdir $(LIB_CORES)) $(notdir $(LIB_PRESYNTH_CORES))
+	rm -rf smartguide.ncd
+	rm -rf *.xml *.map *.msk *.unroutes
+
+.PHONY: really_clean
+really_clean:
+	@echo "Making really clean - will need to use coregen to rebuild the core files."
+	$(MAKE) clean
+	@echo User Core srcs: $(ALL_USER_CORE_SRCS)
+	rm -rf *.ngc *.ngo *.edn *.asy *flist.txt *readme.txt *.sym *.v *.veo *.log *.ngd *.nlf $(ALL_USER_CORE_SRCS)
+ifeq ($(origin KEEP_SCR), undefined)
+	rm -rf *.scr
+endif
+
