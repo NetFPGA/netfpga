@@ -17,9 +17,10 @@
 static int nf2_get_settings(struct net_device *dev,
 		struct ethtool_cmd *ecmd)
 {
-	ecmd->supported = SUPPORTED_1000baseT_Full;
+	ecmd->supported = SUPPORTED_1000baseT_Full |
+		SUPPORTED_MII;
 	ecmd->advertising = ADVERTISED_TP;
-	ecmd->port = PORT_TP;
+	ecmd->port = PORT_MII;
 	ecmd->speed = SPEED_1000;
 	ecmd->duplex = DUPLEX_FULL;
 	ecmd->autoneg = AUTONEG_DISABLE;

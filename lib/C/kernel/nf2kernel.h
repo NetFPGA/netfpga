@@ -18,6 +18,7 @@
 #include <linux/sockios.h>
 #include <linux/netdevice.h>
 #include <linux/fs.h>
+#include <linux/mii.h>
 #include <asm/atomic.h>
 
 /* Define PCI Vendor and device IDs for the NetFPGA-1G card */

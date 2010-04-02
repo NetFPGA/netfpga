@@ -427,6 +427,9 @@
 
 
 /* MDIO registers */
+#define MDIO_0_BASE                    0x0440000
+#define MDIO_0_PHY_ID_LO_REG           0x0440008
+#define MDIO_0_PHY_ID_HI_REG           0x044000C
 #define MDIO_0_AUX_STATUS              0x0440064
 #define MDIO_0_INTR_STATUS             0x0440068
 #define MDIO_0_INTR_MASK               0x044006c

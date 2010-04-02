@@ -22,6 +22,7 @@ HEAD -- Version X.X.X beta
      running the test
    * Kernel module:
      - added basic ethtool support (Thanks to Kumar Sanghvi)
+     - added mii-tool support (Thanks to Kumar Sanghvi)
      - support newer Linux kernels (net_device API deprecated)
        (Thanks to Paul Rodman & Maciej Żenczykowski @ Google)
 
