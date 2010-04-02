@@ -7,6 +7,9 @@
  * Description: Control card functionality
  *
  * Change history:
+ *   3/10/10 - Paul Rodman & Maciej Żenczykowski
+ *                           Added support for kernels 2.6.31 and beyond
+ *                           (net_device api deprecated)
  *   7/8/2008 - Jad Naous: - fixed problem with newer kenrels where SA_SHIRQ is
  *                           not defined
  *                         - Fixed various warnings
@@ -34,7 +37,12 @@
 
 #include <asm/io.h>
 #include <asm/uaccess.h>
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,31)
+#include <linux/semaphore.h>
+#else
 #include <asm/semaphore.h>
+#endif
 
 #include "../common/nf2.h"
 #include "nf2kernel.h"
@@ -890,6 +898,27 @@ static irqreturn_t nf2c_intr(int irq, void *dev_id
     }
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,31)
+static const struct net_device_ops nf2c_netdev_ops = {
+	.ndo_open		= nf2c_open,
+	.ndo_stop		= nf2c_release,
+	.ndo_set_config		= nf2c_config,
+	.ndo_start_xmit		= nf2c_tx,
+#ifdef CONFIG_PCI
+	.ndo_do_ioctl		= nf2c_ioctl,
+#endif
+	.ndo_get_stats		= nf2c_stats,
+	.ndo_tx_timeout		= nf2c_tx_timeout,
+/*	.ndo_set_multicast_list	= */
+/*	.ndo_change_mtu		= */
+	.ndo_set_mac_address	= nf2c_set_mac_address,
+/*	.ndo_validate_addr	= */
+#ifdef CONFIG_NET_POLL_CONTROLLER
+/*	.ndo_poll_controller	= */
+#endif
+};
+#endif
+
 /*
  * Link Status Check
  */
@@ -920,6 +949,10 @@ static void nf2c_init(struct net_device *dev)
 
   ether_setup(dev); /* assign some of the fields */
 
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,31)
+  dev->netdev_ops = &nf2c_netdev_ops;
+#else
   dev->open            = nf2c_open;
   dev->stop            = nf2c_release;
   dev->set_config      = nf2c_config;
@@ -930,7 +963,7 @@ static void nf2c_init(struct net_device *dev)
   dev->watchdog_timeo  = timeout;
   dev->set_mac_address = nf2c_set_mac_address;
   dev->mtu             = MTU;
-
+#endif
   iface = netdev_priv(dev);
   memset(iface, 0, sizeof(struct nf2_iface_priv));
 }

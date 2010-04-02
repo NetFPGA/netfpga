@@ -6,9 +6,13 @@
  * Description: Main source file for kernel driver
  *		Code for control and user cards is in separate files.
  *
- * Change history: 9/1/05 - Semi-functional driver :-)
- * 		   9/2/05 - Split driver into multiple modules
- * 		   	    (user and control mode in separate modules)
+ * Change history:
+ *                 3/10/10 - Paul Rodman & Maciej Żenczykowski (google)
+ *                           Added support for kernels 2.6.31 and beyond
+ *                           (net_device api deprecated)
+ *                 9/1/05  - Semi-functional driver :-)
+ *                 9/2/05  - Split driver into multiple modules
+ * 		   	     (user and control mode in separate modules)
  *
  */
 
@@ -30,7 +34,12 @@
 #include <linux/stat.h>
 
 #include <asm/uaccess.h>
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,31)
+#include <linux/semaphore.h>
+#else
 #include <asm/semaphore.h>
+#endif
 
 #include "../common/nf2.h"
 #include "nf2kernel.h"
