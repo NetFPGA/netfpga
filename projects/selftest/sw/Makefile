@@ -8,8 +8,8 @@ SRLIBS = -lpthread
 all : registers selftest bad_pkt_dump
 
 registers:
-	$(NF_ROOT)/bin/nf2_register_gen.pl --project selftest
-	$(NF_ROOT)/bin/nf2_register_gen.pl --project cpci
+	$(NF_ROOT)/bin/nf_register_gen.pl --project selftest
+	$(NF_ROOT)/bin/nf_register_gen.pl --project cpci
 
 selftest: selftest.o \
 	selftest_dram.o \

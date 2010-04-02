@@ -31,7 +31,7 @@ SOCK =
 endif
 
 registers:
-	$(NF_ROOT)/bin/nf2_register_gen.pl --project reference_router
+	$(NF_ROOT)/bin/nf_register_gen.pl --project reference_router
 	ln -f -s $(NF_ROOT)/projects/reference_router/lib/C/reg_defines_reference_router.h reg_defines.h
 
 # --

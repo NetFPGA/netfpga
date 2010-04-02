@@ -27,7 +27,7 @@ cores: $(CORE_NAMES)
 registers:
 	@echo "+++testStarted:build.registers.$(PROJECT)"
 	@if [ -f $(PROJECT_XML_FILE) ] ; then \
-		$(NF_ROOT)/bin/nf2_register_gen.pl --project $(PROJECT) ; \
+		$(NF_ROOT)/bin/nf_register_gen.pl --project $(PROJECT) ; \
 	fi
 	@echo "Processed registers."
 	@echo "+++testFinished:build.registers.$(PROJECT)"
@@ -35,7 +35,7 @@ registers:
 cpci-registers:
 	@echo "+++testStarted:build.registers.$(CPCI_PROJ)"
 	@if [ -f $(CPCI_XML_FILE) ] ; then \
-		$(NF_ROOT)/bin/nf2_register_gen.pl --project $(CPCI_PROJ) ; \
+		$(NF_ROOT)/bin/nf_register_gen.pl --project $(CPCI_PROJ) ; \
 	fi
 	@echo "Processed registers."
 	@echo "+++testFinished:build.registers.$(CPCI_PROJ)"

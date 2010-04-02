@@ -9,7 +9,7 @@ LDFLAGS = -lncurses
 all : registers cli regdump show_stats
 
 registers:
-	$(NF_ROOT)/bin/nf2_register_gen.pl --project reference_router
+	$(NF_ROOT)/bin/nf_register_gen.pl --project reference_router
 
 show_stats: show_stats.o ../../../lib/C/common/nf2util.o ../../../lib/C/common/util.o ../lib/C/reg_defines_reference_router.h
 

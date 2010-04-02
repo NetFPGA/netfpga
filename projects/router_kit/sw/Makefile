@@ -11,7 +11,7 @@ HEADERS  = rtable.hh arptable.hh nf21_mon.hh iflist.hh
 CXXFLAGS = -g -Wall -ansi
 
 registers:
-	$(NF_ROOT)/bin/nf2_register_gen.pl --project reference_router
+	$(NF_ROOT)/bin/nf_register_gen.pl --project reference_router
 	ln -f -s ../../reference_router/lib/C/reg_defines_reference_router.h reg_defines.h
 
 common:

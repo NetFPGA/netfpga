@@ -342,7 +342,7 @@ sub importVerilogLibsXML {
 	my $projectXML = "$nf2_root/$projectBase/$project/$projectFile";
 	if (-f $projectXML ) {
 
-    my $include = `$nf2_root/bin/nf2_register_gen.pl --project $project --list-modules --list-shared --simple-error --quiet`;
+    my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --list-shared --simple-error --quiet`;
 		my @lines = split /\n/, $include;
 		# Process the lines in the file
 		foreach my $line (@lines) {
@@ -386,7 +386,7 @@ sub importVerilogExcludeLibs {
 		# Check if there is an project file
 		my $projectXML = "$nf2_root/$projectBase/$project/$projectFile";
 		if (-f $projectXML ) {
-      my $include = `$nf2_root/bin/nf2_register_gen.pl --project $project --list-modules --simple-error --quiet`;
+      my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --simple-error --quiet`;
 			my @lines = split /\n/, $include;
 			# Process the lines in the file
 			foreach my $line (@lines) {
@@ -423,7 +423,7 @@ sub importVerilogLibs {
 	my $projectXML = "$nf2_root/$projectBase/$project/$projectFile";
 	if (-f $projectXML ) {
 
-    my $include = `$nf2_root/bin/nf2_register_gen.pl --project $project --list-modules --simple-error --quiet`;
+    my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --simple-error --quiet`;
 		my @lines = split /\n/, $include;
 		# Process the lines in the file
 		foreach my $line (@lines) {

@@ -9,7 +9,7 @@ LDFLAGS = -lncurses
 all : registers counterdump
 
 registers:
-	$(NF_ROOT)/bin/nf2_register_gen.pl --project reference_nic
+	$(NF_ROOT)/bin/nf_register_gen.pl --project reference_nic
 
 counterdump : counterdump.o ../../../lib/C/common/nf2util.o ../lib/C/reg_defines_reference_nic.h
 

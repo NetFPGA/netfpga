@@ -43,7 +43,7 @@ all: registers $(NF2LIB) $(CONSTANTS_JAVA) router.sh eventcap.sh
 
 # registers
 registers:
-	$(NF_ROOT)/bin/nf2_register_gen.pl --project router_buffer_sizing
+	$(NF_ROOT)/bin/nf_register_gen.pl --project router_buffer_sizing
 	ln -f -s ../../../projects/router_buffer_sizing/lib/C/reg_defines_router_buffer_sizing.h reg_defines.h
 
 
