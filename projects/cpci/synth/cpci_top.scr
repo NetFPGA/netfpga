@@ -28,5 +28,4 @@ run
 -shift_extract YES
 -xor_collapse YES
 -resource_sharing YES
--mult_style auto
 -iobuf YES
