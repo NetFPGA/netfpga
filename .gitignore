@@ -1,0 +1,15 @@
+#*#
+.#*
+*~
+*.a
+*.bit
+*.class
+*.ko
+*.ngc
+*.o
+*.pyc
+reg_defines_*.h
+reg_defines_*.pm
+reg_defines.v
+*.so
+.*.swp
