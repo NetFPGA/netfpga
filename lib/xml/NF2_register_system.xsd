@@ -146,6 +146,8 @@
       <element name="registers" type="tns:RegisterList" maxOccurs="1" minOccurs="0"/>
       <element name="constants" type="tns:ConstantList" maxOccurs="1" minOccurs="0"/>
       <element name="types" type="tns:TypeList" maxOccurs="1" minOccurs="0"/>
+      <element name="use_shared" type="string" maxOccurs="1" minOccurs="0"/>
+        </element>
     </sequence>
   </complexType>
 
