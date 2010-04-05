@@ -217,6 +217,16 @@
 
   <element name="global" type="tns:Global"/>
 
+  <complexType name="Shared">
+    <sequence>
+      <element name="description" type="string" maxOccurs="1" minOccurs="0"/>
+      <element name="constants" type="tns:ConstantList" maxOccurs="1" minOccurs="0"/>
+      <element name="types" type="tns:TypeList" maxOccurs="1" minOccurs="0"/>
+    </sequence>
+  </complexType>
+
+  <element name="shared" type="tns:Shared"/>
+
   <simpleType name="IntOrConstant">
     <union memberTypes="string int"/>
   </simpleType>
