@@ -177,6 +177,8 @@
         </element>
       <element name="version_revision" type="int" maxOccurs="1" minOccurs="0">
         </element>
+      <element name="dev_id" type="int" maxOccurs="1" minOccurs="0">
+        </element>
       <element name="constants" type="tns:ConstantList" maxOccurs="1" minOccurs="0"/>
       <element name="types" type="tns:TypeList" maxOccurs="1" minOccurs="0"/>
       <element name="use_modules" type="string" maxOccurs="1" minOccurs="0">
