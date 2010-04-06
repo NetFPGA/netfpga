@@ -25,6 +25,10 @@ HEAD -- Version X.X.X beta
      - added mii-tool support (Thanks to Kumar Sanghvi)
      - support newer Linux kernels (net_device API deprecated)
        (Thanks to Paul Rodman & Maciej Żenczykowski @ Google)
+   * DRAM related:
+     - DRAM block read/write test, DRAM queue test (1 queue), DRAM router 
+       (8 queue) now released as full source code 
+     - Several timing improvement to make the DRAM related modules faster 
 
   Bug fixes:
    * numerous fixes to register system:
