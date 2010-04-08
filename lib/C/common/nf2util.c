@@ -39,6 +39,7 @@ static int readRegFile(struct nf2device *nf2, unsigned reg, unsigned *val);
 static int writeRegNet(struct nf2device *nf2, unsigned reg, unsigned val);
 static int writeRegFile(struct nf2device *nf2, unsigned reg, unsigned val);
 static void readStr(struct nf2device *nf2, unsigned regStart, unsigned len, char *dst);
+void prepDeviceInfo(struct nf2device *nf2);
 
 /* Local variables */
 unsigned cpci_version = -1;
@@ -687,7 +688,7 @@ const char* getDeviceInfoStr(struct nf2device *nf2)
  */
 int isVirtexProgrammed(struct nf2device *nf2)
 {
-    int progStatus;
+    unsigned progStatus;
 
     readReg(nf2, CPCI_REPROG_STATUS_REG, &progStatus);
     return (progStatus & 0x100) != 0;
