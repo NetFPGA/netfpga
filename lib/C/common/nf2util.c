@@ -781,7 +781,7 @@ int checkVirtexBitfile(struct nf2device *nf2, char *projDir,
         else if (minVerMajor != VERSION_ANY)
             sprintf(minStr, "%d.x.x", minVerMajor);
         else
-            sprintf(minStr, "x.x.x", minVerMajor);
+            sprintf(minStr, "x.x.x");
 
         char maxStr[MAX_VER_LEN];
         if (maxVerRev != VERSION_ANY)
@@ -791,7 +791,7 @@ int checkVirtexBitfile(struct nf2device *nf2, char *projDir,
         else if (maxVerMajor != VERSION_ANY)
             sprintf(maxStr, "%d.x.x", maxVerMajor);
         else
-            sprintf(maxStr, "x.x.x", maxVerMajor);
+            sprintf(maxStr, "x.x.x");
 
         char virtexVerStr[MAX_VER_LEN];
         sprintf(virtexVerStr, "%d.%d.%d",
