@@ -1,3 +1,0 @@
-cpci_bus
-ddr2_controller
-ddr2_blk_rdwr
