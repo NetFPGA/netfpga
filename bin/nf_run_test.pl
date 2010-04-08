@@ -52,6 +52,7 @@ my $global_run = $_NF_ROOT.'/lib/scripts/verif_run/run.pl';  # Global run script
 my $help = '';
 my $dump = 0;
 my $gui = 0;
+my $isim = '';      # Use Xilinx's ISIM if flag is set
 my $vcs = '';       # if present, Synopsys's vcs instead of Mentor's vsim will run
 my $sim_opt = ''; #  command line option to be passed to HDL simulator
 my $ci = '';
@@ -70,6 +71,7 @@ unless ( GetOptions ( "major=s" => \$major,
 		      "gui" => \$gui,
 		      "help" => \$help,
 		      "vcs" => \$vcs,
+		      "isim" => \$isim,
 		      "sim_opt=s" => \$sim_opt,
 		      "ci=s" => \$ci,
 		      "citest=s" => \$citest,
@@ -130,7 +132,10 @@ unless ($no_compile) {
 
   my $dumpfile = $dump ? 'dump.v' : '';
 
-  if ($vcs) {
+  if ($isim) {
+    $make_opt = $make_opt . " isim_top"
+  }
+  elsif ($vcs) {
     $make_opt = $make_opt . " vcs_top"
   } else {
     $make_opt = $make_opt . " vsim_top"
@@ -243,7 +248,10 @@ else {
 	    $which_run = $global_run;
     }
 
-    if ($vcs) {
+    if ($isim) {
+	$cmd = "cd $dst_dir; $which_run --sim isim";
+    }
+    elsif ($vcs) {
 	$cmd = "cd $dst_dir; $which_run --sim vcs";
     }
     else {
@@ -313,6 +321,7 @@ SYNOPSIS
         [--dump]
         [--gui]
         [--vcs]
+        [--isim]
         [--sim_opt <string>]
         [--ci <test_tool>]
         [--citest <test name>]
@@ -434,6 +443,9 @@ OPTIONS
 
    --vcs
      If this option is present, vcs will run. Otherwise vsim will run.
+
+   --isim
+     If this option is present, ISIM will run. Otherwise vsim will run.
 
    --sim_opt <string>
      This option allows the string to be passed to the HDL simulator.
