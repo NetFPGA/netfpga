@@ -207,6 +207,30 @@ simvfast: $(SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(INCLUDES)
 
 
 
+########### ISIM SIMULATION #################
+
+COMMON_SRCS := $(wildcard $(COMMON_DIR)/*.v)
+COMMON_SRCS := $(filter-out $(INC_SRCS), $(COMMON_SRCS))
+
+nf2_top_isim: $(SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(CPCI_SRCS) $(INCLUDES) $(LIB_MODULES_FILE) $(TB_SRCS)
+	@echo "==============================================================================="
+	@echo "Building ISIM binary"
+	@echo "==============================================================================="
+	@echo "+++testStarted:build.ISIM.binary"
+	@echo UNET_EXTRA_DIRS is $(UNET_EXTRA_DIRS)
+ifneq (${UNET_XPS_DIR},)
+	@echo XPS currently not supported for ISIM
+	@echo
+	@echo Please add support to the simulation makefile
+	false
+else
+
+	vlogcomp $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(SRCS) $(CPCI_SRCS) $(TB_SRCS) $(COMMON_SRCS)
+	fuse -top testbench -top glbl –lib unimacro_ver -lib unisims_ver -lib xilinxcorelib_ver -lib simprims_ver -o $@
+endif
+	@echo "+++testFinished:build.ISIM.binary"
+
+
 ########### MODELSIM SIMULATION #################
 
 # Set flags for Modelsim
