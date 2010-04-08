@@ -186,8 +186,11 @@ vcs_top: registers cores my_sim
 # This version generates ModelSim
 vsim_top: registers cores model_sim
 
-# This version generates both VCS and ModelSim
-all: vcs_top vsim_top
+# This version generates ISIM
+isim_top: registers cores nf2_top_isim
+
+# This version generates VCS, ModelSim and ISIM
+all: vcs_top vsim_top isim_top
 
 
 ########### VCS SIMULATION #################
