@@ -78,6 +78,19 @@ ifneq ($(DUMP_CTRL),)
 	SRCS := $(SRCS) $(wildcard $(UNET_SRC_DIR)/$(DUMP_CTRL))
 endif
 
+# Create a list of the testbench sources
+#
+# Filter out ones that we don't need to explicity complie
+#   board_h32_t32    -- included by testbench
+#   host32_inc       -- included by host32
+#   module_sim_tasks -- used in single-module simulations
+#   tasks            -- no longer used
+TB_SRCS := $(wildcard $(TESTBENCH_DIR)/*.v)
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/board_h32_t32.v, $(TB_SRCS))
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/host32_inc.v, $(TB_SRCS))
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/module_sim_tasks.v, $(TB_SRCS))
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/tasks.v, $(TB_SRCS))
+
 # We need this explicitly because Xilinx gets the case wrong
 PCI_LC_I = $(CPCI_SRC_COREGEN_DIR)/pci_lc_i.v
 
