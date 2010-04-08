@@ -52,7 +52,7 @@ $ENV{'NF_DESIGN_DIR'} =~ /.*\/([^\/]+)/;
 my $testDir = $ENV{'NF_WORK_DIR'} . "/verif/$1";
 
 # Program to perform packet comparison
-my $compare = $ENV{'NF_ROOT'} . '/bin/nf2_compare.pl';
+my $compare = $ENV{'NF_ROOT'} . '/bin/nf_compare.pl';
 
 
 
