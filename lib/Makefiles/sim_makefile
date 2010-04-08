@@ -73,8 +73,10 @@ endif
 # Source files
 
 # Add the testbench, dump and simulation files
-SRCS := $(SRCS) $(TESTBENCH_DIR)/$(TOP) $(wildcard $(UNET_SRC_DIR)/$(DUMP_CTRL)) \
-$(XILINX)/verilog/src/glbl.v
+SRCS := $(SRCS) $(TESTBENCH_DIR)/$(TOP) $(XILINX)/verilog/src/glbl.v
+ifneq ($(DUMP_CTRL),)
+	SRCS := $(SRCS) $(wildcard $(UNET_SRC_DIR)/$(DUMP_CTRL))
+endif
 
 # We need this explicitly because Xilinx gets the case wrong
 PCI_LC_I = $(CPCI_SRC_COREGEN_DIR)/pci_lc_i.v
