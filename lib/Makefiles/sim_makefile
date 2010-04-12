@@ -212,10 +212,28 @@ simvfast: $(SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(INCLUDES)
 
 ########### ISIM SIMULATION #################
 
+# This makefile is setup to work with ISim 10.1
+#
+# Unfortunately 10.1 is unable to correctly process some of the code in
+# nf2_core.v related to selecting register signals based on the value of
+# constants defined in a project's registers.v. This works correctly in
+# ModelSim and XST -- presumably it's a bug/limitation of ISim. The workaround
+# is to replace the references to the register constants with their actual
+# values. The code calls a script to perform this replacement and uses the
+# substituted version in simulations.
+#
 COMMON_SRCS := $(wildcard $(COMMON_DIR)/*.v)
 COMMON_SRCS := $(filter-out $(INC_SRCS), $(COMMON_SRCS))
 
-nf2_top_isim: $(SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(CPCI_SRCS) $(INCLUDES) $(LIB_MODULES_FILE) $(TB_SRCS)
+REGISTER_SRCS := $(INC_DIR)/registers.v
+SUBST_SRCS := $(filter %nf2_core.v, $(SRCS))
+NO_SUBST_SRCS := $(filter-out $(SUBST_SRCS), $(SRCS))
+SUBST_DONE_SRCS := $(addsuffix .subst, $(SUBST_SRCS))
+
+%.v.subst: %.v $(REGISTER_SRCS)
+	nf_const_subst.pl --define $(REGISTER_SRCS) $<
+
+nf2_top_isim: $(NO_SUBST_SRCS) $(SUBST_DONE_SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(CPCI_SRCS) $(INCLUDES) $(LIB_MODULES_FILE) $(TB_SRCS)
 	@echo "==============================================================================="
 	@echo "Building ISIM binary"
 	@echo "==============================================================================="
@@ -227,8 +245,7 @@ ifneq (${UNET_XPS_DIR},)
 	@echo Please add support to the simulation makefile
 	false
 else
-
-	vlogcomp $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(SRCS) $(CPCI_SRCS) $(TB_SRCS) $(COMMON_SRCS)
+	vlogcomp $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(NO_SUBST_SRCS) $(SUBST_DONE_SRCS) $(CPCI_SRCS) $(TB_SRCS) $(COMMON_SRCS)
 	fuse -top testbench -top glbl –lib unimacro_ver -lib unisims_ver -lib xilinxcorelib_ver -lib simprims_ver -o $@
 endif
 	@echo "+++testFinished:build.ISIM.binary"
