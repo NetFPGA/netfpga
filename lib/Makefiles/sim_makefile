@@ -230,6 +230,8 @@ SUBST_SRCS := $(filter %nf2_core.v, $(SRCS))
 NO_SUBST_SRCS := $(filter-out $(SUBST_SRCS), $(SRCS))
 SUBST_DONE_SRCS := $(addsuffix .subst, $(SUBST_SRCS))
 
+ISIM_INC_CMD := -i $(DEFINES_INC_DIR) -i $(TESTBENCH_DIR) -i $(DESIGN_INC_DIR)
+
 %.v.subst: %.v $(REGISTER_SRCS)
 	nf_const_subst.pl --define $(REGISTER_SRCS) $<
 
@@ -245,7 +247,7 @@ ifneq (${UNET_XPS_DIR},)
 	@echo Please add support to the simulation makefile
 	false
 else
-	vlogcomp $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(NO_SUBST_SRCS) $(SUBST_DONE_SRCS) $(CPCI_SRCS) $(TB_SRCS) $(COMMON_SRCS)
+	vlogcomp $(ISIM_INC_CMD) $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(NO_SUBST_SRCS) $(SUBST_DONE_SRCS) $(CPCI_SRCS) $(TB_SRCS) $(COMMON_SRCS)
 	fuse -top testbench -top glbl –lib unimacro_ver -lib unisims_ver -lib xilinxcorelib_ver -lib simprims_ver -o $@
 endif
 	@echo "+++testFinished:build.ISIM.binary"
