@@ -453,6 +453,12 @@ static void nf2c_clear_dma_flags(struct nf2_card_priv *card)
 static int nf2c_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 {
   struct nf2reg reg;
+  struct mii_ioctl_data *data = if_mii(rq);
+  u32 phy_id_lo, phy_id_hi, phy_id;
+
+  struct nf2_iface_priv *iface = (struct nf2_iface_priv *)netdev_priv(dev);
+  struct nf2_card_priv *card = iface->card;
+
 
   switch(cmd) {
     /* Read a register */
@@ -484,6 +490,22 @@ static int nf2c_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
       }
 
     nf2k_reg_write(dev, reg.reg, &(reg.val));
+    return 0;
+
+  /* Read address of MII PHY in use */
+  case SIOCGMIIPHY:
+    phy_id_lo = ioread32(card->ioaddr + MDIO_0_PHY_ID_LO_REG + \
+		    (ADDRESS_DELTA * (iface->iface)));
+    phy_id_hi = ioread32(card->ioaddr + MDIO_0_PHY_ID_HI_REG + \
+		    (ADDRESS_DELTA * (iface->iface)));
+    phy_id = (phy_id_hi << 16) | phy_id_lo;
+    data->phy_id = phy_id;
+    return 0;
+
+  /* Read an MII register */
+  case SIOCGMIIREG:
+    data->val_out = ioread32(card->ioaddr + MDIO_0_BASE + (ADDRESS_DELTA * \
+			    (iface->iface)) + data->reg_num);
     return 0;
 
   default:
