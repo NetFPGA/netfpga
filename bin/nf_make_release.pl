@@ -38,8 +38,10 @@ my $projectFile = 'include/project.xml';
 # Regression test project file
 my $regressFile = 'projects/regress.txt';
 
-# Specifies whether the package will be pulled from an svn repository or not
-my $no_svn = 0;
+# Specifiy the source repository type
+my $use_svn = 0;
+my $use_git = 0;
+my $use_raw = 0;
 
 # Specifies whether the package is a NetFPGA base package or not
 my $base_pkg = 0;
@@ -49,6 +51,11 @@ my $help;
 
 # Parse the command line options
 my $buildFile = parseArgs();
+
+# Verify that at least one of the repository types is specified
+if ($use_git + $use_svn + $use_raw != 1) {
+	die "Must specify the repository type (git, svn, raw)";
+}
 
 # Open the XML file
 my $build;
@@ -314,17 +321,21 @@ sub svnExport {
 
 	# Perform the subversion export
 	if (! -e "$netfpgaBase/$fileOrDir") {
-		if (! -d "$nf2_root/$fileOrDir") {
-			my @args = ("cp", "$nf2_root/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
-			system(join(' ', @args)) == 0
-				or die "system @args failed: $?";
+		if ($use_git) {
 		}
-		elsif ($no_svn == 0) {
-			my @args = ("svn", "export", "$nf2_root/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
-			system(join(' ', @args)) == 0
-				or die "system @args failed: $?";
+		elsif ($use_svn) {
+			if (! -d "$nf2_root/$fileOrDir") {
+				my @args = ("cp", "$nf2_root/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
+				system(join(' ', @args)) == 0
+					or die "system @args failed: $?";
+			}
+			else {
+				my @args = ("svn", "export", "$nf2_root/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
+				system(join(' ', @args)) == 0
+					or die "system @args failed: $?";
+			}
 		}
-		else {
+		elsif ($use_raw) {
 			my @args = ("cp", "-r", "$nf2_root/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
 			system(join(' ', @args)) == 0
  				or die "system @args failed: $?";
@@ -712,7 +723,9 @@ sub getBinaries {
 #
 sub parseArgs {
 	unless (GetOptions(
-			"no_svn"          => \$no_svn,
+			"svn"             => \$use_svn,
+			"git"             => \$use_git,
+			"raw"             => \$use_raw,
 			"base_pkg"        => \$base_pkg,
 			"help"            => \$help,
 		) and (!defined($help))) {
@@ -739,7 +752,7 @@ NAME
    $prog - Build a package for a project or the base system
 
 SYNOPSIS
-   $prog [--base_pkg] [--no_svn]
+   $prog [--base_pkg] [--git] [--svn] [--raw]
         <build file>
 
    $prog --help  - show detailed help
@@ -756,8 +769,14 @@ build all nessary bitfiles and include the directories needed by the project.
 The <release_xml> file instructs the system how to build the package.
 
 OPTIONS
-    --no_svn
-      This is *not* a subversion repository
+    --git
+      The source is a git repository
+
+    --svn
+      The source is a subversion repository
+
+    --raw
+      The source is not under version control
 
     <build file>
       XML build file specifying release(s) to build
