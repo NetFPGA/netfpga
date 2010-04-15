@@ -7,6 +7,7 @@
 
 use File::Basename;
 use XML::Simple;
+use Getopt::Long;
 use strict;
 
 # Base NetFPGA directory
@@ -42,6 +43,9 @@ my $no_svn = 0;
 
 # Specifies whether the package is a NetFPGA base package or not
 my $base_pkg = 0;
+
+# Print detailed help
+my $help;
 
 # Parse the command line options
 my $buildFile = parseArgs();
@@ -707,29 +711,20 @@ sub getBinaries {
 #   Parse the command line arguments
 #
 sub parseArgs {
-	if (scalar(@ARGV) != 1 && scalar(@ARGV) != 2) {
+	unless (GetOptions(
+			"no_svn"          => \$no_svn,
+			"base_pkg"        => \$base_pkg,
+			"help"            => \$help,
+		) and (!defined($help))) {
 		usage();
 		exit 1;
 	}
-	else {
-		if (scalar(@ARGV) == 2) {
-			if($ARGV[0] eq "--no_svn") {
-				$no_svn = 1;
-				return $ARGV[1];
-			}
-			elsif ($ARGV[0] eq "--base_pkg") {
-				$base_pkg = 1;
-				return $ARGV[1];
-			}
-			else {
-				usage();
-				exit 1;
-			}
-		}
-		else {
-			return $ARGV[0];
-		}
+	if (scalar(@ARGV) != 1) {
+		usage();
+		exit 1;
 	}
+
+	return $ARGV[0];
 }
 
 #
