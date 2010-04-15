@@ -73,7 +73,7 @@ foreach my $release (@releases) {
 
 	my @projVerilogLibs;
 
-  if ($base_pkg == 1) {
+	if ($base_pkg == 1) {
 		@projVerilogLibs = @verilogLibs;
 	}
 
@@ -89,7 +89,7 @@ foreach my $release (@releases) {
 
 	# Work out what projects to export
 	my @projects = getProjects($release);
-  my @excludes = getExcludes($release);
+	my @excludes = getExcludes($release);
 
 	# Work out what projects to compile
 	my @exportBitfiles  = getBitfiles($release, @projects);
@@ -342,7 +342,7 @@ sub importVerilogLibsXML {
 	my $projectXML = "$nf2_root/$projectBase/$project/$projectFile";
 	if (-f $projectXML ) {
 
-    my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --list-shared --simple-error --quiet`;
+		my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --list-shared --simple-error --quiet`;
 		my @lines = split /\n/, $include;
 		# Process the lines in the file
 		foreach my $line (@lines) {
@@ -378,7 +378,7 @@ sub importVerilogExcludeLibs {
 	local $_;
 
 	my @projects = @_;
-  my $project;
+	my $project;
 
 	my %excludedVerilogLibs;
 
@@ -386,7 +386,7 @@ sub importVerilogExcludeLibs {
 		# Check if there is an project file
 		my $projectXML = "$nf2_root/$projectBase/$project/$projectFile";
 		if (-f $projectXML ) {
-      my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --simple-error --quiet`;
+			my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --simple-error --quiet`;
 			my @lines = split /\n/, $include;
 			# Process the lines in the file
 			foreach my $line (@lines) {
@@ -423,7 +423,7 @@ sub importVerilogLibs {
 	my $projectXML = "$nf2_root/$projectBase/$project/$projectFile";
 	if (-f $projectXML ) {
 
-    my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --simple-error --quiet`;
+		my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --simple-error --quiet`;
 		my @lines = split /\n/, $include;
 		# Process the lines in the file
 		foreach my $line (@lines) {
