@@ -165,20 +165,20 @@ foreach my $release (@releases) {
 	# Export the various files in base
 	print "Exporting base files...\n";
 	foreach (@base) {
-		svnExport($_);
+		export($_);
 	}
 
 	# Export the projects
 	print "Exporting project files...\n";
 	foreach (@projects) {
-		svnExport("$projectBase/$_");
+		export("$projectBase/$_");
 	}
 
 	if ($projVerilogLibs[0] ne "") { #if not empty
  		# Export the projects
 	 	print "Exporting Verilog libraries files...\n";
 		foreach (@projVerilogLibs) {
-			svnExport("$verilogLibBase/$_");
+			export("$verilogLibBase/$_");
 		}
 	}
 
@@ -302,7 +302,7 @@ exit 0;
 #
 # Export the various directories
 #
-sub svnExport {
+sub export {
 	local $_;
 
 	my $fileOrDir = shift;
