@@ -732,17 +732,37 @@ sub parseArgs {
 #   Print out the usage information
 #
 sub usage {
-	my $prog = $0;
+	(my $prog = $0) =~ s/.*\///;
 
-	print <<EOF;
-Usage:
-  $0 [--no_svn] <build file>
+	print <<"HERE1";
+NAME
+   $prog - Build a package for a project or the base system
 
-where
-  [--no_svn]   -- specifies that the package does not come from an svn repository
-  <build file> -- XML build file specify release(s) to build
+SYNOPSIS
+   $prog [--base_pkg] [--no_svn]
+        <build file>
 
-EOF
+   $prog --help  - show detailed help
+
+HERE1
+
+  return unless ($help);
+  print <<"HERE";
+
+DESCRIPTION
+
+   This script creates a package for a project or for the base system. It will
+build all nessary bitfiles and include the directories needed by the project.
+The <release_xml> file instructs the system how to build the package.
+
+OPTIONS
+    --no_svn
+      This is *not* a subversion repository
+
+    <build file>
+      XML build file specifying release(s) to build
+
+HERE
 }
 
 #
