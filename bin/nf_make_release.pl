@@ -339,6 +339,9 @@ sub export {
 	# Perform the subversion export
 	if (! -e "$netfpgaBase/$fileOrDir") {
 		if ($use_git) {
+			my @args = ("cp", "-r", "$exportDir/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
+			system(join(' ', @args)) == 0
+				or die "system @args failed: $?";
 		}
 		elsif ($use_svn) {
 			if (! -d "$nf2_root/$fileOrDir") {
