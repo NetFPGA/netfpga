@@ -142,8 +142,7 @@ foreach my $release (@releases) {
 			print "Project $_...\n";
 			my $project = "$nf2_root/$projectBase/$_/synth";
 
-			#system("cd $project && make");
-			system("cd $project && make") if ($_ ne "selftest");
+			system("cd $project && make");
 		}
 	}
 
