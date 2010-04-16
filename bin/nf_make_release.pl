@@ -46,6 +46,9 @@ my $use_raw = 0;
 # Specifies whether the package is a NetFPGA base package or not
 my $base_pkg = 0;
 
+# Don't compile bitfiles
+my $no_synth = 0;
+
 # Print detailed help
 my $help;
 
@@ -136,14 +139,19 @@ foreach my $release (@releases) {
 	mkdir $netfpgaBase or die "Unable to create directory '$netfpgaBase'";
 
 	# Compile each of the projects
-	print "Compiling projects...\n";
-	foreach (@exportBitfiles) {
-		if (-d "$nf2_root/$projectBase/$_/synth") {
-			print "Project $_...\n";
-			my $project = "$nf2_root/$projectBase/$_/synth";
+	if (!$no_synth) {
+		print "Compiling projects...\n";
+		foreach (@exportBitfiles) {
+			if (-d "$nf2_root/$projectBase/$_/synth") {
+				print "Project $_...\n";
+				my $project = "$nf2_root/$projectBase/$_/synth";
 
-			system("cd $project && make");
+				system("cd $project && make");
+			}
 		}
+	}
+	else {
+		print "Skipping project compilation (--no-synth flag)...\n";
 	}
 
 	# Compile each of the projects
@@ -726,6 +734,7 @@ sub parseArgs {
 			"git"             => \$use_git,
 			"raw"             => \$use_raw,
 			"base_pkg"        => \$base_pkg,
+			"no-synth"        => \$no_synth,
 			"help"            => \$help,
 		) and (!defined($help))) {
 		usage();
@@ -752,6 +761,7 @@ NAME
 
 SYNOPSIS
    $prog [--base_pkg] [--git] [--svn] [--raw]
+        [--no-synth]
         <build file>
 
    $prog --help  - show detailed help
@@ -776,6 +786,9 @@ OPTIONS
 
     --raw
       The source is not under version control
+
+    --no-synth
+      Don't synthesize the bitfiles. Assumes that all bitfiles are built.
 
     <build file>
       XML build file specifying release(s) to build
