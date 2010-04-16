@@ -24,8 +24,8 @@ my $bitfiles = 'bitfiles';
 my $tarBase = "netfpga";
 
 # Get the NF_ROOT directory
-my $nf2_root = $ENV{'NF_ROOT'};
-if (!defined($nf2_root)) {
+my $nf_root = $ENV{'NF_ROOT'};
+if (!defined($nf_root)) {
 	die "NF_ROOT environment variable is not set";
 }
 
@@ -122,7 +122,7 @@ foreach my $release (@releases) {
 
 	# Verify that the projects exists and import the list of modules
 	foreach (@projects) {
-		my $project = "$nf2_root/$projectBase/$_";
+		my $project = "$nf_root/$projectBase/$_";
 		if (! -d $project) {
 			die "Cannot locate project named '$_' (in directory '$project')";
 		}
@@ -149,9 +149,9 @@ foreach my $release (@releases) {
 	if (!$no_synth) {
 		print "Compiling projects...\n";
 		foreach (@exportBitfiles) {
-			if (-d "$nf2_root/$projectBase/$_/synth") {
+			if (-d "$nf_root/$projectBase/$_/synth") {
 				print "Project $_...\n";
-				my $project = "$nf2_root/$projectBase/$_/synth";
+				my $project = "$nf_root/$projectBase/$_/synth";
 
 				system("cd $project && make");
 			}
@@ -166,11 +166,11 @@ foreach my $release (@releases) {
 	foreach (@exportBinaries) {
 		my ($binFile, $proj) = split(':', $_);
 
-		print "$nf2_root/$projectBase/$proj/sw\n";
+		print "$nf_root/$projectBase/$proj/sw\n";
 
-		if (-d "$nf2_root/$projectBase/$proj/sw") {
+		if (-d "$nf_root/$projectBase/$proj/sw") {
 			print "Project $_...\n";
-			my $project = "$nf2_root/$projectBase/$proj/sw";
+			my $project = "$nf_root/$projectBase/$proj/sw";
 
 			system("cd $project && make $binFile");
 		}
@@ -229,7 +229,7 @@ foreach my $release (@releases) {
 	# Copy the relevant bitfiles
 	print "Copying bitfiles...\n";
 	foreach (@exportBitfiles) {
-		my $srcBitfile = "$nf2_root/$bitfiles/$_.bit";
+		my $srcBitfile = "$nf_root/$bitfiles/$_.bit";
 		my $destBitfile = "$netfpgaBase/$bitfiles/$_.bit";
 
 		if (-f $srcBitfile) {
@@ -243,7 +243,7 @@ foreach my $release (@releases) {
 	foreach (@exportBinaries) {
 		my ($binFile, $proj) = split(':', $_);
 
-		my $srcBinary = "$nf2_root/$projectBase/$proj/sw/$binFile";
+		my $srcBinary = "$nf_root/$projectBase/$proj/sw/$binFile";
 
 		my $destDir = "$netfpgaBase/$projectBase/$proj/sw";
 		my $destBinary = "$destDir/$binFile";
@@ -263,7 +263,7 @@ foreach my $release (@releases) {
 	# Copy the copy files
 	print "Copying other files...\n";
 	foreach (@copyList) {
-		my $src = "$nf2_root/$_";
+		my $src = "$nf_root/$_";
 		my $dest = "$netfpgaBase/$_";
 
 		if (-f $src) {
@@ -344,19 +344,19 @@ sub export {
 				or die "system @args failed: $?";
 		}
 		elsif ($use_svn) {
-			if (! -d "$nf2_root/$fileOrDir") {
-				my @args = ("cp", "$nf2_root/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
+			if (! -d "$nf_root/$fileOrDir") {
+				my @args = ("cp", "$nf_root/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
 				system(join(' ', @args)) == 0
 					or die "system @args failed: $?";
 			}
 			else {
-				my @args = ("svn", "export", "$nf2_root/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
+				my @args = ("svn", "export", "$nf_root/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
 				system(join(' ', @args)) == 0
 					or die "system @args failed: $?";
 			}
 		}
 		elsif ($use_raw) {
-			my @args = ("cp", "-r", "$nf2_root/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
+			my @args = ("cp", "-r", "$nf_root/$fileOrDir", "$netfpgaBase/$fileOrDir", "1>/dev/null");
 			system(join(' ', @args)) == 0
  				or die "system @args failed: $?";
 		}
@@ -374,10 +374,10 @@ sub importVerilogLibsXML {
 	my @extraVerilogDirs;
 
 	# Check if there is an project file
-	my $projectXML = "$nf2_root/$projectBase/$project/$projectFile";
+	my $projectXML = "$nf_root/$projectBase/$project/$projectFile";
 	if (-f $projectXML ) {
 
-		my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --list-shared --simple-error --quiet`;
+		my $include = `$nf_root/bin/nf_register_gen.pl --project $project --list-modules --list-shared --simple-error --quiet`;
 		my @lines = split /\n/, $include;
 		# Process the lines in the file
 		foreach my $line (@lines) {
@@ -387,12 +387,12 @@ sub importVerilogLibsXML {
 			next if ($line =~ /^\s*$/);
 
 			# Verify that the location exists
-			if (! -d "$nf2_root/$verilogLibBase/$line") {
+			if (! -d "$nf_root/$verilogLibBase/$line") {
 				die "Unable to locate module '$line' referenced in '$projectXML'";
 			}
 			elsif (!exists($excludes->{$line})) {
 				# If there is an xml directory include it
-				if (-d "$nf2_root/$verilogLibBase/$line/xml") {
+				if (-d "$nf_root/$verilogLibBase/$line/xml") {
  					push(@extraVerilogLibs, "$line/xml");
 				}
 				else {
@@ -419,9 +419,9 @@ sub importVerilogExcludeLibs {
 
 	foreach $project (@projects) {
 		# Check if there is an project file
-		my $projectXML = "$nf2_root/$projectBase/$project/$projectFile";
+		my $projectXML = "$nf_root/$projectBase/$project/$projectFile";
 		if (-f $projectXML ) {
-			my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --simple-error --quiet`;
+			my $include = `$nf_root/bin/nf_register_gen.pl --project $project --list-modules --simple-error --quiet`;
 			my @lines = split /\n/, $include;
 			# Process the lines in the file
 			foreach my $line (@lines) {
@@ -431,7 +431,7 @@ sub importVerilogExcludeLibs {
 				next if ($line =~ /^\s*$/);
 
 				# Verify that the location exists
-				if (! -d "$nf2_root/$verilogLibBase/$line") {
+				if (! -d "$nf_root/$verilogLibBase/$line") {
 					die "Unable to locate module '$line' referenced in '$projectXML'";
 				}
 				else {
@@ -455,10 +455,10 @@ sub importVerilogLibs {
 	my @extraVerilogLibs;
 
 	# Check if there is an project file
-	my $projectXML = "$nf2_root/$projectBase/$project/$projectFile";
+	my $projectXML = "$nf_root/$projectBase/$project/$projectFile";
 	if (-f $projectXML ) {
 
-		my $include = `$nf2_root/bin/nf_register_gen.pl --project $project --list-modules --simple-error --quiet`;
+		my $include = `$nf_root/bin/nf_register_gen.pl --project $project --list-modules --simple-error --quiet`;
 		my @lines = split /\n/, $include;
 		# Process the lines in the file
 		foreach my $line (@lines) {
@@ -468,7 +468,7 @@ sub importVerilogLibs {
 			next if ($line =~ /^\s*$/);
 
 			# Verify that the location exists
-			if (! -d "$nf2_root/$verilogLibBase/$line") {
+			if (! -d "$nf_root/$verilogLibBase/$line") {
 				die "Unable to locate module '$line' referenced in '$projectXML'";
 			}
 			elsif (!exists($excludes->{$line})) {
@@ -489,7 +489,7 @@ sub updateRegressProjects {
 	my @projects = @_;
 
 	# Check if there is an include file
-	my $src = "$nf2_root/$regressFile";
+	my $src = "$nf_root/$regressFile";
 	my $dest = "$netfpgaBase/$regressFile";
 
 	if (-f $src ) {
@@ -695,7 +695,7 @@ sub getBitfiles {
 
 	# Add the bitfiles corresponding to the projects
 	foreach (@projects) {
-		my $project = "$nf2_root/$projectBase/$_/synth";
+		my $project = "$nf_root/$projectBase/$_/synth";
 		if (-d $project) {
 			$bitfiles{$_} = 1;
 		}
