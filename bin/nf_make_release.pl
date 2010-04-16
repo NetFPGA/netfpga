@@ -8,6 +8,7 @@
 use File::Basename;
 use XML::Simple;
 use Getopt::Long;
+use File::Temp qw/ tempdir /;
 use strict;
 
 # Base NetFPGA directory
@@ -52,6 +53,9 @@ my $no_synth = 0;
 # Print detailed help
 my $help;
 
+# Directory to use when exporting files
+my $exportDir;
+
 # Parse the command line options
 my $buildFile = parseArgs();
 
@@ -81,6 +85,9 @@ my @base = getBase();
 
 # Get the list of releases
 my @releases = getReleases();
+
+# Do any pre-export preparations
+preExportPrep();
 
 foreach my $release (@releases) {
 	print "Building release '$release'...\n";
@@ -294,6 +301,9 @@ foreach my $release (@releases) {
 
 	print "\n\n";
 }
+
+# Clean up any temporary files
+finalClean();
 
 # Done
 print "\nDone\n";
@@ -866,5 +876,26 @@ sub wantSoftware {
 	}
 
 	return 1;
+}
+
+#
+# finalClean
+#   Clean up any temporary files that we may have created
+#
+sub finalClean {
+	# Should not need to remove the exportDir as it should be auto-deleted
+}
+
+#
+# preExportPrep
+#   Perform any pre-export preparations, such as exporting the repo
+#
+sub preExportPrep {
+	if ($use_git) {
+		$exportDir = tempdir(CLEANUP => 1);
+		my @args = ("git", "checkout-index", "-a", "-f", "--prefix=$exportDir/");
+		system(@args) == 0
+			or die "system @args failed: $?";
+	}
 }
 
