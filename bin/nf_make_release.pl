@@ -105,8 +105,8 @@ foreach my $release (@releases) {
 	$version =~ s/\./_/g;
 
 	# Work out the tar filename
-	my $tarFile = "$tarBase.$release";
-	$tarFile .= ".$version" if (defined($version) && $version ne "");
+	my $tarFile = "$tarBase_$release";
+	$tarFile .= "_$version" if (defined($version) && $version ne "");
 
 	# Work out what projects to export
 	my @projects = getProjects($release);
