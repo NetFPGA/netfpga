@@ -102,7 +102,7 @@ foreach my $release (@releases) {
 
 	# Get the version info
 	my $version = getVersion($release);
-	$version =~ s/\./_/;
+	$version =~ s/\./_/g;
 
 	# Work out the tar filename
 	my $tarFile = "$tarBase.$release";
