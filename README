@@ -1,6 +1,4 @@
 +------------------------------------------------------------------------
-| $Id$
-|
 | Author: Jad Naous <first initial last name at stanford period edu>
 | Description: Quick intro to NetFPGA
 +------------------------------------------------------------------------
@@ -125,8 +123,8 @@ NF_DESIGN_DIR - set to the project's directory
 NF_WORK_DIR - set to the working directory (somewhere with lots of space)
 
 If you are running BASH you will then need to source
-${NF_ROOT}/lib/bin/nf2_profile. Otherwise, if you are running CSH then
-you will need to source ${NF_ROOT}/lib/bin/nf2_cshrc.
+${NF_ROOT}/lib/bin/nf_profile. Otherwise, if you are running CSH then
+you will need to source ${NF_ROOT}/lib/bin/nf_cshrc.
 
 NOTE: Please make sure that the settings in these two files correspond
 to your setup. THE DEFAULTS WILL *NOT* WORK!
@@ -146,9 +144,9 @@ The Perl libraries used live in lib/Perl5. You can add your own libraries
 your project's verif/src dir.
 
 To run the simulation, use the following command:
-nf21_run_test.pl --major x --minor y
+nf_run_test.pl --major x --minor y
 
-To run it with a gui, add the --gui switch. Type nf21_run_test.pl --help
+To run it with a gui, add the --gui switch. Type nf_run_test.pl --help
 for full details.
 
 NOTE: coregen needs X. Make sure that you are running from a graphical
