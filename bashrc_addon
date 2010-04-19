@@ -22,6 +22,6 @@ if [ ! -d ${HOME}/.qt ]; then
  mkdir ${HOME}/.qt
 fi
 
-if [ -f ${NF_ROOT}/bin/nf2_profile ]; then
- source ${NF_ROOT}/bin/nf2_profile
+if [ -f ${NF_ROOT}/bin/nf_profile ]; then
+ source ${NF_ROOT}/bin/nf_profile
 fi
