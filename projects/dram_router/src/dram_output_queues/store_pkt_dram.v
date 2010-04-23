@@ -250,7 +250,7 @@
          store_state     <= store_state_next;
          shortcut_disable_local <= shortcut_disable;
 
-	 if(ctrl[`OQ_CONTROL_INITIALIZE_OQ]) begin
+	 if(ctrl[`OQ_CONTROL_INITIALIZE_OQ_POS]) begin
 		//store_state     <= ST_WAIT_FOR_DATA;
 		oq_wr_addr	<= lo_addr;
 	 end

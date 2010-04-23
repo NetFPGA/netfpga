@@ -110,7 +110,7 @@
 	.wr_data_count(fifo_wr_data_count)
    );
 
-   assign fifo_rd_en = out_rdy && !fifo_empty && !ctrl[`OQ_CONTROL_DISABLE_SEND];
+   assign fifo_rd_en = out_rdy && !fifo_empty && !ctrl[`OQ_CONTROL_DISABLE_SEND_POS];
    assign out_wr = fifo_rd_en && (out_ctrl != 8'h0f);
    assign fifo_almost_full_out = fifo_almost_full;
 
@@ -198,7 +198,7 @@
         hi_addr <= block_addr_hi;
         lo_addr <= block_addr_lo;
         remove_state            	<= remove_state_next;
-	 if(ctrl[`OQ_CONTROL_INITIALIZE_OQ]) begin
+	 if(ctrl[`OQ_CONTROL_INITIALIZE_OQ_POS]) begin
 		//remove_state                    <= ST_WAIT_FOR_DATA;
 		oq_rd_addr			<= lo_addr;
 	 end
