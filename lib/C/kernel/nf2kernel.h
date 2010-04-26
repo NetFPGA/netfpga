@@ -1,5 +1,5 @@
 /* ****************************************************************************
- * $Id: nf2kernel.h 6067 2010-04-01 22:36:26Z grg $
+ * nf2kernel.h 6067 2010-04-01 22:36:26Z grg
  *
  * Module: nf2kernel.h
  * Project: NetFPGA 2 Linux Kernel Driver
@@ -63,12 +63,15 @@
 #  define PDEBUG(fmt, args...)	/* Don't do anything */
 #endif
 
-/*
- * Interface data structure
- * - an instance of this structure exists for each interface/port
- *   on a control card.
+/**
+ * nf2_iface_priv - Interface data structure
+ * @card:	pointer to card this IF belongs to
+ * @iface:	number of the interface
+ * @stats:	statistics for this interface
  *
- *   Not used for user cards.
+ * an instance of this structure exists for each interface/port
+ * on a control card.
+ * Not used for user cards.
  */
 
 struct nf2_iface_priv {
@@ -83,11 +86,22 @@ struct nf2_iface_priv {
 };
 
 
-/*
- * User card private data
- * - an instance of this structure exists for each user card.
+/**
+ * nf2_user_priv - User card private data
+ * @card:	pointer to the corresponding card
+ * @open_count:	to keep track of no. of opening
+ * @dev:	dev_t for user card
+ * @cdev:	char device
+ * @sem:	semaphore
+ * @rx_wr_pos:
+ * @rx_rd_pos:	No of bytes available for reading
+ * @rx_buf_rd_pos: Actual read position
+ * @inq:	read queue
+ * @outq:	write queue
  *
- *   Not used for control cards.
+ *
+ * an instance of this structure exists for each user card.
+ * Not used for control cards.
  */
 struct nf2_user_priv {
 	/* The card corresponding to this structure */
@@ -112,12 +126,35 @@ struct nf2_user_priv {
 	unsigned char *rx_buf_rd_pos;
 
 	/* Read and write queues */
-        wait_queue_head_t inq, outq;
+	wait_queue_head_t inq, outq;
 };
 
 
-/*
- * Card data structrue
+/**
+ * nf2_card_priv - Card data structrue
+ * @pdev:	pointer to pci_dev
+ * @ioaddr:	address in board memory
+ * @is_ctrl:	is this control card
+ * @txbuff:	trasmit buffer
+ * @wr_txbuff:
+ * @rd_txbuff:
+ * @free_txbuffs:
+ * @free_txbuffs_port:
+ * @txbuff_lock:	spinlock
+ * @dma_tx_addr:	addr for dma tx
+ * @dma_rx_addr:	addr for dma rx
+ * @dma_tx_in_progress:	is dma tx in progress
+ * @dma_rx_in_progress: is dma rx in progress
+ * @dma_tx_lock:	spinlock for dma tx
+ * @dma_rx_lock:	spinlock for dma rx
+ * @ppool:	packet pool for incoming packet
+ * @ndev:	network devices
+ * @ifup:	bitmask for up interfaces
+ * @state_lock: semaphore for state vars
+ * @upriv:	user card variables
+ * @rd_pool:	last buffer used from pool
+ * @wr_pool:	current buffer to process
+ *
  * - an instance of this data structure exists for each card.
  */
 struct nf2_card_priv {
@@ -149,14 +186,14 @@ struct nf2_card_priv {
 	/* Is a DMA transfer in progress? */
 	atomic_t dma_tx_in_progress;
 	atomic_t dma_rx_in_progress;
-	//int dma_tx_in_progress;
-	//int dma_rx_in_progress;
+	/*int dma_tx_in_progress;*/
+	/*int dma_rx_in_progress;*/
 
 	/* Spinlock for the dma variables */
 	atomic_t dma_tx_lock;
 	atomic_t dma_rx_lock;
-	//spinlock_t dma_tx_lock;
-	//spinlock_t dma_rx_lock;
+	/*spinlock_t dma_tx_lock;*/
+	/*spinlock_t dma_rx_lock;*/
 
 	/* Packet pool for incomming packets */
 	struct nf2_packet *ppool;
@@ -183,19 +220,29 @@ struct nf2_card_priv {
 };
 
 
-/*
- * Buffer to hold packets to be transmitted
+/**
+ * txbuff - Buffer to hold packets to be transmitted
+ * @skb:	socket buffer
+ * @buff:	buffer
+ * @len:	length field
+ * @iface:	interface no
+ *
  */
 struct txbuff {
 	struct sk_buff *skb;
 	char *buff;
 	u16 len;
-        unsigned int iface;
+	unsigned int iface;
 };
 
 
-/*
- * A structure representing an in-flight packet being received.
+/**
+ * nf2_packet - A structure representing an in-flight packet being received.
+ * @next:	pointer to next packet
+ * @dev:	pointer to net_device
+ * @len:	length of packet
+ * @data:	data
+ *
  */
 struct nf2_packet {
 	struct nf2_packet *next;
@@ -208,9 +255,11 @@ struct nf2_packet {
 /*
  * Functions
  */
-int nf2u_probe(struct pci_dev *pdev, const struct pci_device_id *id, struct nf2_card_priv *card);
+int nf2u_probe(struct pci_dev *pdev, const struct pci_device_id *id,
+		struct nf2_card_priv *card);
 void nf2u_remove(struct pci_dev *pdev, struct nf2_card_priv *card);
-int nf2c_probe(struct pci_dev *pdev, const struct pci_device_id *id, struct nf2_card_priv *card);
+int nf2c_probe(struct pci_dev *pdev, const struct pci_device_id *id,
+		struct nf2_card_priv *card);
 void nf2c_remove(struct pci_dev *pdev, struct nf2_card_priv *card);
 
 void nf2_set_ethtool_ops(struct net_device *dev);
