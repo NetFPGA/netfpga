@@ -1,5 +1,5 @@
 /* ****************************************************************************
- * $Id: nf2_export.h 3546 2008-04-03 00:12:27Z derickso $
+ * nf2_export.h 3546 2008-04-03 00:12:27Z derickso
  *
  * Module: nf2_export.h
  * Project: NetFPGA 2 Linux Kernel Driver
