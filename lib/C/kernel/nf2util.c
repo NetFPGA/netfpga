@@ -1,5 +1,5 @@
 /* ****************************************************************************
- * $Id: nf2util.c 3546 2008-04-03 00:12:27Z grg $
+ * nf2util.c 3546 2008-04-03 00:12:27Z grg
  *
  * Module: nf2util.c
  * Project: NetFPGA 2 Linux Kernel Driver
@@ -8,7 +8,7 @@
  */
 
 #include <linux/version.h>
-#if LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,8)
+#if LINUX_VERSION_CODE <= KERNEL_VERSION(2, 6, 8)
 #include <linux/config.h>
 #endif
 
@@ -20,8 +20,10 @@
 #include "nf2kernel.h"
 #include "nf2util.h"
 
-/*
- * Reset the HW
+/**
+ * nf2_hw_reset - Reset the HW
+ * @card:	nf2 card
+ *
  */
 void nf2_hw_reset(struct nf2_card_priv *card)
 {
@@ -29,13 +31,13 @@ void nf2_hw_reset(struct nf2_card_priv *card)
 	iowrite32(RESET_CPCI, card->ioaddr + CPCI_REG_RESET);
 
 	/* Reset the CNET */
-	if (card->is_ctrl)
-	{
+	if (card->is_ctrl) {
 		iowrite32(CTRL_CNET_RESET, card->ioaddr + CNET_REG_CTRL);
 		iowrite32(CNET_RESET_MAC_3 |
-		  	CNET_RESET_MAC_2 |
-		  	CNET_RESET_MAC_1 |
-		  	CNET_RESET_MAC_0, card->ioaddr + CNET_REG_RESET);
+				CNET_RESET_MAC_2 |
+				CNET_RESET_MAC_1 |
+				CNET_RESET_MAC_0,
+				card->ioaddr + CNET_REG_RESET);
 
 		/* Disable all MACs */
 		iowrite32(0, card->ioaddr + CNET_REG_ENABLE);
@@ -45,8 +47,9 @@ void nf2_hw_reset(struct nf2_card_priv *card)
 	nf2_write_flush(card);
 }
 
-/*
- * Reset the CPCI chip.
+/**
+ * nf2_reset_cpci - Reset the CPCI chip.
+ * @card:	nf2 card
  *
  * Make sure to restore interrupts to their previous state
  */
