@@ -1,6 +1,5 @@
 /* ****************************************************************************
  * vim:set shiftwidth=2 softtabstop=2 expandtab:
- * $Id$
  *
  * Module: nf2_ethtool.c
  * Project: NetFPGA 2 Linux Kernel Driver
@@ -14,6 +13,15 @@
 #include <linux/netdevice.h>
 #include <linux/ethtool.h>
 
+/**
+ * nf2_get_settings - get settings for ethtool
+ * @dev:	net_device pointer
+ * @ecmd: 	ethtool command
+ *
+ * Use to fill up ethtool values so that ethtool
+ * command on the interface will return appropriate
+ * values
+ */
 static int nf2_get_settings(struct net_device *dev,
 		struct ethtool_cmd *ecmd)
 {
@@ -28,6 +36,14 @@ static int nf2_get_settings(struct net_device *dev,
 	return 0;
 }
 
+/**
+ * nf2_set_settings - set values passed from ethtool
+ * @dev:	net_device pointer
+ * @ecmd:	ethtool command
+ *
+ * Can be used to configure the interface from the
+ * parameters passed via ethtool command
+ */
 static int nf2_set_settings(struct net_device *dev,
 		struct ethtool_cmd *ecmd)
 {
