@@ -1,4 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
+// vim:set shiftwidth=3 softtabstop=3 expandtab:
 // $Id: net.v 3454 2008-03-25 05:00:58Z grg $
 // ---
 // This module provides packet source and sink capabilities for the ethernets.
@@ -13,12 +14,12 @@
 
 
 // default filenames
-`define INGRESS_FILE_FMT "packet_data/ingress_port_%1d"
+`define INGRESS_FILE_FMT "packet_data/ingress_port_X"
 `define INGRESS_FILE_LEN 26
 `define INGRESS_FILE_BITS 8*`INGRESS_FILE_LEN
 `define INGRESS_SEPARATOR 32'heeeeffff
 
-`define EGRESS_FILE_FMT "packet_data/egress_port_%1d"
+`define EGRESS_FILE_FMT "packet_data/egress_port_X"
 `define EGRESS_FILE_LEN 25
 `define EGRESS_FILE_BITS 8*`EGRESS_FILE_LEN
 
@@ -274,7 +275,13 @@ endtask // handle_ingress
 	   begin
 
 	      // Wait until we see Transmit Enable go active
-	      wait (rgmii_tx_ctl == 1'b1);
+              `ifdef RUNNING_ISIM
+                 while (rgmii_tx_ctl != 1'b1) begin
+                    #1;
+                 end
+              `else
+	         wait (rgmii_tx_ctl == 1'b1);
+              `endif
 
 	      seeing_data = 0;
 	      i = 0;
@@ -497,16 +504,9 @@ task initialize_ingress;
       integer i;
 
 begin
-`ifndef VSIM_COMPILE
-   if (! $sformat(ingress_file_name, `INGRESS_FILE_FMT , my_port_number))
-     begin
-	$display("Error:%m Port %d unable to form filename string.", portID);
-	$finish;
-     end
-`else
-   $sformat(ingress_file_name, `INGRESS_FILE_FMT , my_port_number);
-
-`endif
+   // Previously used sformat but this isn't supported by ISIM 10.1
+   ingress_file_name = `INGRESS_FILE_FMT;
+   ingress_file_name[7:0] = "0" + my_port_number;
 
    $display("%t %m Info: Reading ingress packet data from file %s",
 	    $time, ingress_file_name);
@@ -527,17 +527,9 @@ task initialize_egress;
       integer i;
 
 begin
-
-`ifndef VSIM_COMPILE
-   if (! $sformat(egress_file_name, `EGRESS_FILE_FMT , my_port_number))
-     begin
-	$display("Error: %m unable to form egress filename string.");
-	$finish;
-     end
-`else
-   $sformat(egress_file_name, `EGRESS_FILE_FMT , my_port_number);
-
-`endif
+   // Previously used sformat but this isn't supported by ISIM 10.1
+   egress_file_name = `EGRESS_FILE_FMT;
+   egress_file_name[7:0] = "0" + my_port_number;
 
    fd_e = $fopen(egress_file_name, "w");
 
@@ -566,16 +558,7 @@ endtask // initialize_egress
       begin
 	 #1;
 
-`ifndef VSIM_COMPILE
-	 if (! $sformat(config_file_name, `CONFIG_FILE_FMT ))
-	   begin
-	      $display("Error: unable to form config filename string.");
-	      $finish;
-	   end
-`else
-	 $sformat(config_file_name, `CONFIG_FILE_FMT );
-
-`endif
+	 config_file_name = `CONFIG_FILE_FMT;
 
 	 fd_c = $fopen(config_file_name, "r");
 

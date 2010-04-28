@@ -21,7 +21,7 @@
 `define DMA_INGRESS_FILE_NAME "packet_data/ingress_dma"
 `define INGRESS_SEPARATOR 32'heeeeffff
 
-`define DMA_EGRESS_FILE_FMT "packet_data/egress_dma_%1d"
+`define DMA_EGRESS_FILE_FMT "packet_data/egress_dma_X"
 `define DMA_EGRESS_FILE_LEN 24
 `define DMA_EGRESS_FILE_BITS 8*`DMA_EGRESS_FILE_LEN
 
@@ -463,15 +463,9 @@ task initialize_egress;
 
 begin
    for (i = 0; i < NUM_PORTS; i = i + 1) begin
-`ifndef VSIM_COMPILE
-      if (! $sformat(egress_file_name, `DMA_EGRESS_FILE_FMT , i + 1)) begin
-	 $display("Error: %m unable to form egress filename string.");
-	 $finish;
-      end
-`else
-      $sformat(egress_file_name, `DMA_EGRESS_FILE_FMT , i + 1);
-
-`endif
+      // Previously used sformat but this isn't supported by ISIM 10.1
+      egress_file_name = `DMA_EGRESS_FILE_FMT;
+      egress_file_name[7:0] = "0" + i + 1;
 
       fd_e[i] = $fopen(egress_file_name, "w");
 
@@ -556,14 +550,7 @@ task read_configuration;
    begin
       #1;
 
-`ifndef VSIM_COMPILE
-      if (! $sformat(config_file_name, `CONFIG_FILE_FMT )) begin
-         $display("Error: unable to form config filename string.");
-         $finish;
-      end
-`else
-      $sformat(config_file_name, `CONFIG_FILE_FMT );
-`endif
+      config_file_name = `CONFIG_FILE_FMT;
 
       fd_c = $fopen(config_file_name, "r");
 

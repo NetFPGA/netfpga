@@ -12,6 +12,7 @@ use NF::Base;
 use Getopt::Long;
 use Cwd;
 use File::Copy;
+use File::Temp qw/ tempfile /;
 
 # Local variables that should be overridden by the local config script
 my %config = (
@@ -77,8 +78,8 @@ unless ( GetOptions ( "dump" => \$dump,
 
 
 # Verify that a simulator has been set
-if ($sim eq '' || ($sim ne 'vsim' && $sim ne 'vcs')) {
-	print "Unkown simulator \"$sim\". Supported simulators: vcs vsim\n";
+if ($sim eq '' || ($sim ne 'vsim' && $sim ne 'vcs' && $sim ne 'isim')) {
+	print "Unkown simulator \"$sim\". Supported simulators: vcs vsim isim\n";
 	exit 1;
 }
 
@@ -174,7 +175,7 @@ NAME
 
 SYNOPSIS
    $cmd
-        [--sim <vsim|vcs>]
+        [--sim <vsim|vcs|isim>]
 	[--ci <teamcity>]
         [--gui]
         [--dump]
@@ -317,7 +318,29 @@ sub runSim {
 	print "--- Running the simulation (takes a while). Logging to $config{'log'}\n";
 	unlink($config{'log'}, @rmFiles);
 
-	if ($sim eq 'vcs') {
+	if ($sim eq 'isim') {
+		print "--- Running nf2_top_isim\n";
+
+		my $cwd = getcwd();
+
+		# Create a temporary file with the run command
+		my ($fh, $fname) = tempfile();
+		print $fh "cd $cwd\n";
+		print $fh "run all\n";
+		close $fh;
+
+		if (system("cd $testDir && $testDir/nf2_top_isim -tclbatch $fname -log $config{'log'} 2>&1") != 0) {
+			if ($good) {
+				print "--- Test Failed.\n";
+				tcTestFailed($test, 'Error when running simulator', '');
+			}
+			$ok = 0;
+		}
+
+		# Remove the temporary file
+		unlink($fname);
+	}
+	elsif ($sim eq 'vcs') {
 		print "--- Running my_sim\n";
 
 		if (system("$testDir/my_sim > $config{'log'} 2>&1") != 0) {
@@ -376,7 +399,14 @@ sub runSim {
 # checkSimCompiled
 #   check that the simulator has been compiled
 sub checkSimCompiled {
-	if ($sim eq 'vcs') {
+	if ($sim eq 'isim') {
+		if ( ! -x "$testDir/nf2_top_isim" ) {
+
+			&printError("Cannot find executable nf2_top_isim at $testDir");
+			return 0;
+		}
+	}
+	elsif ($sim eq 'vcs') {
 		if ( ! -x "$testDir/my_sim" ) {
 
 			&printError("Cannot find executable my_sim at $testDir");

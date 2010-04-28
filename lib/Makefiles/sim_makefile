@@ -78,6 +78,19 @@ ifneq ($(DUMP_CTRL),)
 	SRCS := $(SRCS) $(wildcard $(UNET_SRC_DIR)/$(DUMP_CTRL))
 endif
 
+# Create a list of the testbench sources
+#
+# Filter out ones that we don't need to explicity complie
+#   board_h32_t32    -- included by testbench
+#   host32_inc       -- included by host32
+#   module_sim_tasks -- used in single-module simulations
+#   tasks            -- no longer used
+TB_SRCS := $(wildcard $(TESTBENCH_DIR)/*.v)
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/board_h32_t32.v, $(TB_SRCS))
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/host32_inc.v, $(TB_SRCS))
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/module_sim_tasks.v, $(TB_SRCS))
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/tasks.v, $(TB_SRCS))
+
 # We need this explicitly because Xilinx gets the case wrong
 PCI_LC_I = $(CPCI_SRC_COREGEN_DIR)/pci_lc_i.v
 
@@ -173,8 +186,11 @@ vcs_top: registers cores my_sim
 # This version generates ModelSim
 vsim_top: registers cores model_sim
 
-# This version generates both VCS and ModelSim
-all: vcs_top vsim_top
+# This version generates ISIM
+isim_top: registers cores nf2_top_isim
+
+# This version generates VCS, ModelSim and ISIM
+all: vcs_top vsim_top isim_top
 
 
 ########### VCS SIMULATION #################
@@ -192,6 +208,49 @@ my_sim: $(SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(CPCI_SRCS) $(INCLUDES) $(LIB_MOD
 simvfast: $(SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(INCLUDES)
 	vcs +evalorder -o simvfast +rad $(VCS_FLAGS) $(SIM_OPT) -y $(SRC_DIR) -y $(COREGENLIBS) -y $(SIMPRIMS) -y $(COMMON_DIR) $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(SRCS) $(wildcard ${UNET_XPS_SIM_DUMMY_DIR}/*.v)
 
+
+
+########### ISIM SIMULATION #################
+
+# This makefile is setup to work with ISim 10.1
+#
+# Unfortunately 10.1 is unable to correctly process some of the code in
+# nf2_core.v related to selecting register signals based on the value of
+# constants defined in a project's registers.v. This works correctly in
+# ModelSim and XST -- presumably it's a bug/limitation of ISim. The workaround
+# is to replace the references to the register constants with their actual
+# values. The code calls a script to perform this replacement and uses the
+# substituted version in simulations.
+#
+COMMON_SRCS := $(wildcard $(COMMON_DIR)/*.v)
+COMMON_SRCS := $(filter-out $(INC_SRCS), $(COMMON_SRCS))
+
+REGISTER_SRCS := $(INC_DIR)/registers.v
+SUBST_SRCS := $(filter %nf2_core.v, $(SRCS))
+NO_SUBST_SRCS := $(filter-out $(SUBST_SRCS), $(SRCS))
+SUBST_DONE_SRCS := $(addsuffix .subst, $(SUBST_SRCS))
+
+ISIM_INC_CMD := -i $(DEFINES_INC_DIR) -i $(TESTBENCH_DIR) -i $(DESIGN_INC_DIR)
+
+%.v.subst: %.v $(REGISTER_SRCS)
+	nf_const_subst.pl --define $(REGISTER_SRCS) $<
+
+nf2_top_isim: $(NO_SUBST_SRCS) $(SUBST_DONE_SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(CPCI_SRCS) $(INCLUDES) $(LIB_MODULES_FILE) $(TB_SRCS)
+	@echo "==============================================================================="
+	@echo "Building ISIM binary"
+	@echo "==============================================================================="
+	@echo "+++testStarted:build.ISIM.binary"
+	@echo UNET_EXTRA_DIRS is $(UNET_EXTRA_DIRS)
+ifneq (${UNET_XPS_DIR},)
+	@echo XPS currently not supported for ISIM
+	@echo
+	@echo Please add support to the simulation makefile
+	false
+else
+	vlogcomp -d RUNNING_ISIM $(ISIM_INC_CMD) $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(NO_SUBST_SRCS) $(SUBST_DONE_SRCS) $(CPCI_SRCS) $(TB_SRCS) $(COMMON_SRCS)
+	fuse -top testbench -top glbl –lib unimacro_ver -lib unisims_ver -lib xilinxcorelib_ver -lib simprims_ver -o $@
+endif
+	@echo "+++testFinished:build.ISIM.binary"
 
 
 ########### MODELSIM SIMULATION #################
