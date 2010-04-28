@@ -803,6 +803,9 @@ OPTIONS
     --no-synth
       Don't synthesize the bitfiles. Assumes that all bitfiles are built.
 
+    --base_pkg
+      Building a base package. (List of regression tests is updated.)
+
     <build file>
       XML build file specifying release(s) to build
 
