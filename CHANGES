@@ -33,6 +33,7 @@ HEAD -- Version X.X.X beta
      - Several timing improvement to make the DRAM related modules faster 
    * Simulations:
      - verify that the correct number of register reads is performed
+     - supports Xilinx ISim in addition to ModelSim and VCS
 
   Bug fixes:
    * numerous fixes to register system:
