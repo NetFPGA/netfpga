@@ -247,7 +247,7 @@ ifneq (${UNET_XPS_DIR},)
 	@echo Please add support to the simulation makefile
 	false
 else
-	vlogcomp $(ISIM_INC_CMD) $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(NO_SUBST_SRCS) $(SUBST_DONE_SRCS) $(CPCI_SRCS) $(TB_SRCS) $(COMMON_SRCS)
+	vlogcomp -d RUNNING_ISIM $(ISIM_INC_CMD) $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(NO_SUBST_SRCS) $(SUBST_DONE_SRCS) $(CPCI_SRCS) $(TB_SRCS) $(COMMON_SRCS)
 	fuse -top testbench -top glbl –lib unimacro_ver -lib unisims_ver -lib xilinxcorelib_ver -lib simprims_ver -o $@
 endif
 	@echo "+++testFinished:build.ISIM.binary"

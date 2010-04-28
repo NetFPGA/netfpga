@@ -1,4 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
+// vim:set shiftwidth=3 softtabstop=3 expandtab:
 // $Id: net.v 3454 2008-03-25 05:00:58Z grg $
 // ---
 // This module provides packet source and sink capabilities for the ethernets.
@@ -274,7 +275,13 @@ endtask // handle_ingress
 	   begin
 
 	      // Wait until we see Transmit Enable go active
-	      wait (rgmii_tx_ctl == 1'b1);
+              `ifdef RUNNING_ISIM
+                 while (rgmii_tx_ctl != 1'b1) begin
+                    #1;
+                 end
+              `else
+	         wait (rgmii_tx_ctl == 1'b1);
+              `endif
 
 	      seeing_data = 0;
 	      i = 0;
