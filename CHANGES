@@ -12,14 +12,16 @@ HEAD -- Version X.X.X beta
      info from the active bitfile)
    * Moved contributed code out of lib/verilog/core
    * Added regression tests for the reference switch
-   * Packaging scripts allow Verilog modules to be excluded
-   * selftest updated to use new register system
+   * Packaging scripts:
+     - Verilog modules can be excluded
+     - support added for git repositories
+   * Selftest:
+     - uses new register system
+     - software verifies that the bitfile is downloaded before running the test
    * Types added for CPCI registers with bitmasks
    * Added functions to C common library:
      - read device ID register
      - verify that the correct bitfile is downloaded
-   * Self test software verifies that the selftest bitfile is downloaded before
-     running the test
    * Kernel module:
      - added basic ethtool support (Thanks to Kumar Sanghvi)
      - added mii-tool support (Thanks to Kumar Sanghvi)
@@ -29,6 +31,8 @@ HEAD -- Version X.X.X beta
      - DRAM block read/write test, DRAM queue test (1 queue), DRAM router 
        (8 queue) now released as full source code 
      - Several timing improvement to make the DRAM related modules faster 
+   * Simulations:
+     - verify that the correct number of register reads is performed
 
   Bug fixes:
    * numerous fixes to register system:
