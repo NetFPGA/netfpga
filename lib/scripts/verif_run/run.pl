@@ -33,6 +33,9 @@ my $finishFile = 'config.sim';
 # Name of the script to create packets
 my $makePkts = 'make_pkts.pl';
 
+# Location of PCI simulation data file
+my $pciSimDataFile = 'packet_data/pci_sim_data';
+
 # Location of modelsim.ini file
 my $modelsimIni = '../vsim_beh/modelsim.ini';
 
@@ -259,6 +262,16 @@ sub validateOutput {
 			tcTestFailed($test, 'Errors seen in simulation output', $logErrors);
 			return 0;
 		}
+
+		# Check that the correct number of reads were done
+		my $expectedReads = `grep -c READ: $pciSimDataFile`;
+		my $actualReads = `grep -c 'Host read.*cmd 0x6:.*Disconnect with Data' $config{'log'}`;
+		if ($expectedReads != $actualReads) {
+			print "--- Test failed ($dir) - incorrect number of reads seen.\n";
+			tcTestFailed($test, 'Incorrect number of reads seen in simulation', $logErrors);
+			return 0;
+		}
+
 
 		# Run any additional tests on the output
 		if ($config{'extra_checks'} ne '') {
