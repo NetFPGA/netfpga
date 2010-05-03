@@ -125,6 +125,7 @@ void print(void) {
 	  printf("reset off,   ");
 	}
 	printf("mac config 0x%02x\n", val>>MAC_GRP_MAC_DISABLE_TX_BIT_NUM);
+
 	readReg(&nf2, MAC_GRP_1_RX_QUEUE_NUM_PKTS_STORED_REG, &val);
 	printf("Num pkts stored in rx queue 1:      %u\n", val);
 	readReg(&nf2, MAC_GRP_1_RX_QUEUE_NUM_PKTS_DROPPED_FULL_REG, &val);
@@ -164,6 +165,8 @@ void print(void) {
 	else {
 	  printf("reset off,   ");
 	}
+	printf("mac config 0x%02x\n", val>>MAC_GRP_MAC_DISABLE_TX_BIT_NUM);
+
 	readReg(&nf2, MAC_GRP_2_RX_QUEUE_NUM_PKTS_STORED_REG, &val);
 	printf("Num pkts stored in rx queue 2:      %u\n", val);
 	readReg(&nf2, MAC_GRP_2_RX_QUEUE_NUM_PKTS_DROPPED_FULL_REG, &val);
@@ -204,6 +207,8 @@ void print(void) {
 	  printf("reset off,   ");
 	}
 	readReg(&nf2, MAC_GRP_3_RX_QUEUE_NUM_PKTS_STORED_REG, &val);
+	printf("mac config 0x%02x\n", val>>MAC_GRP_MAC_DISABLE_TX_BIT_NUM);
+
 	printf("Num pkts stored in rx queue 3:      %u\n", val);
 	readReg(&nf2, MAC_GRP_3_RX_QUEUE_NUM_PKTS_DROPPED_FULL_REG, &val);
 	printf("Num pkts dropped (rx queue 3 full): %u\n", val);
