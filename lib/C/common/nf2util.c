@@ -284,52 +284,6 @@ int openDescriptor(struct nf2device *nf2)
 				}
 
 			}
-			else
-			{
-				/* Attempt to find the IP address for the interface */
-				for (i = 1; ; i++)
-				{
-					/* Find interface number i*/
-					ifreq.ifr_ifindex = i;
-					if (ioctl (nf2->fd, SIOCGIFNAME, &ifreq) < 0)
-						break;
-
-					/* Check if we've found the correct interface */
-					if (strcmp(ifreq.ifr_name, nf2->device_name) != 0)
-						continue;
-
-					/* If we get to here we've found the IP */
-					found = 1;
-					break;
-				}
-
-				/* Verify that we found the interface */
-				if (!found)
-				{
-					fprintf(stderr, "Can't find device: %s\n", nf2->device_name);
-					return -1;
-				}
-
-				/* Attempt to get the IP address associated with the interface */
-				if (ioctl (nf2->fd, SIOCGIFADDR, &ifreq) < 0)
-				{
-					perror("ioctl: calling SIOCGIFADDR");
-
-					fprintf(stderr, "Unable to find IP address for device: %s\n", nf2->device_name);
-					fprintf(stderr, "Either run this program as root or ask an administrator\n");
-					fprintf(stderr, "to assign an IP address to the device\n");
-					return -1;
-				}
-
-				/* Set the addres and attempt to bind to the socket */
-				address.sin_family = AF_INET;
-				address.sin_addr.s_addr = sin->sin_addr.s_addr;
-				address.sin_port = htons(0);
-				if (bind(nf2->fd,(struct sockaddr *)&address,sizeof(address)) == -1) {
-					perror("bind: binding");
-					return -1;
-				}
-			}
 		}
 	}
 	else
