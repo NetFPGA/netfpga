@@ -42,8 +42,6 @@ int main(int argc, char *argv[])
 
 	nf2.device_name = DEFAULT_IFACE;
 
-	printf("hi\n");
-
 	if (check_iface(&nf2))
 	{
 		exit(1);
