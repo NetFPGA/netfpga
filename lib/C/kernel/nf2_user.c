@@ -1,5 +1,4 @@
 /* ****************************************************************************
- * nf2_user.c 3586 2008-04-10 20:20:42Z grg
  *
  * Module: nf2_user.c
  * Project: NetFPGA 2 Linux Kernel Driver

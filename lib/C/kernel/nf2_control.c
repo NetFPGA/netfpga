@@ -1,6 +1,5 @@
 /* ****************************************************************************
  * vim:set shiftwidth=2 softtabstop=2 expandtab:
- * nf2_control.c 6033 2010-04-01 00:00:43Z grg
  *
  * Module: nf2_util.c
  * Project: NetFPGA 2 Linux Kernel Driver

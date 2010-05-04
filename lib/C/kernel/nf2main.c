@@ -1,5 +1,4 @@
 /* ****************************************************************************
- * nf2main.c 6067 2010-04-01 22:36:26Z grg
  *
  * Module: nf2main.c
  * Project: NetFPGA 2 Linux Kernel Driver
