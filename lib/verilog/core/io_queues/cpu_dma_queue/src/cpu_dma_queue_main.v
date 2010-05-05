@@ -52,7 +52,21 @@ module cpu_dma_queue_main
       input [DMA_DATA_WIDTH-1:0]    cpu_q_dma_wr_data,
       input [DMA_CTRL_WIDTH-1:0]    cpu_q_dma_wr_ctrl,
 
-      // Register interface
+      // Register interface -- RX
+      input                         rx_queue_en,
+      output                        rx_pkt_good,
+      output                        rx_pkt_bad,
+      output                        rx_pkt_dropped,
+      output  [11:0]                rx_pkt_byte_cnt,
+      output  [9:0]                 rx_pkt_word_cnt,
+      output                        rx_pkt_pulled,
+
+      // Register interface -- TX
+      input                         tx_queue_en,
+      output                        tx_pkt_sent,
+      output                        tx_pkt_stored,
+      output [11:0]                 tx_pkt_byte_cnt,
+      output [9:0]                  tx_pkt_word_cnt,
       output reg                    tx_timeout,
 
       // --- Misc
@@ -312,5 +326,23 @@ module cpu_dma_queue_main
       end
    end
 
+   // Register update logic
+   //
+   // Note: The connections seem back-to-front but this is because of
+   // differences in meaning. In *this* module, TX/RX are relative to the
+   // *host*, in the register context they are relative to the *board*.
+   //
+   // Confusing... yes :-/
+   assign rx_pkt_pulled = tx_pkt_read;
+   assign rx_pkt_good = tx_pkt_written;
+   assign rx_pkt_bad = 'h0;
+   assign rx_pkt_dropped = 'h0;
+   assign rx_pkt_byte_cnt = 'h0;
+   assign rx_pkt_word_cnt = 'h0;
+
+   assign tx_pkt_sent = rx_pkt_read;
+   assign tx_pkt_stored = rx_pkt_written;
+   assign tx_pkt_byte_cnt = 'h0;
+   assign tx_pkt_word_cnt = 'h0;
 
 endmodule // cpu_dma_queue_main

@@ -61,6 +61,20 @@
 
    // ------------- Wires/reg ------------------
 
+   wire                          rx_queue_en;
+   wire                          rx_pkt_good;
+   wire                          rx_pkt_bad;
+   wire                          rx_pkt_dropped;
+   wire  [11:0]                  rx_pkt_byte_cnt;
+   wire  [9:0]                   rx_pkt_word_cnt;
+   wire                          rx_pkt_pulled;
+
+
+   wire                          tx_queue_en;
+   wire                          tx_pkt_sent;
+   wire                          tx_pkt_stored;
+   wire [11:0]                   tx_pkt_byte_cnt;
+   wire [9:0]                    tx_pkt_word_cnt;
    wire                          tx_timeout;
 
    // ------------- Modules -------------------
@@ -97,7 +111,24 @@ cpu_dma_queue_main
       .cpu_q_dma_wr_data            (cpu_q_dma_wr_data),
       .cpu_q_dma_wr_ctrl            (cpu_q_dma_wr_ctrl),
 
-      // Register interface
+      // Register interface -- RX
+      .rx_queue_en                  (rx_queue_en),
+
+      .rx_pkt_good                  (rx_pkt_good),
+      .rx_pkt_bad                   (rx_pkt_bad),
+      .rx_pkt_dropped               (rx_pkt_dropped),
+      .rx_pkt_byte_cnt              (rx_pkt_byte_cnt),
+      .rx_pkt_word_cnt              (rx_pkt_word_cnt),
+      .rx_pkt_pulled                (rx_pkt_pulled),
+
+
+      // Register interface -- TX
+      .tx_queue_en                  (tx_queue_en),
+
+      .tx_pkt_sent                  (tx_pkt_sent),
+      .tx_pkt_stored                (tx_pkt_stored),
+      .tx_pkt_byte_cnt              (tx_pkt_byte_cnt),
+      .tx_pkt_word_cnt              (tx_pkt_word_cnt),
       .tx_timeout                   (tx_timeout),
 
       // --- Misc
@@ -121,23 +152,23 @@ cpu_dma_queue_regs
       .reg_ack                               (reg_ack),
 
       // interface to rx queue
-      .rx_queue_en                           (),
+      .rx_queue_en                           (rx_queue_en),
 
-      .rx_pkt_good                           ('h0),
-      .rx_pkt_bad                            ('h0),
-      .rx_pkt_dropped                        ('h0),
-      .rx_pkt_byte_cnt                       ('h0),
-      .rx_pkt_word_cnt                       ('h0),
-      .rx_pkt_pulled                         ('h0),
+      .rx_pkt_good                           (rx_pkt_good),
+      .rx_pkt_bad                            (rx_pkt_bad),
+      .rx_pkt_dropped                        (rx_pkt_dropped),
+      .rx_pkt_byte_cnt                       (rx_pkt_byte_cnt),
+      .rx_pkt_word_cnt                       (rx_pkt_word_cnt),
+      .rx_pkt_pulled                         (rx_pkt_pulled),
 
 
       // interface to tx queue
-      .tx_queue_en                           (),
+      .tx_queue_en                           (tx_queue_en),
 
-      .tx_pkt_sent                           ('h0),
-      .tx_pkt_stored                         ('h0),
-      .tx_pkt_byte_cnt                       ('h0),
-      .tx_pkt_word_cnt                       ('h0),
+      .tx_pkt_sent                           (tx_pkt_sent),
+      .tx_pkt_stored                         (tx_pkt_stored),
+      .tx_pkt_byte_cnt                       (tx_pkt_byte_cnt),
+      .tx_pkt_word_cnt                       (tx_pkt_word_cnt),
       .tx_timeout                            (tx_timeout),
 
       // --- Misc
