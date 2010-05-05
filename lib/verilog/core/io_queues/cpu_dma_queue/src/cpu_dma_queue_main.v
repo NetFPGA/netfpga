@@ -57,8 +57,8 @@ module cpu_dma_queue_main
       output                        rx_pkt_stored,
       output                        rx_pkt_dropped,
       output                        rx_pkt_removed,
-      output                        rx_q_underrun,
-      output                        rx_q_overrun,
+      output  reg                   rx_q_underrun,
+      output  reg                   rx_q_overrun,
       output  [11:0]                rx_pkt_byte_cnt,
       output  [9:0]                 rx_pkt_word_cnt,
 
@@ -66,8 +66,8 @@ module cpu_dma_queue_main
       input                         tx_queue_en,
       output                        tx_pkt_stored,
       output                        tx_pkt_removed,
-      output                        tx_q_underrun,
-      output                        tx_q_overrun,
+      output reg                    tx_q_underrun,
+      output reg                    tx_q_overrun,
       output reg                    tx_timeout,
       output [11:0]                 tx_pkt_byte_cnt,
       output [9:0]                  tx_pkt_word_cnt,
@@ -122,6 +122,7 @@ module cpu_dma_queue_main
    wire [`CPCI_NF2_DATA_WIDTH-1:0] 	cpu_q_reg_rd_data;
    wire [8:0] 				rx_fifo_rd_data_count;
    wire                                 rx_fifo_almost_full;
+   wire 				rx_fifo_full;
    wire 				rx_fifo_empty;
 
    // wires from tx_fifo
@@ -159,7 +160,7 @@ module cpu_dma_queue_main
 	    .wr_data_count(  ),
             .wr_en(in_wr),
             .rd_en(rx_fifo_rd_en),
-            .full(  ),
+            .full(rx_fifo_full),
             .prog_full(rx_fifo_almost_full),
             .empty(rx_fifo_empty)
 	    );
@@ -205,7 +206,7 @@ module cpu_dma_queue_main
             .almost_full(rx_fifo_almost_full),
 	    .dout(rx_fifo_dout),
             .empty(rx_fifo_empty),
-            .full(),
+            .full(rx_fifo_full),
             .rd_data_count(rx_fifo_rd_data_count)
 	    );
 
@@ -339,16 +340,20 @@ module cpu_dma_queue_main
    assign rx_pkt_stored = tx_pkt_written;
    assign rx_pkt_dropped = 'h0;
    assign rx_pkt_removed = tx_pkt_read;
-   assign rx_q_underrun = 'h0;
-   assign rx_q_overrun = 'h0;
    assign rx_pkt_byte_cnt = 'h0;
    assign rx_pkt_word_cnt = 'h0;
 
    assign tx_pkt_stored = rx_pkt_written;
    assign tx_pkt_removed = rx_pkt_read;
-   assign tx_q_underrun = 'h0;
-   assign tx_q_overrun = 'h0;
    assign tx_pkt_byte_cnt = 'h0;
    assign tx_pkt_word_cnt = 'h0;
+
+   always @(posedge clk)
+   begin
+      rx_q_underrun <= cpu_q_dma_wr && tx_fifo_empty;
+      rx_q_overrun <= cpu_q_dma_wr && tx_fifo_full;
+      tx_q_underrun <= cpu_q_dma_rd && rx_fifo_empty;
+      tx_q_overrun <= cpu_q_dma_rd && rx_fifo_full;
+   end
 
 endmodule // cpu_dma_queue_main
