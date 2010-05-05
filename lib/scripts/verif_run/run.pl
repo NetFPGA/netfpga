@@ -329,7 +329,7 @@ sub runSim {
 		print $fh "run all\n";
 		close $fh;
 
-		if (system("cd $testDir && $testDir/nf2_top_isim -tclbatch $fname -log $config{'log'} 2>&1") != 0) {
+		if (system("cd $testDir && script -c '$testDir/nf2_top_isim -tclbatch $fname' $dir/$config{'log'}") != 0) {
 			if ($good) {
 				print "--- Test Failed.\n";
 				tcTestFailed($test, 'Error when running simulator', '');
