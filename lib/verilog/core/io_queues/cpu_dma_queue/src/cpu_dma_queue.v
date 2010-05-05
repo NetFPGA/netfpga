@@ -111,9 +111,6 @@ cpu_dma_queue_regs
    #(
       .TX_WATCHDOG_TIMEOUT (TX_WATCHDOG_TIMEOUT)
    ) cpu_dma_queue_regs (
-      // Interface to "main" module
-      .tx_timeout                            (tx_timeout),
-
       // Register interface
       .reg_req                               (reg_req),
       .reg_rd_wr_L                           (reg_rd_wr_L),
@@ -122,6 +119,26 @@ cpu_dma_queue_regs
 
       .reg_rd_data                           (reg_rd_data),
       .reg_ack                               (reg_ack),
+
+      // interface to rx queue
+      .rx_queue_en                           (),
+
+      .rx_pkt_good                           ('h0),
+      .rx_pkt_bad                            ('h0),
+      .rx_pkt_dropped                        ('h0),
+      .rx_pkt_byte_cnt                       ('h0),
+      .rx_pkt_word_cnt                       ('h0),
+      .rx_pkt_pulled                         ('h0),
+
+
+      // interface to tx queue
+      .tx_queue_en                           (),
+
+      .tx_pkt_sent                           ('h0),
+      .tx_pkt_stored                         ('h0),
+      .tx_pkt_byte_cnt                       ('h0),
+      .tx_pkt_word_cnt                       ('h0),
+      .tx_timeout                            (tx_timeout),
 
       // --- Misc
       .reset                                 (reset),
