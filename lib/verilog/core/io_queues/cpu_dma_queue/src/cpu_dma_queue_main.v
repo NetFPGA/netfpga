@@ -54,20 +54,23 @@ module cpu_dma_queue_main
 
       // Register interface -- RX
       input                         rx_queue_en,
-      output                        rx_pkt_good,
-      output                        rx_pkt_bad,
+      output                        rx_pkt_stored,
       output                        rx_pkt_dropped,
+      output                        rx_pkt_removed,
+      output                        rx_q_underrun,
+      output                        rx_q_overrun,
       output  [11:0]                rx_pkt_byte_cnt,
       output  [9:0]                 rx_pkt_word_cnt,
-      output                        rx_pkt_pulled,
 
       // Register interface -- TX
       input                         tx_queue_en,
-      output                        tx_pkt_sent,
       output                        tx_pkt_stored,
+      output                        tx_pkt_removed,
+      output                        tx_q_underrun,
+      output                        tx_q_overrun,
+      output reg                    tx_timeout,
       output [11:0]                 tx_pkt_byte_cnt,
       output [9:0]                  tx_pkt_word_cnt,
-      output reg                    tx_timeout,
 
       // --- Misc
       input                         reset,
@@ -333,15 +336,18 @@ module cpu_dma_queue_main
    // *host*, in the register context they are relative to the *board*.
    //
    // Confusing... yes :-/
-   assign rx_pkt_pulled = tx_pkt_read;
-   assign rx_pkt_good = tx_pkt_written;
-   assign rx_pkt_bad = 'h0;
+   assign rx_pkt_stored = tx_pkt_written;
    assign rx_pkt_dropped = 'h0;
+   assign rx_pkt_removed = tx_pkt_read;
+   assign rx_q_underrun = 'h0;
+   assign rx_q_overrun = 'h0;
    assign rx_pkt_byte_cnt = 'h0;
    assign rx_pkt_word_cnt = 'h0;
 
-   assign tx_pkt_sent = rx_pkt_read;
    assign tx_pkt_stored = rx_pkt_written;
+   assign tx_pkt_removed = rx_pkt_read;
+   assign tx_q_underrun = 'h0;
+   assign tx_q_overrun = 'h0;
    assign tx_pkt_byte_cnt = 'h0;
    assign tx_pkt_word_cnt = 'h0;
 

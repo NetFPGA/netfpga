@@ -62,20 +62,23 @@
    // ------------- Wires/reg ------------------
 
    wire                          rx_queue_en;
-   wire                          rx_pkt_good;
-   wire                          rx_pkt_bad;
+   wire                          rx_pkt_stored;
+   wire                          rx_pkt_removed;
    wire                          rx_pkt_dropped;
+   wire                          rx_q_underrun;
+   wire                          rx_q_overrun;
    wire  [11:0]                  rx_pkt_byte_cnt;
    wire  [9:0]                   rx_pkt_word_cnt;
-   wire                          rx_pkt_pulled;
 
 
    wire                          tx_queue_en;
-   wire                          tx_pkt_sent;
    wire                          tx_pkt_stored;
+   wire                          tx_pkt_removed;
+   wire                          tx_q_underrun;
+   wire                          tx_q_overrun;
+   wire                          tx_timeout;
    wire [11:0]                   tx_pkt_byte_cnt;
    wire [9:0]                    tx_pkt_word_cnt;
-   wire                          tx_timeout;
 
    // ------------- Modules -------------------
 
@@ -114,22 +117,25 @@ cpu_dma_queue_main
       // Register interface -- RX
       .rx_queue_en                  (rx_queue_en),
 
-      .rx_pkt_good                  (rx_pkt_good),
-      .rx_pkt_bad                   (rx_pkt_bad),
+      .rx_pkt_stored                (rx_pkt_stored),
       .rx_pkt_dropped               (rx_pkt_dropped),
+      .rx_pkt_removed               (rx_pkt_removed),
+      .rx_q_underrun                (rx_q_underrun),
+      .rx_q_overrun                 (rx_q_overrun),
       .rx_pkt_byte_cnt              (rx_pkt_byte_cnt),
       .rx_pkt_word_cnt              (rx_pkt_word_cnt),
-      .rx_pkt_pulled                (rx_pkt_pulled),
 
 
       // Register interface -- TX
       .tx_queue_en                  (tx_queue_en),
 
-      .tx_pkt_sent                  (tx_pkt_sent),
       .tx_pkt_stored                (tx_pkt_stored),
+      .tx_pkt_removed               (tx_pkt_removed),
+      .tx_q_underrun                (tx_q_underrun),
+      .tx_q_overrun                 (tx_q_overrun),
+      .tx_timeout                   (tx_timeout),
       .tx_pkt_byte_cnt              (tx_pkt_byte_cnt),
       .tx_pkt_word_cnt              (tx_pkt_word_cnt),
-      .tx_timeout                   (tx_timeout),
 
       // --- Misc
       .reset                        (reset),
@@ -154,22 +160,25 @@ cpu_dma_queue_regs
       // interface to rx queue
       .rx_queue_en                           (rx_queue_en),
 
-      .rx_pkt_good                           (rx_pkt_good),
-      .rx_pkt_bad                            (rx_pkt_bad),
+      .rx_pkt_stored                         (rx_pkt_stored),
       .rx_pkt_dropped                        (rx_pkt_dropped),
+      .rx_pkt_removed                        (rx_pkt_removed),
+      .rx_q_underrun                         (rx_q_underrun),
+      .rx_q_overrun                          (rx_q_overrun),
       .rx_pkt_byte_cnt                       (rx_pkt_byte_cnt),
       .rx_pkt_word_cnt                       (rx_pkt_word_cnt),
-      .rx_pkt_pulled                         (rx_pkt_pulled),
 
 
       // interface to tx queue
       .tx_queue_en                           (tx_queue_en),
 
-      .tx_pkt_sent                           (tx_pkt_sent),
       .tx_pkt_stored                         (tx_pkt_stored),
+      .tx_pkt_removed                        (tx_pkt_removed),
+      .tx_q_underrun                         (tx_q_underrun),
+      .tx_q_overrun                          (tx_q_overrun),
+      .tx_timeout                            (tx_timeout),
       .tx_pkt_byte_cnt                       (tx_pkt_byte_cnt),
       .tx_pkt_word_cnt                       (tx_pkt_word_cnt),
-      .tx_timeout                            (tx_timeout),
 
       // --- Misc
       .reset                                 (reset),

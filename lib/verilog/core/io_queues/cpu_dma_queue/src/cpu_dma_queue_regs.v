@@ -54,21 +54,24 @@ module cpu_dma_queue_regs
 
       // interface to rx queue
       output                                 rx_queue_en,
-      input                                  rx_pkt_good,
-      input                                  rx_pkt_bad,
+      input                                  rx_pkt_stored,
+      input                                  rx_pkt_removed,
       input                                  rx_pkt_dropped,
+      input                                  rx_q_overrun,
+      input                                  rx_q_underrun,
       input  [11:0]                          rx_pkt_byte_cnt,
       input  [9:0]                           rx_pkt_word_cnt,
-      input                                  rx_pkt_pulled,
 
 
       // interface to tx queue
       output                                 tx_queue_en,
-      input                                  tx_pkt_sent,
       input                                  tx_pkt_stored,
+      input                                  tx_pkt_removed,
+      input                                  tx_q_overrun,
+      input                                  tx_q_underrun,
+      input                                  tx_timeout,
       input [11:0]                           tx_pkt_byte_cnt,
       input [9:0]                            tx_pkt_word_cnt,
-      input                                  tx_timeout,
 
       // --- Misc
       input                                  reset,
@@ -87,7 +90,7 @@ module cpu_dma_queue_regs
 
    // -------- Internal parameters --------------
 
-   localparam NUM_REGS_USED         = 14; /* don't forget to update this when adding regs */
+   localparam NUM_REGS_USED         = 17; /* don't forget to update this when adding regs */
    localparam REG_FILE_ADDR_WIDTH   = log2(NUM_REGS_USED);
    //localparam REG_FILE_DEPTH        = 2 ** REG_FILE_ADDR_WIDTH;
 
@@ -158,20 +161,26 @@ module cpu_dma_queue_regs
 
    // Can't receive multiple packets less than a single cycle
    reg                                 rx_pkt_dropped_full_delta;
-   reg                                 rx_pkt_dropped_bad_delta;
    reg                                 rx_pkt_stored_delta;
 
    // Can't send multiple packets in less than a single cycle
-   reg                                 tx_pkt_sent_delta;
+   reg                                 tx_pkt_removed_delta;
 
    reg [1:0]                           tx_pkt_stored_delta;
 
-   reg [1:0]                           rx_pkt_pulled_delta;
+   reg [1:0]                           rx_pkt_removed_delta;
 
    reg [2:0]                           tx_queue_delta;
    reg [2:0]                           rx_queue_delta;
 
    reg [1:0]                           tx_num_timeouts_delta;
+
+   // Overrun/underrun tracking
+   reg [REG_FILE_ADDR_WIDTH-1:0]       tx_num_underruns_delta;
+   reg [REG_FILE_ADDR_WIDTH-1:0]       tx_num_overruns_delta;
+
+   reg [REG_FILE_ADDR_WIDTH-1:0]       rx_num_underruns_delta;
+   reg [REG_FILE_ADDR_WIDTH-1:0]       rx_num_overruns_delta;
 
    wire                                new_reg_req;
 
@@ -204,43 +213,35 @@ module cpu_dma_queue_regs
 
 
       if (reset)
-         rx_pkt_dropped_bad_delta <= 'h0;
-      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_RX_QUEUE_NUM_PKTS_DROPPED_BAD)
-         rx_pkt_dropped_bad_delta <= rx_pkt_bad;
-      else
-         rx_pkt_dropped_bad_delta <= rx_pkt_dropped_bad_delta  || rx_pkt_bad;
-
-
-      if (reset)
          rx_pkt_stored_delta <= 'h0;
-      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_RX_QUEUE_NUM_PKTS_STORED )
-         rx_pkt_stored_delta <= rx_pkt_good;
+      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_RX_QUEUE_NUM_PKTS_ENQUEUED )
+         rx_pkt_stored_delta <= rx_pkt_stored;
       else
-         rx_pkt_stored_delta <= rx_pkt_stored_delta  || rx_pkt_good;
+         rx_pkt_stored_delta <= rx_pkt_stored_delta  || rx_pkt_stored;
 
 
       if (reset)
          rx_word_cnt_delta <= 'h0;
       else if (!new_reg_req && reg_cnt == `CPU_QUEUE_RX_QUEUE_NUM_WORDS_PUSHED)
-         rx_word_cnt_delta <= rx_pkt_pulled ? rx_pkt_word_cnt : 'h0;
-      else if (rx_pkt_pulled)
+         rx_word_cnt_delta <= rx_pkt_removed ? rx_pkt_word_cnt : 'h0;
+      else if (rx_pkt_removed)
          rx_word_cnt_delta <= rx_word_cnt_delta + rx_pkt_word_cnt;
 
 
       if (reset)
          rx_byte_cnt_delta <= 'h0;
       else if (!new_reg_req && reg_cnt == `CPU_QUEUE_RX_QUEUE_NUM_BYTES_PUSHED)
-         rx_byte_cnt_delta <= rx_pkt_pulled ? rx_pkt_byte_cnt : 'h0;
-      else if (rx_pkt_pulled)
+         rx_byte_cnt_delta <= rx_pkt_removed ? rx_pkt_byte_cnt : 'h0;
+      else if (rx_pkt_removed)
          rx_byte_cnt_delta <= rx_byte_cnt_delta + rx_pkt_byte_cnt;
 
 
       if (reset)
-         tx_pkt_sent_delta <= 'h0;
-      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_TX_QUEUE_NUM_PKTS_SENT)
-         tx_pkt_sent_delta <= tx_pkt_sent;
+         tx_pkt_removed_delta <= 'h0;
+      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_TX_QUEUE_NUM_PKTS_DEQUEUED)
+         tx_pkt_removed_delta <= tx_pkt_removed;
       else
-         tx_pkt_sent_delta <= tx_pkt_sent_delta  || tx_pkt_sent;
+         tx_pkt_removed_delta <= tx_pkt_removed_delta  || tx_pkt_removed;
 
 
       if (reset)
@@ -262,14 +263,14 @@ module cpu_dma_queue_regs
       if (reset)
          tx_queue_delta <= 'h0;
       else if (!new_reg_req && reg_cnt == `CPU_QUEUE_TX_QUEUE_NUM_PKTS_IN_QUEUE) begin
-         case({tx_pkt_sent, tx_pkt_stored})
+         case({tx_pkt_removed, tx_pkt_stored})
             2'b01 : tx_queue_delta <= 'h1;
             2'b10 : tx_queue_delta <= - 'h1;
             default : tx_queue_delta <= 'h0;
          endcase
       end
       else begin
-         case({tx_pkt_sent, tx_pkt_stored})
+         case({tx_pkt_removed, tx_pkt_stored})
             2'b01 : tx_queue_delta <= tx_queue_delta + 'h1;
             2'b10 : tx_queue_delta <= tx_queue_delta - 'h1;
             default : tx_queue_delta <= tx_queue_delta;
@@ -286,29 +287,61 @@ module cpu_dma_queue_regs
 
 
       if (reset)
-         rx_pkt_pulled_delta <= 'h0;
+         rx_pkt_removed_delta <= 'h0;
       else if (!new_reg_req && reg_cnt == `CPU_QUEUE_RX_QUEUE_NUM_PKTS_DEQUEUED)
-         rx_pkt_pulled_delta <= rx_pkt_pulled;
+         rx_pkt_removed_delta <= rx_pkt_removed;
       else
-         rx_pkt_pulled_delta <= rx_pkt_pulled_delta + rx_pkt_pulled;
+         rx_pkt_removed_delta <= rx_pkt_removed_delta + rx_pkt_removed;
+
+
+      if (reset)
+         rx_num_underruns_delta <= 'h0;
+      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_RX_QUEUE_NUM_UNDERRUNS)
+         rx_num_underruns_delta <= rx_q_underrun;
+      else
+         rx_num_underruns_delta <= rx_num_underruns_delta + rx_q_underrun;
+
+
+      if (reset)
+         rx_num_overruns_delta <= 'h0;
+      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_RX_QUEUE_NUM_OVERRUNS)
+         rx_num_overruns_delta <= rx_q_overrun;
+      else
+         rx_num_overruns_delta <= rx_num_overruns_delta + rx_q_overrun;
 
 
       if (reset)
          rx_queue_delta <= 'h0;
       else if (!new_reg_req && reg_cnt == `CPU_QUEUE_RX_QUEUE_NUM_PKTS_IN_QUEUE) begin
-         case ({rx_pkt_pulled, rx_pkt_good})
+         case ({rx_pkt_removed, rx_pkt_stored})
             2'b01 : rx_queue_delta <= 'h1;
             2'b10 : rx_queue_delta <= - 'h1;
             default : rx_queue_delta <= 'h0;
          endcase
       end
       else begin
-         case ({rx_pkt_pulled, rx_pkt_good})
+         case ({rx_pkt_removed, rx_pkt_stored})
             2'b01 : rx_queue_delta <= rx_queue_delta + 'h1;
             2'b10 : rx_queue_delta <= rx_queue_delta - 'h1;
             default : rx_queue_delta <= rx_queue_delta;
          endcase
       end
+
+      if (reset)
+         tx_num_underruns_delta <= 'h0;
+      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_TX_QUEUE_NUM_UNDERRUNS)
+         tx_num_underruns_delta <= tx_q_underrun;
+      else
+         tx_num_underruns_delta <= tx_num_underruns_delta + tx_q_underrun;
+
+
+      if (reset)
+         tx_num_overruns_delta <= 'h0;
+      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_TX_QUEUE_NUM_OVERRUNS)
+         tx_num_overruns_delta <= tx_q_overrun;
+      else
+         tx_num_overruns_delta <= tx_num_overruns_delta + tx_q_overrun;
+
 
       if (reset)
          tx_num_timeouts_delta <= 'h0;
@@ -405,20 +438,23 @@ module cpu_dma_queue_regs
                      reg_cnt_nxt = reg_cnt + 'h1;
 
                   case (reg_cnt)
+                     `CPU_QUEUE_CONTROL :                        delta = 0;
+                     `CPU_QUEUE_RX_QUEUE_NUM_PKTS_ENQUEUED :     delta = rx_pkt_stored_delta;
+                     `CPU_QUEUE_RX_QUEUE_NUM_PKTS_DEQUEUED :     delta = rx_pkt_removed_delta;
                      `CPU_QUEUE_RX_QUEUE_NUM_PKTS_DROPPED_FULL : delta = rx_pkt_dropped_full_delta;
-                     `CPU_QUEUE_RX_QUEUE_NUM_PKTS_DROPPED_BAD :  delta = rx_pkt_dropped_bad_delta;
-                     `CPU_QUEUE_RX_QUEUE_NUM_PKTS_STORED :       delta = rx_pkt_stored_delta;
+                     `CPU_QUEUE_RX_QUEUE_NUM_UNDERRUNS :         delta = rx_num_underruns_delta;
+                     `CPU_QUEUE_RX_QUEUE_NUM_OVERRUNS :          delta = rx_num_overruns_delta;
                      `CPU_QUEUE_RX_QUEUE_NUM_WORDS_PUSHED :      delta = rx_word_cnt_delta;
                      `CPU_QUEUE_RX_QUEUE_NUM_BYTES_PUSHED :      delta = rx_byte_cnt_delta;
-                     `CPU_QUEUE_TX_QUEUE_NUM_PKTS_SENT :         delta = tx_pkt_sent_delta;
+                     `CPU_QUEUE_TX_QUEUE_NUM_PKTS_ENQUEUED :     delta = tx_pkt_stored_delta;
+                     `CPU_QUEUE_TX_QUEUE_NUM_PKTS_DEQUEUED :     delta = tx_pkt_removed_delta;
                      `CPU_QUEUE_TX_QUEUE_NUM_WORDS_PUSHED :      delta = tx_word_cnt_delta;
                      `CPU_QUEUE_TX_QUEUE_NUM_BYTES_PUSHED :      delta = tx_byte_cnt_delta;
-                     `CPU_QUEUE_CONTROL :                        delta = 0;
-                     `CPU_QUEUE_TX_QUEUE_NUM_PKTS_IN_QUEUE :     delta = {{(DELTA_WIDTH - 3){tx_queue_delta[2]}}, tx_queue_delta};
-                     `CPU_QUEUE_TX_QUEUE_NUM_PKTS_ENQUEUED :     delta = tx_pkt_stored_delta;
-                     `CPU_QUEUE_RX_QUEUE_NUM_PKTS_DEQUEUED :     delta = rx_pkt_pulled_delta;
-                     `CPU_QUEUE_RX_QUEUE_NUM_PKTS_IN_QUEUE :     delta = {{(DELTA_WIDTH - 3){rx_queue_delta[2]}}, rx_queue_delta};
+                     `CPU_QUEUE_TX_QUEUE_NUM_UNDERRUNS :         delta = tx_num_underruns_delta;
+                     `CPU_QUEUE_TX_QUEUE_NUM_OVERRUNS :          delta = tx_num_overruns_delta;
                      `CPU_QUEUE_TX_QUEUE_NUM_TIMEOUTS :          delta = tx_num_timeouts_delta;
+                     `CPU_QUEUE_TX_QUEUE_NUM_PKTS_IN_QUEUE :     delta = {{(DELTA_WIDTH - 3){tx_queue_delta[2]}}, tx_queue_delta};
+                     `CPU_QUEUE_RX_QUEUE_NUM_PKTS_IN_QUEUE :     delta = {{(DELTA_WIDTH - 3){rx_queue_delta[2]}}, rx_queue_delta};
                      default :                                  delta = 0;
                   endcase // case (reg_cnt)
 
