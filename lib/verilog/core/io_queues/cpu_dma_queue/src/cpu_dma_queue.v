@@ -82,30 +82,18 @@
 
    // ------------- Modules -------------------
 
-cpu_dma_queue_main
-   #(
+
+cpu_dma_rx_queue #(
       .DATA_WIDTH          (DATA_WIDTH),
       .CTRL_WIDTH          (CTRL_WIDTH),
       .DMA_DATA_WIDTH      (DMA_DATA_WIDTH),
       .DMA_CTRL_WIDTH      (DMA_CTRL_WIDTH),
       .TX_WATCHDOG_TIMEOUT (TX_WATCHDOG_TIMEOUT)
-   ) cpu_dma_queue_main (
+   ) cpu_dma_rx_queue (
       .out_data                     (out_data),
       .out_ctrl                     (out_ctrl),
       .out_wr                       (out_wr),
       .out_rdy                      (out_rdy),
-
-      .in_data                      (in_data),
-      .in_ctrl                      (in_ctrl),
-      .in_wr                        (in_wr),
-      .in_rdy                       (in_rdy),
-
-      // --- DMA rd rxfifo interface
-      .cpu_q_dma_pkt_avail          (cpu_q_dma_pkt_avail),
-
-      .cpu_q_dma_rd                 (cpu_q_dma_rd),
-      .cpu_q_dma_rd_data            (cpu_q_dma_rd_data),
-      .cpu_q_dma_rd_ctrl            (cpu_q_dma_rd_ctrl),
 
       // DMA wr txfifo interface
       .cpu_q_dma_nearly_full        (cpu_q_dma_nearly_full),
@@ -116,7 +104,6 @@ cpu_dma_queue_main
 
       // Register interface -- RX
       .rx_queue_en                  (rx_queue_en),
-
       .rx_pkt_stored                (rx_pkt_stored),
       .rx_pkt_dropped               (rx_pkt_dropped),
       .rx_pkt_removed               (rx_pkt_removed),
@@ -125,10 +112,34 @@ cpu_dma_queue_main
       .rx_pkt_byte_cnt              (rx_pkt_byte_cnt),
       .rx_pkt_word_cnt              (rx_pkt_word_cnt),
 
+      // --- Misc
+      .reset                        (reset),
+      .clk                          (clk)
+   );
+
+
+cpu_dma_tx_queue
+   #(
+      .DATA_WIDTH          (DATA_WIDTH),
+      .CTRL_WIDTH          (CTRL_WIDTH),
+      .DMA_DATA_WIDTH      (DMA_DATA_WIDTH),
+      .DMA_CTRL_WIDTH      (DMA_CTRL_WIDTH),
+      .TX_WATCHDOG_TIMEOUT (TX_WATCHDOG_TIMEOUT)
+   ) cpu_dma_tx_queue (
+      .in_data                      (in_data),
+      .in_ctrl                      (in_ctrl),
+      .in_wr                        (in_wr),
+      .in_rdy                       (in_rdy),
+
+      // --- DMA rd nterface
+      .cpu_q_dma_pkt_avail          (cpu_q_dma_pkt_avail),
+
+      .cpu_q_dma_rd                 (cpu_q_dma_rd),
+      .cpu_q_dma_rd_data            (cpu_q_dma_rd_data),
+      .cpu_q_dma_rd_ctrl            (cpu_q_dma_rd_ctrl),
 
       // Register interface -- TX
       .tx_queue_en                  (tx_queue_en),
-
       .tx_pkt_stored                (tx_pkt_stored),
       .tx_pkt_removed               (tx_pkt_removed),
       .tx_q_underrun                (tx_q_underrun),
@@ -141,7 +152,6 @@ cpu_dma_queue_main
       .reset                        (reset),
       .clk                          (clk)
    );
-
 
 
 cpu_dma_queue_regs
