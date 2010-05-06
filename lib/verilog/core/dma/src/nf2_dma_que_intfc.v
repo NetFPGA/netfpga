@@ -4,9 +4,9 @@
 //
 // Module: nf2_dma_que_intfc.v
 // Project: NetFPGA-1G
-// Description: DMA interface to cpu queues
+// Description: DMA interface to CPU queues
 //
-// Provides pkt transfer to/from cpu queues
+// Acts as a MUX/DEMUX between the DMA interface and the CPU queues.
 //
 /////////////////////////////////////////////////////////////////////////
 //
@@ -85,7 +85,10 @@ module nf2_dma_que_intfc
 
     // --- signals to/from nf2_dma_sync
     input txfifo_empty,
-    input [DMA_DATA_WIDTH +3:0] txfifo_rd_data,
+    input txfifo_rd_is_req,
+    input txfifo_rd_type_eop,
+    input [1:0] txfifo_rd_valid_bytes,
+    input [DMA_DATA_WIDTH -1:0] txfifo_rd_data,
     output reg txfifo_rd_inc,
 
     input rxfifo_full,
@@ -194,14 +197,14 @@ module nf2_dma_que_intfc
 
                   // Identify if the word is data or a request
                   // (it should be a request)
-                  case (txfifo_rd_data[DMA_DATA_WIDTH +3])
+                  case (txfifo_rd_is_req)
                      DMA_WORD_IS_DATA: begin
                         //synthesis translate_off
 
                         // Don't display an error message immediately as we may
                         // have seen the transition on the empty signal before the
                         // data signal has transitioned
-                        #1 if (txfifo_rd_data[DMA_DATA_WIDTH +3]) begin
+                        #1 if (txfifo_rd_is_req) begin
                            $display("%t %m ERROR: expect req format, but got data format!", $time);
                         end
                         //synthesis translate_on
@@ -214,14 +217,14 @@ module nf2_dma_que_intfc
                         queue_sel_nxt = queue_decoded;
 
                         // Identify Rx/Tx
-                        case (txfifo_rd_data[DMA_DATA_WIDTH +2])
+                        case (txfifo_rd_type_eop)
                            DMA_TX_REQ: state_nxt = TX_STATE;
                            DMA_RX_REQ: state_nxt = RX_STATE;
-                        endcase // case(txfifo_rd_data[DMA_DATA_WIDTH +2])
+                        endcase // case(txfifo_rd_type_eop)
 
                      end // case: 1'b 1
 
-                  endcase // case(txfifo_rd_data[DMA_DATA_WIDTH +3])
+                  endcase // case(txfifo_rd_is_req)
 
                end // if (! txfifo_empty)
             end // if (enable_dma)
@@ -229,21 +232,21 @@ module nf2_dma_que_intfc
 
          TX_STATE: begin
             if (! txfifo_empty) begin
-               case (txfifo_rd_data[DMA_DATA_WIDTH +2])
+               case (txfifo_rd_type_eop)
                   XFER_NOT_EOP: dma_wr_ctrl = 'b 0;
 
                   XFER_EOP: begin
                      // Calculate the CTRL word for the EOP
-                     case (txfifo_rd_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH])
+                     case (txfifo_rd_valid_bytes)
                         2'b 00: dma_wr_ctrl = 'b 1000;
                         2'b 01: dma_wr_ctrl = 'b 0001;
                         2'b 10: dma_wr_ctrl = 'b 0010;
                         2'b 11: dma_wr_ctrl = 'b 0100;
-                     endcase //case(txfifo_rd_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH])
+                     endcase //case(txfifo_rd_valid_bytes)
                   end // case: 1'b 1
-               endcase // case(txfifo_rd_data[DMA_DATA_WIDTH +2])
+               endcase // case(txfifo_rd_type_eop)
 
-               dma_wr_data = txfifo_rd_data[DMA_DATA_WIDTH -1:0];
+               dma_wr_data = txfifo_rd_data;
 
                if (queue_sel != 'h0) begin
                   if ((cpu_q_dma_nearly_full & queue_sel) == 'h0) begin

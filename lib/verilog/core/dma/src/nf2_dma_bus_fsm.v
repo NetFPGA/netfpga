@@ -60,7 +60,10 @@ module nf2_dma_bus_fsm
      input txfifo_full,
      input txfifo_nearly_full,
      output reg txfifo_wr,
-     output reg [DMA_DATA_WIDTH +3:0] txfifo_wr_data,
+     output reg txfifo_wr_is_req,
+     output reg txfifo_wr_type_eop,
+     output reg [1:0] txfifo_wr_valid_bytes,
+     output reg [DMA_DATA_WIDTH-1:0] txfifo_wr_data,
 
      input rxfifo_empty,
      output reg rxfifo_rd_inc,
@@ -147,6 +150,9 @@ module nf2_dma_bus_fsm
       rx_pkt_len_nxt = rx_pkt_len;
 
       txfifo_wr = 1'b 0;
+      txfifo_wr_is_req = 1'b0;
+      txfifo_wr_type_eop = 1'b0;
+      txfifo_wr_valid_bytes = 'h0;
       txfifo_wr_data = 'h 0;
 
       rxbuf_srst = 1'b 0;
@@ -205,11 +211,10 @@ module nf2_dma_bus_fsm
 	   queue_id_nxt = dma_op_queue_id_d;
 
 	   txfifo_wr = 1'b 1;
-	   txfifo_wr_data[DMA_DATA_WIDTH +3]=1'b 1;//0: pkt data; 1: req code
-	   txfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 0;//0:dma tx; 1: dma rx
-	   txfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'b 0;//unused
-	   txfifo_wr_data[DMA_DATA_WIDTH-1:0]={{(DMA_DATA_WIDTH-4) {1'b 0}},
-					    queue_id_nxt};
+	   txfifo_wr_is_req=1'b 1;//0: pkt data; 1: req code
+	   txfifo_wr_type_eop=1'b 0;//0:dma tx; 1: dma rx
+	   txfifo_wr_valid_bytes=2'b 0;//unused
+	   txfifo_wr_data={{(DMA_DATA_WIDTH-4) {1'b 0}}, queue_id_nxt};
 
 	   state_nxt = TRANSF_C2N_LEN_STATE;
 
@@ -219,11 +224,19 @@ module nf2_dma_bus_fsm
 	   if (dma_vld_c2n_d) begin
 	      tx_pkt_len_nxt = dma_data_c2n_d[PKT_LEN_CNT_WIDTH-1:0];
 
+              txfifo_wr = 1'b 1;
+              txfifo_wr_is_req=1'b 0;//0:pkt data;1:req code
+              txfifo_wr_valid_bytes='h0;
+              txfifo_wr_data = dma_data_c2n_d;
+
 	      if (| tx_pkt_len_nxt) begin
 		 state_nxt = TRANSF_C2N_DATA_STATE;
+                 txfifo_wr_type_eop=1'b 0;//0:not EOP; 1:EOP
 	      end
-	      else
-		state_nxt = TRANSF_C2N_DONE_STATE;
+              else begin
+		 state_nxt = TRANSF_C2N_DONE_STATE;
+                 txfifo_wr_type_eop=1'b 1;//0:not EOP; 1:EOP
+              end
 	   end // if (dma_vld_c2n_d)
 
 	   //TODO: add transaction aborted by CPCI
@@ -234,21 +247,21 @@ module nf2_dma_bus_fsm
 
 	   if (dma_vld_c2n_d) begin
               txfifo_wr = 1'b 1;
-              txfifo_wr_data[DMA_DATA_WIDTH +3]=1'b 0;//0:pkt data;1:req code
-              txfifo_wr_data[DMA_DATA_WIDTH -1:0] = dma_data_c2n_d;
+              txfifo_wr_is_req=1'b 0;//0:pkt data;1:req code
+              txfifo_wr_data = dma_data_c2n_d;
 
 
               if (tx_last_word) begin
 		 state_nxt = TRANSF_C2N_DONE_STATE;
 
                  tx_pkt_len_nxt = 'h 0;
-                 txfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 1;//0:not EOP; 1:EOP
-                 txfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=tx_pkt_len[1:0];
+                 txfifo_wr_type_eop=1'b 1;//0:not EOP; 1:EOP
+                 txfifo_wr_valid_bytes=tx_pkt_len[1:0];
               end
               else begin
 		 tx_pkt_len_nxt = tx_pkt_len - 'h 4;
-                 txfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 0;//0:not EOP; 1:EOP
-                 txfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 4;//1 byte of pkt data
+                 txfifo_wr_type_eop=1'b 0;//0:not EOP; 1:EOP
+                 txfifo_wr_valid_bytes=2'h 4;//1 byte of pkt data
               end
 
 
@@ -281,11 +294,10 @@ module nf2_dma_bus_fsm
            queue_id_nxt = dma_op_queue_id_d;
 
 	   txfifo_wr = 1'b 1;
-	   txfifo_wr_data[DMA_DATA_WIDTH +3]=1'b 1;//0: pkt data; 1: req code
-	   txfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 1;//0:dma tx; 1:dma rx
-	   txfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'b 0;//unused
-	   txfifo_wr_data[DMA_DATA_WIDTH-1:0]={{(DMA_DATA_WIDTH-4) {1'b 0}},
-					       queue_id_nxt};
+	   txfifo_wr_is_req=1'b 1;//0: pkt data; 1: req code
+	   txfifo_wr_type_eop=1'b 1;//0:dma tx; 1:dma rx
+	   txfifo_wr_valid_bytes=2'b 0;//unused
+	   txfifo_wr_data={{(DMA_DATA_WIDTH-4) {1'b 0}}, queue_id_nxt};
 
 	   rx_pkt_len_nxt = 'h 0;
 	   rxbuf_srst = 1'b 1;

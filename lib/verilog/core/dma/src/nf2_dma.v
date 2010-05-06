@@ -140,13 +140,19 @@ module nf2_dma
    end
 
    //wires from nf2_dma_bus_fsm
-   wire [DMA_DATA_WIDTH +3:0] txfifo_wr_data;
+   wire txfifo_wr_is_req;
+   wire txfifo_wr_type_eop;
+   wire [1:0] txfifo_wr_valid_bytes;
+   wire [DMA_DATA_WIDTH-1:0] txfifo_wr_data;
 
    //wires from nf2_dma_sync
    wire [NUM_CPU_QUEUES-1:0] cpci_cpu_q_dma_pkt_avail;
    wire [NUM_CPU_QUEUES-1:0] cpci_cpu_q_dma_nearly_full;
    wire [DMA_DATA_WIDTH +2:0] cpci_rxfifo_rd_data;
-   wire [DMA_DATA_WIDTH +3:0] sys_txfifo_rd_data;
+   wire sys_txfifo_rd_is_req;
+   wire sys_txfifo_rd_type_eop;
+   wire [1:0] sys_txfifo_rd_valid_bytes;
+   wire [DMA_DATA_WIDTH -1:0] sys_txfifo_rd_data;
 
    //wires from nf2_dma_que_intfc
    wire [DMA_DATA_WIDTH +2:0] rxfifo_wr_data;
@@ -202,6 +208,9 @@ module nf2_dma
 
 	//outputs:
 	.txfifo_wr ( txfifo_wr ),
+        .txfifo_wr_is_req(txfifo_wr_is_req),
+        .txfifo_wr_type_eop(txfifo_wr_type_eop),
+        .txfifo_wr_valid_bytes(txfifo_wr_valid_bytes),
 	.txfifo_wr_data ( txfifo_wr_data ), //[DMA_DATA_WIDTH +3:0]
 
 	//inputs:
@@ -236,7 +245,10 @@ module nf2_dma
 
 	//inputs:
 	.cpci_txfifo_wr ( txfifo_wr ),
-	.cpci_txfifo_wr_data ( txfifo_wr_data ), //[DMA_DATA_WIDTH +3:0]
+	.cpci_txfifo_wr_data ( {txfifo_wr_is_req,
+                                txfifo_wr_type_eop,
+                                txfifo_wr_valid_bytes,
+                                txfifo_wr_data} ), //[DMA_DATA_WIDTH +3:0]
 
 	//outputs:
 	.cpci_rxfifo_empty ( cpci_rxfifo_empty ),
@@ -252,7 +264,10 @@ module nf2_dma
 
 	//outputs:
 	.sys_txfifo_empty ( sys_txfifo_empty ),
-	.sys_txfifo_rd_data ( sys_txfifo_rd_data ),//[DMA_DATA_WIDTH +3:0]
+	.sys_txfifo_rd_data ( {sys_txfifo_rd_is_req,
+                               sys_txfifo_rd_type_eop,
+                               sys_txfifo_rd_valid_bytes,
+                               sys_txfifo_rd_data} ),//[DMA_DATA_WIDTH +3:0]
 
 	//inputs:
 	.sys_txfifo_rd_inc ( txfifo_rd_inc ),
@@ -344,6 +359,9 @@ module nf2_dma
     // --- signals to/from nf2_dma_sync
     //input:
     .txfifo_empty ( sys_txfifo_empty ),
+    .txfifo_rd_is_req (sys_txfifo_rd_is_req),
+    .txfifo_rd_type_eop (sys_txfifo_rd_type_eop),
+    .txfifo_rd_valid_bytes (sys_txfifo_rd_valid_bytes),
     .txfifo_rd_data ( sys_txfifo_rd_data ),//[DMA_DATA_WIDTH +3:0]
 
     //output:
