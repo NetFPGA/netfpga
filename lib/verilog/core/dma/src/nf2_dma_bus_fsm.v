@@ -114,6 +114,12 @@ module nf2_dma_bus_fsm
    reg [31:0] rxbuf_wr_data;
    wire rxbuf_empty, rxbuf_full;
 
+   wire tx_last_word;
+   wire rx_last_word;
+
+   assign tx_last_word = tx_pkt_len <= 4;
+   assign rx_last_word = rx_pkt_len <= 4;
+
    //wires from rxbuf
    wire [31:0] rxbuf_rd_data;
 
@@ -187,10 +193,9 @@ module nf2_dma_bus_fsm
 	      state_nxt = TRANSF_C2N_QID_STATE;
 	   end
 
-	   else
-	     if (dma_op_code_req_d == OP_CODE_TRANSF_N2C) begin
-		state_nxt = TRANSF_N2C_QID_STATE;
-	     end
+	   else if (dma_op_code_req_d == OP_CODE_TRANSF_N2C) begin
+              state_nxt = TRANSF_N2C_QID_STATE;
+           end
 
 	end // case: QUERY_STATE
 
@@ -228,69 +233,24 @@ module nf2_dma_bus_fsm
 	TRANSF_C2N_DATA_STATE: begin
 
 	   if (dma_vld_c2n_d) begin
+              txfifo_wr = 1'b 1;
+              txfifo_wr_data[DMA_DATA_WIDTH +3]=1'b 0;//0:pkt data;1:req code
+              txfifo_wr_data[DMA_DATA_WIDTH -1:0] = dma_data_c2n_d;
 
-	      case (tx_pkt_len)
-		'h 1: begin
-		   tx_pkt_len_nxt = 'h 0;
 
-		   txfifo_wr = 1'b 1;
-		   txfifo_wr_data[DMA_DATA_WIDTH +3]=1'b 0;//0:pkt data;1:req code
-		   txfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 1;//0:not EOP; 1:EOP
-		   txfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 1;//1 byte of pkt data
-		   txfifo_wr_data[DMA_DATA_WIDTH -1:0]=dma_data_c2n_d;
-
-		end
-
-		'h 2: begin
-		   tx_pkt_len_nxt = 'h 0;
-
-		   txfifo_wr = 1'b 1;
-		   txfifo_wr_data[DMA_DATA_WIDTH +3]=1'b 0;//0:pkt data;1:req code
-		   txfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 1;//0:not EOP; 1:EOP
-		   txfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 2;//2 byte of pkt data
-		   txfifo_wr_data[DMA_DATA_WIDTH -1:0]=dma_data_c2n_d;
-
-		end
-
-		'h 3: begin
-		   tx_pkt_len_nxt = 'h 0;
-
-		   txfifo_wr = 1'b 1;
-		   txfifo_wr_data[DMA_DATA_WIDTH +3]=1'b 0;//0:pkt data;1:req code
-		   txfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 1;//0:not EOP; 1:EOP
-		   txfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 3;//3 byte of pkt data
-		   txfifo_wr_data[DMA_DATA_WIDTH -1:0]=dma_data_c2n_d;
-
-		end
-
-		'h 4: begin
-		   tx_pkt_len_nxt = 'h 0;
-
-		   txfifo_wr = 1'b 1;
-		   txfifo_wr_data[DMA_DATA_WIDTH +3]=1'b 0;//0:pkt data;1:req code
-		   txfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 1;//0:not EOP; 1:EOP
-		   txfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 0;//4 byte of pkt data
-		   txfifo_wr_data[DMA_DATA_WIDTH -1:0]=dma_data_c2n_d;
-
-		end
-
-		default: begin
-		   tx_pkt_len_nxt = tx_pkt_len - 'h 4;
-
-		   txfifo_wr = 1'b 1;
-		   txfifo_wr_data[DMA_DATA_WIDTH +3]=1'b 0;//0:pkt data;1:req code
-		   txfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 0;//0:not EOP; 1:EOP
-		   txfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 0;//4 byte of pkt data
-		   txfifo_wr_data[DMA_DATA_WIDTH -1:0]=dma_data_c2n_d;
-
-		end
-
-	      endcase // case(tx_pkt_len)
-
-	      if (~(| tx_pkt_len_nxt)) begin
-		 //tx_pkt_len_nxt == 0
+              if (tx_last_word) begin
 		 state_nxt = TRANSF_C2N_DONE_STATE;
-	      end
+
+                 tx_pkt_len_nxt = 'h 0;
+                 txfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 1;//0:not EOP; 1:EOP
+                 txfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=tx_pkt_len[1:0];
+              end
+              else begin
+		 tx_pkt_len_nxt = tx_pkt_len - 'h 4;
+                 txfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 0;//0:not EOP; 1:EOP
+                 txfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 4;//1 byte of pkt data
+              end
+
 
 	   end // if (dma_vld_c2n_d)
 
@@ -383,13 +343,13 @@ module nf2_dma_bus_fsm
 	      dma_vld_n2c_nxt = 1'b 1;
 	      dma_data_n2c_nxt = rxbuf_rd_data;
 
-	      if (rx_pkt_len > 4)
-		rx_pkt_len_nxt = rx_pkt_len - 4;
-	      else begin
+              if (rx_last_word) begin
 		 rx_pkt_len_nxt = 'h 0;
 
 		 state_nxt = TRANSF_N2C_DONE_STATE;
-	      end
+              end
+              else
+		rx_pkt_len_nxt = rx_pkt_len - 4;
 
               //TODO: add transaction aborted by CPCI
 
