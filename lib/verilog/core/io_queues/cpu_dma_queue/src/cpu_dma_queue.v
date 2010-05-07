@@ -16,7 +16,8 @@
       parameter CTRL_WIDTH=DATA_WIDTH/8,
       parameter DMA_DATA_WIDTH = `CPCI_NF2_DATA_WIDTH,
       parameter DMA_CTRL_WIDTH = DMA_DATA_WIDTH/8,
-      parameter TX_WATCHDOG_TIMEOUT = 125000
+      parameter TX_WATCHDOG_TIMEOUT = 125000,
+      parameter RX_WATCHDOG_TIMEOUT = 125000
       )
    (output [DATA_WIDTH-1:0]              out_data,
     output [CTRL_WIDTH-1:0]              out_ctrl,
@@ -88,7 +89,7 @@ cpu_dma_rx_queue #(
       .CTRL_WIDTH          (CTRL_WIDTH),
       .DMA_DATA_WIDTH      (DMA_DATA_WIDTH),
       .DMA_CTRL_WIDTH      (DMA_CTRL_WIDTH),
-      .TX_WATCHDOG_TIMEOUT (TX_WATCHDOG_TIMEOUT)
+      .RX_WATCHDOG_TIMEOUT (RX_WATCHDOG_TIMEOUT)
    ) cpu_dma_rx_queue (
       .out_data                     (out_data),
       .out_ctrl                     (out_ctrl),
