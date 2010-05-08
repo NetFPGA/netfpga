@@ -278,6 +278,7 @@ module host32 (
          dma_xfer_error    = 0;
          dma_fatal_error   = 0;
 
+         $display("%t %m: Info: Interrupt signaled", $time);
          host32.PCI_DW_RD({`CPCI_INTERRUPT_STATUS, 2'b0}, 4'h6, returned, success);
          host32.DECODE_INTR(returned);
 
@@ -328,6 +329,8 @@ module host32 (
             PCI_DW_RD({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h6, interrupt_mask, success);
             interrupt_mask = interrupt_mask & ~(32'h00000100);
             PCI_DW_WR({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h7, interrupt_mask, success);
+
+            $display("%t %m: Info: DMA engress transfer complete.", $time);
 
             // Clear the DMA in progress flag
             dma_in_progress = 0;
