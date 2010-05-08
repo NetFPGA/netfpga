@@ -265,10 +265,27 @@ sub validateOutput {
 		}
 
 		# Check that the correct number of reads were done
-		my $expectedReads = `grep -c READ: $pciSimDataFile`;
+		#
+		# The number of expected reads is equal to the explict reads
+		# (ie. reads explicitly listed in the PCI Sim Data file) plus
+		# the automatic reads performed when interrupts are signalled.
+		my $explicitReads = `grep -c READ: $pciSimDataFile`;
 		my $actualReads = `grep -c 'Host read.*cmd 0x6:.*Disconnect with Data' $config{'log'}`;
+		my $intStatusReads = `grep -c 'Info: Interrupt signaled' $config{'log'}`;
+		my $iDMADoneInt = `grep -c 'Info: DMA ingress transfer complete.' $config{'log'}`;
+		my $eDMADoneInt = `grep -c 'Info: DMA engress transfer complete.' $config{'log'}`;
+		my $phyInt = `grep -c 'Seen Phy Interrupt.' $config{'log'}`;
+		my $pktAvailInt = `grep -c 'Packet available. Starting' $config{'log'}`;
+		my $cnetRdTimeoutInt = `grep -c 'Seen CNET Read' $config{'log'}`;
+		my $expectedReads = $explicitReads +
+			$intStatusReads +
+			$iDMADoneInt * 3 +
+			$eDMADoneInt * 1 +
+			$phyInt * 1 +
+			$pktAvailInt * 1 +
+			$cnetRdTimeoutInt * 0;
 		if ($expectedReads != $actualReads) {
-			print "--- Test failed ($dir) - incorrect number of reads seen.\n";
+			print "--- Test failed ($dir) - incorrect number of reads seen. (Saw: $actualReads   Expected: $expectedReads)\n";
 			tcTestFailed($test, 'Incorrect number of reads seen in simulation', $logErrors);
 			return 0;
 		}
