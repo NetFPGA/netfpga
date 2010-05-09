@@ -99,7 +99,7 @@ module nf2_dma_bus_fsm
 
    reg [1:0] dma_op_code_ack_nxt, dma_op_code_ack_int;
    reg [3:0] queue_id, queue_id_nxt;
-   reg 	     dma_vld_n2c_nxt, dma_vld_n2c_int;
+   reg 	     dma_vld_n2c_nxt;
    wire      dma_dest_q_nearly_full_n2c_nxt;
    reg [DMA_DATA_WIDTH -1:0] dma_data_n2c_nxt;
    reg dma_data_tri_en_nxt;
@@ -137,7 +137,7 @@ module nf2_dma_bus_fsm
       state_nxt = state;
       dma_op_code_ack_nxt = dma_op_code_ack_int;
       queue_id_nxt = queue_id;
-      dma_vld_n2c_nxt = dma_vld_n2c_int;
+      dma_vld_n2c_nxt = 0;
       dma_data_n2c_nxt = 'h 0;
       dma_data_tri_en_nxt = dma_data_tri_en;
       tx_pkt_len_nxt = tx_pkt_len;
@@ -278,7 +278,6 @@ module nf2_dma_bus_fsm
 
 	   dma_op_code_ack_nxt = OP_CODE_TRANSF_N2C;
 	   dma_data_tri_en_nxt = 1'b 1;
-	   dma_vld_n2c_nxt = 1'b 0;
 
            queue_id_nxt = dma_op_queue_id_d;
 
@@ -325,14 +324,9 @@ module nf2_dma_bus_fsm
               //TODO: add transaction aborted by CPCI
 
 	   end // if (!rxfifo_empty && !dma_dest_q_nearly_full_c2n_d)
-	   else
-	     dma_vld_n2c_nxt = 1'b 0;
-
 	end // case: TRANSF_N2C_DATA_DEQ_STATE
 
 	TRANSF_N2C_DONE_STATE: begin
-	   dma_vld_n2c_nxt = 1'b 0;
-
            case (dma_op_code_req_d)
              OP_CODE_STATUS_QUERY: begin
                 state_nxt = QUERY_STATE;
@@ -356,7 +350,6 @@ module nf2_dma_bus_fsm
 	dma_op_code_ack <= OP_CODE_IDLE;
 	dma_op_code_ack_int <= OP_CODE_IDLE;
 	dma_vld_n2c <= 1'b 0;
-	dma_vld_n2c_int <= 1'b 0;
 
 	dma_data_tri_en <= 1'b 0;
 	dma_data_n2c <= 'h 0;
@@ -374,7 +367,6 @@ module nf2_dma_bus_fsm
 	dma_op_code_ack <= dma_op_code_ack_nxt;
 	dma_op_code_ack_int <= dma_op_code_ack_nxt;
 	dma_vld_n2c <= dma_vld_n2c_nxt;
-	dma_vld_n2c_int <= dma_vld_n2c_nxt;
 
 	dma_data_tri_en <= dma_data_tri_en_nxt;
 	dma_data_n2c <= dma_data_n2c_nxt;
