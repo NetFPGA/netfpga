@@ -88,13 +88,15 @@ module nf2_dma_que_intfc
     input txfifo_rd_is_req,
     input txfifo_rd_type_eop,
     input [1:0] txfifo_rd_valid_bytes,
-    input [DMA_DATA_WIDTH -1:0] txfifo_rd_data,
+    input [DMA_DATA_WIDTH-1:0] txfifo_rd_data,
     output reg txfifo_rd_inc,
 
     input rxfifo_full,
     input rxfifo_nearly_full,
     output reg rxfifo_wr,
-    output reg [DMA_DATA_WIDTH +2:0] rxfifo_wr_data,
+    output reg rxfifo_wr_eop,
+    output reg [1:0] rxfifo_wr_valid_bytes,
+    output reg [DMA_DATA_WIDTH-1:0] rxfifo_wr_data,
 
     //--- misc
     input        enable_dma,
@@ -187,6 +189,8 @@ module nf2_dma_que_intfc
       end
 
       rxfifo_wr = 1'b 0;
+      rxfifo_wr_eop = 0;
+      rxfifo_wr_valid_bytes = 'h 0;
       rxfifo_wr_data = 'h 0;
 
       case (state)
@@ -297,24 +301,24 @@ module nf2_dma_que_intfc
             align_cnt_nxt = align_cnt_plus_1;
 
             rxfifo_wr = 1'b 1;
-            rxfifo_wr_data[DMA_DATA_WIDTH -1:0] = dma_rd_data;
+            rxfifo_wr_data = dma_rd_data;
 
             if (dma_rd_ctrl == 'h 0) begin
                //not EOP
-               rxfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 0;
-               rxfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'b 0;
+               rxfifo_wr_eop=1'b 0;
+               rxfifo_wr_valid_bytes=2'b 0;
             end
             else begin
                //EOP
-               rxfifo_wr_data[DMA_DATA_WIDTH +2]=1'b 1;
+               rxfifo_wr_eop=1'b 1;
 
                // data is in little endian: [7:0] is the first byte.
                case (dma_rd_ctrl)
-                  'b 0001: rxfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 1;
-                  'b 0010: rxfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 2;
-                  'b 0100: rxfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 3;
-                  'b 1000: rxfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 0;
-                  default: rxfifo_wr_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH]=2'h 0;
+                  'b 0001: rxfifo_wr_valid_bytes=2'h 1;
+                  'b 0010: rxfifo_wr_valid_bytes=2'h 2;
+                  'b 0100: rxfifo_wr_valid_bytes=2'h 3;
+                  'b 1000: rxfifo_wr_valid_bytes=2'h 0;
+                  default: rxfifo_wr_valid_bytes=2'h 0;
                endcase // case(dma_rd_ctrl)
 
                if (align_cnt_nxt != 'h 0)

@@ -148,14 +148,18 @@ module nf2_dma
    //wires from nf2_dma_sync
    wire [NUM_CPU_QUEUES-1:0] cpci_cpu_q_dma_pkt_avail;
    wire [NUM_CPU_QUEUES-1:0] cpci_cpu_q_dma_nearly_full;
-   wire [DMA_DATA_WIDTH +2:0] cpci_rxfifo_rd_data;
+   wire cpci_rxfifo_rd_eop;
+   wire [1:0] cpci_rxfifo_rd_valid_bytes;
+   wire [DMA_DATA_WIDTH-1:0] cpci_rxfifo_rd_data;
    wire sys_txfifo_rd_is_req;
    wire sys_txfifo_rd_type_eop;
    wire [1:0] sys_txfifo_rd_valid_bytes;
    wire [DMA_DATA_WIDTH -1:0] sys_txfifo_rd_data;
 
    //wires from nf2_dma_que_intfc
-   wire [DMA_DATA_WIDTH +2:0] rxfifo_wr_data;
+   wire                       rxfifo_wr_eop;
+   wire [1:0]                 rxfifo_wr_valid_bytes;
+   wire [DMA_DATA_WIDTH-1:0]  rxfifo_wr_data;
 
    //---------------------------
    // register block
@@ -215,7 +219,9 @@ module nf2_dma
 
 	//inputs:
 	.rxfifo_empty ( cpci_rxfifo_empty ),
-	.rxfifo_rd_data ( cpci_rxfifo_rd_data ), //[DMA_DATA_WIDTH +2:0]
+	.rxfifo_rd_eop ( cpci_rxfifo_rd_eop ),
+	.rxfifo_rd_valid_bytes ( cpci_rxfifo_rd_valid_bytes ),
+	.rxfifo_rd_data ( cpci_rxfifo_rd_data ),
 
 	//outputs:
 	.rxfifo_rd_inc ( rxfifo_rd_inc ),
@@ -252,7 +258,7 @@ module nf2_dma
 
 	//outputs:
 	.cpci_rxfifo_empty ( cpci_rxfifo_empty ),
-	.cpci_rxfifo_rd_data ( cpci_rxfifo_rd_data ), //[DMA_DATA_WIDTH +2:0]
+	.cpci_rxfifo_rd_data ( {cpci_rxfifo_rd_eop, cpci_rxfifo_rd_valid_bytes, cpci_rxfifo_rd_data} ), //[DMA_DATA_WIDTH +2:0]
 
 	//inputs:
 	.cpci_rxfifo_rd_inc ( rxfifo_rd_inc ),
@@ -278,7 +284,7 @@ module nf2_dma
 
 	//inputs:
 	.sys_rxfifo_wr ( rxfifo_wr ),
-	.sys_rxfifo_wr_data ( rxfifo_wr_data ),//[DMA_DATA_WIDTH +2:0]
+	.sys_rxfifo_wr_data ( {rxfifo_wr_eop, rxfifo_wr_valid_bytes, rxfifo_wr_data} ),//[DMA_DATA_WIDTH +2:0]
 
 	//clks and resets
 	.cpci_clk ( cpci_clk ),
@@ -373,6 +379,8 @@ module nf2_dma
 
     //output:
     .rxfifo_wr ( rxfifo_wr ),
+    .rxfifo_wr_eop ( rxfifo_wr_eop ),//[DMA_DATA_WIDTH +2:0]
+    .rxfifo_wr_valid_bytes ( rxfifo_wr_valid_bytes ),//[DMA_DATA_WIDTH +2:0]
     .rxfifo_wr_data ( rxfifo_wr_data ),//[DMA_DATA_WIDTH +2:0]
 
     //--- misc

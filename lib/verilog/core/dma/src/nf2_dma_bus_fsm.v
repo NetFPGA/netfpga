@@ -67,7 +67,9 @@ module nf2_dma_bus_fsm
 
      input rxfifo_empty,
      output reg rxfifo_rd_inc,
-     input [DMA_DATA_WIDTH +2:0] rxfifo_rd_data,
+     input rxfifo_rd_eop,
+     input [1:0] rxfifo_rd_valid_bytes,
+     input [DMA_DATA_WIDTH-1:0] rxfifo_rd_data,
 
      // --- enable DMA
      input enable_dma,
@@ -297,7 +299,7 @@ module nf2_dma_bus_fsm
 	     rxfifo_rd_inc = 1'b 1;
 
 	     dma_vld_n2c_nxt = 1'b 1;
-	     dma_data_n2c_nxt = rxfifo_rd_data[DMA_DATA_WIDTH -1:0];
+	     dma_data_n2c_nxt = rxfifo_rd_data;
 	     rx_pkt_len_nxt = rxfifo_rd_data[PKT_LEN_CNT_WIDTH-1:0];
 
 	     state_nxt = TRANSF_N2C_DATA_STATE;
@@ -310,7 +312,7 @@ module nf2_dma_bus_fsm
 	      rxfifo_rd_inc = 1'b 1;
 
 	      dma_vld_n2c_nxt = 1'b 1;
-	      dma_data_n2c_nxt = rxfifo_rd_data[DMA_DATA_WIDTH -1:0];
+	      dma_data_n2c_nxt = rxfifo_rd_data;
 
               if (rx_last_word) begin
 		 rx_pkt_len_nxt = 'h 0;
