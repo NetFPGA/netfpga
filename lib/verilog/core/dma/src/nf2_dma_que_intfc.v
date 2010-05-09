@@ -343,11 +343,6 @@ module nf2_dma_que_intfc
 
    end // always @ (*)
 
-   parameter
-     DMA_QUE_WR_IDLE_STATE = 'h 0,
-     DMA_QUE_WR_PAD_STATE = 'h 1;
-
-   reg dma_que_wr_state, dma_que_wr_state_nxt;
    reg [3:0] dma_que_wr_align_cnt, dma_que_wr_align_cnt_nxt;
    reg [3:0] dma_que_wr_queue_id, dma_que_wr_queue_id_nxt;
 
@@ -365,7 +360,6 @@ module nf2_dma_que_intfc
         dma_rd_vld <= 'h 0;
         align_cnt <= 'h 0;
 
-        dma_que_wr_state <= DMA_QUE_WR_IDLE_STATE;
         dma_que_wr_align_cnt <= 'h 0;
         dma_que_wr_queue_id <= 'h 0;
 
@@ -394,7 +388,6 @@ module nf2_dma_que_intfc
         dma_rd_vld <= dma_rd_vld_nxt;
         align_cnt <= align_cnt_nxt;
 
-        dma_que_wr_state <= dma_que_wr_state_nxt;
         dma_que_wr_align_cnt <= dma_que_wr_align_cnt_nxt;
         dma_que_wr_queue_id <= dma_que_wr_queue_id_nxt;
 
