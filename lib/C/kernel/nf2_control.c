@@ -206,7 +206,7 @@ static int nf2c_release(struct net_device *dev)
 			while (card->free_txbuffs < tx_pool_size) {
 				dev_kfree_skb(
 					card->txbuff[card->rd_txbuff].skb);
-				card->rd_txbuff = (card->rd_txbuff + 1) % \
+				card->rd_txbuff = (card->rd_txbuff + 1) %
 						  tx_pool_size;
 				card->free_txbuffs++;
 			}
@@ -525,11 +525,11 @@ static int nf2c_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 
 			/* Read address of MII PHY in use */
 	case SIOCGMIIPHY:
-			phy_id_lo = ioread32(card->ioaddr + \
-					MDIO_0_PHY_ID_LO_REG + \
+			phy_id_lo = ioread32(card->ioaddr +
+					MDIO_0_PHY_ID_LO_REG +
 					(ADDRESS_DELTA * (iface->iface)));
-			phy_id_hi = ioread32(card->ioaddr + \
-					MDIO_0_PHY_ID_HI_REG + \
+			phy_id_hi = ioread32(card->ioaddr +
+					MDIO_0_PHY_ID_HI_REG +
 					(ADDRESS_DELTA * (iface->iface)));
 			phy_id = (phy_id_hi << 16) | phy_id_lo;
 			data->phy_id = phy_id;
@@ -537,9 +537,9 @@ static int nf2c_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 
 			/* Read an MII register */
 	case SIOCGMIIREG:
-			data->val_out = ioread32(card->ioaddr + \
-					MDIO_0_BASE + (ADDRESS_DELTA * \
-						(iface->iface)) + \
+			data->val_out = ioread32(card->ioaddr +
+					MDIO_0_BASE + (ADDRESS_DELTA *
+						(iface->iface)) +
 					data->reg_num);
 			return 0;
 
@@ -786,7 +786,7 @@ static irqreturn_t nf2c_intr(int irq, void *dev_id
 					MAX_DMA_LEN,
 					PCI_DMA_FROMDEVICE);
 
-			card->wr_pool->len = ioread32(card->ioaddr + \
+			card->wr_pool->len = ioread32(card->ioaddr +
 					CPCI_REG_DMA_I_SIZE);
 
 			ctrl = ioread32(card->ioaddr + CPCI_REG_DMA_I_CTRL);
@@ -832,7 +832,7 @@ static irqreturn_t nf2c_intr(int irq, void *dev_id
 				 * before dma_tx_in_progress is decremented due
 				 * to the lack of locking in nf2c_send()
 				 */
-				card->rd_txbuff = (card->rd_txbuff + 1) % \
+				card->rd_txbuff = (card->rd_txbuff + 1) %
 						  tx_pool_size;
 				card->free_txbuffs++;
 				card->free_txbuffs_port[ifnum]++;
@@ -858,8 +858,8 @@ static irqreturn_t nf2c_intr(int irq, void *dev_id
 					"INT_PHY_INTERRUPT\n");
 
 			for (i = 0; i < MAX_IFACE; i++) {
-				phy_intr_status = ioread32(card->ioaddr + \
-						MDIO_0_INTR_STATUS + \
+				phy_intr_status = ioread32(card->ioaddr +
+						MDIO_0_INTR_STATUS +
 						ADDRESS_DELTA * i);
 				PDEBUG(KERN_DFLT_DEBUG "PHY_INTR_STATUS for"
 						" nf2c%d is %x\n", i,
@@ -886,7 +886,7 @@ static irqreturn_t nf2c_intr(int irq, void *dev_id
 		if (status & INT_PKT_AVAIL) {
 			PDEBUG(KERN_DFLT_DEBUG "nf2: intr: INT_PKT_AVAIL\n");
 
-			if (atomic_add_return(1, &card->dma_rx_in_progress) \
+			if (atomic_add_return(1, &card->dma_rx_in_progress)
 					== 1) {
 				PDEBUG(KERN_DFLT_DEBUG "nf2: dma_rx_in_progress"
 					" is %d\n",
@@ -897,10 +897,10 @@ static irqreturn_t nf2c_intr(int irq, void *dev_id
 						PCI_DMA_FROMDEVICE);
 				/* Start the transfer */
 				iowrite32(card->dma_rx_addr,
-						card->ioaddr + \
+						card->ioaddr +
 						CPCI_REG_DMA_I_ADDR);
 				iowrite32(DMA_CTRL_OWNER,
-						card->ioaddr + \
+						card->ioaddr +
 						CPCI_REG_DMA_I_CTRL);
 
 			} else {
@@ -951,7 +951,7 @@ static irqreturn_t nf2c_intr(int irq, void *dev_id
 			}
 
 			/* Check the programming status */
-			prog_status = ioread32(card->ioaddr + \
+			prog_status = ioread32(card->ioaddr +
 					CPCI_REG_PROG_STATUS);
 			if (!(prog_status & PROG_DONE)) {
 				printk(KERN_ERR "\t Note: Virtex is not "

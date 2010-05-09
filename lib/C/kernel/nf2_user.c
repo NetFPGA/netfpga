@@ -109,7 +109,7 @@ out:
  */
 static int nf2u_release(struct inode *inode, struct file *filp)
 {
-	struct nf2_user_priv *upriv = \
+	struct nf2_user_priv *upriv =
 			      (struct nf2_user_priv *)filp->private_data;
 	struct nf2_card_priv *card = upriv->card;
 	u32 enable;
@@ -171,13 +171,13 @@ static ssize_t nf2u_read(struct file *filp, char __user *buf, size_t count,
 
 	/* Check to see if the wr_pos pointer has wrapped */
 	if (upriv->rx_wr_pos > upriv->rx_rd_pos)
-		count = min(count, (size_t)(upriv->rx_wr_pos - \
+		count = min(count, (size_t)(upriv->rx_wr_pos -
 					upriv->rx_rd_pos));
 	else /* the write pointer has wrapped, return data up to upriv->end */
 		count = min(count, (size_t)(0xFFFFFFFF - upriv->rx_rd_pos));
 
 	/* Check to see if the read will empty a buffer */
-	count = min(count, (size_t)(card->rd_pool->data + \
+	count = min(count, (size_t)(card->rd_pool->data +
 				card->rd_pool->len - upriv->rx_buf_rd_pos));
 
 	/* Copy the data to the user */
@@ -464,7 +464,7 @@ static irqreturn_t nf2u_intr(int irq, void *dev_id, struct pt_regs *regs)
 					MAX_DMA_LEN,
 					PCI_DMA_FROMDEVICE);
 
-			card->wr_pool->len = ioread32(card->ioaddr + \
+			card->wr_pool->len = ioread32(card->ioaddr +
 					CPCI_REG_DMA_I_SIZE);
 			card->wr_pool->data[0] = (u8)(card->wr_pool->len &
 					0xFF00 >> 8);
@@ -524,10 +524,10 @@ static irqreturn_t nf2u_intr(int irq, void *dev_id, struct pt_regs *regs)
 
 			/* Disable the PKT_AVAIL interrupt if necessary */
 			if (card->rd_pool == card->wr_pool->next) {
-				result = ioread32(card->ioaddr + \
+				result = ioread32(card->ioaddr +
 						CPCI_REG_INTERRUPT_MASK);
 				result &= ~INT_PKT_AVAIL;
-				iowrite32(result, card->ioaddr + \
+				iowrite32(result, card->ioaddr +
 						CPCI_REG_INTERRUPT_MASK);
 			}
 
