@@ -42,7 +42,7 @@ module nf2_dma_sync
      output cpci_txfifo_full,
      output cpci_txfifo_nearly_full,
      input cpci_txfifo_wr,
-     input [DMA_DATA_WIDTH +3:0] cpci_txfifo_wr_data,
+     input [DMA_DATA_WIDTH +4:0] cpci_txfifo_wr_data,
 
      output cpci_rxfifo_empty,
      input cpci_rxfifo_rd_inc,
@@ -53,7 +53,7 @@ module nf2_dma_sync
      input [NUM_CPU_QUEUES-1:0] sys_cpu_q_dma_nearly_full,
 
      output sys_txfifo_empty,
-     output [DMA_DATA_WIDTH +3:0] sys_txfifo_rd_data,
+     output [DMA_DATA_WIDTH +4:0] sys_txfifo_rd_data,
      input sys_txfifo_rd_inc,
 
      output sys_rxfifo_full,
@@ -92,7 +92,7 @@ module nf2_dma_sync
    //---------------------------------------
    // Instantiations
 
-   small_async_fifo #(.DSIZE(DMA_DATA_WIDTH +4),
+   small_async_fifo #(.DSIZE(DMA_DATA_WIDTH +5),
 		      .ASIZE(3),
 		      .ALMOST_FULL_SIZE(5),
 		      .ALMOST_EMPTY_SIZE(3))

@@ -32,9 +32,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 module nf2_dma_bus_fsm
-  #(parameter DMA_DATA_WIDTH=32,
-    parameter NUM_CPU_QUEUES = 4,
-    parameter PKT_LEN_CNT_WIDTH=11)
+   #(
+      parameter DMA_DATA_WIDTH      = 32,
+      parameter NUM_CPU_QUEUES      = 4,
+      parameter PKT_LEN_CNT_WIDTH   = 11,
+      parameter WATCHDOG_TIMEOUT    = 62500
+   )
     (
      // -- signals to cpci pins
      input [1:0] dma_op_code_req,
@@ -61,6 +64,7 @@ module nf2_dma_bus_fsm
      input txfifo_nearly_full,
      output reg txfifo_wr,
      output reg txfifo_wr_is_req,
+     output reg txfifo_wr_pkt_vld,
      output reg txfifo_wr_type_eop,
      output reg [1:0] txfifo_wr_valid_bytes,
      output reg [DMA_DATA_WIDTH-1:0] txfifo_wr_data,
@@ -74,11 +78,27 @@ module nf2_dma_bus_fsm
      // --- enable DMA
      input enable_dma,
 
+     // --- register interface signals
+     output reg timeout,
+
      // -- misc
      input cpci_clk,
      input cpci_reset
      );
 
+   function integer log2;
+      input integer number;
+      begin
+         log2=0;
+         while(2**log2<number) begin
+            log2=log2+1;
+         end
+      end
+   endfunction // log2
+
+   // -------- Internal parameters --------------
+
+   localparam WATCHDOG_TIMER_WIDTH = log2(WATCHDOG_TIMEOUT);
    localparam PKT_LEN_MAX = (1 << PKT_LEN_CNT_WIDTH) - 1;
    localparam PKT_LEN_THRESHOLD = PKT_LEN_MAX - (DMA_DATA_WIDTH / 8);
 
@@ -121,6 +141,10 @@ module nf2_dma_bus_fsm
    assign tx_last_word = tx_pkt_len <= 4;
    assign rx_last_word = rx_pkt_len <= 4;
 
+   // Watchdog signals
+   reg reset_watchdog;
+   reg [WATCHDOG_TIMER_WIDTH-1:0]   watchdog_timer;
+
    reg [3:0] state, state_nxt;
    parameter IDLE_STATE = 4'h 0,
 	     QUERY_STATE = 4'h 1,
@@ -131,7 +155,10 @@ module nf2_dma_bus_fsm
 	     TRANSF_N2C_QID_STATE = 4'h 6,
 	     TRANSF_N2C_LEN_STATE = 4'h 7,
 	     TRANSF_N2C_DATA_STATE = 4'h 8,
-	     TRANSF_N2C_DONE_STATE = 4'h 9;
+	     TRANSF_N2C_DONE_STATE = 4'h 9,
+	     TIMEOUT_HOLD = 4'h A,
+	     TIMEOUT_C2N = 4'h B,
+	     TIMEOUT_N2C = 4'h C;
 
    always @(*) begin
       state_nxt = state;
@@ -145,11 +172,14 @@ module nf2_dma_bus_fsm
 
       txfifo_wr = 1'b 0;
       txfifo_wr_is_req = 1'b0;
+      txfifo_wr_pkt_vld = 1'b0;
       txfifo_wr_type_eop = 1'b0;
       txfifo_wr_valid_bytes = 'h0;
       txfifo_wr_data = 'h 0;
 
       rxfifo_rd_inc = 1'b 0;
+
+      reset_watchdog = 1'b0;
 
       case (state)
 
@@ -205,12 +235,19 @@ module nf2_dma_bus_fsm
 	   txfifo_wr_valid_bytes=2'b 0;//unused
 	   txfifo_wr_data={{(DMA_DATA_WIDTH-4) {1'b 0}}, queue_id_nxt};
 
+           reset_watchdog = 1'b1;
+
 	   state_nxt = TRANSF_C2N_LEN_STATE;
 
 	end // case: TRANSF_C2N_0_STATE
 
 	TRANSF_C2N_LEN_STATE: begin
-	   if (dma_vld_c2n_d) begin
+           if (watchdog_timer == 'h0) begin
+              // If we're waiting for the length then we haven't sent anything
+              // into the NetFPGA, so no need to try to clear the DMA fifo.
+              state_nxt = TIMEOUT_HOLD;
+           end
+	   else if (dma_vld_c2n_d) begin
 	      tx_pkt_len_nxt = dma_data_c2n_d[PKT_LEN_CNT_WIDTH-1:0];
 
               txfifo_wr = 1'b 1;
@@ -233,8 +270,10 @@ module nf2_dma_bus_fsm
 	end // case: TRANSF_C2N_LEN_STATE
 
 	TRANSF_C2N_DATA_STATE: begin
-
-	   if (dma_vld_c2n_d) begin
+           if (watchdog_timer == 'h0) begin
+              state_nxt = TIMEOUT_C2N;
+           end
+	   else if (dma_vld_c2n_d) begin
               txfifo_wr = 1'b 1;
               txfifo_wr_is_req=1'b 0;//0:pkt data;1:req code
               txfifo_wr_data = dma_data_c2n_d;
@@ -244,6 +283,7 @@ module nf2_dma_bus_fsm
 		 state_nxt = TRANSF_C2N_DONE_STATE;
 
                  tx_pkt_len_nxt = 'h 0;
+                 txfifo_wr_pkt_vld=1'b 1;
                  txfifo_wr_type_eop=1'b 1;//0:not EOP; 1:EOP
                  txfifo_wr_valid_bytes=tx_pkt_len[1:0];
               end
@@ -289,12 +329,19 @@ module nf2_dma_bus_fsm
 
 	   rx_pkt_len_nxt = 'h 0;
 
+           reset_watchdog = 1'b1;
+
 	   state_nxt = TRANSF_N2C_LEN_STATE;
 
 	end // case: TRANSF_N2C_QID_STATE
 
 	TRANSF_N2C_LEN_STATE:
-	  if (!rxfifo_empty && !dma_dest_q_nearly_full_c2n_d) begin
+           if (watchdog_timer == 'h0) begin
+              // If we're waiting for the length then we haven't read anything
+              // from the NetFPGA, so no need to try to clear the DMA fifo.
+              state_nxt = TIMEOUT_HOLD;
+           end
+	   else if (!rxfifo_empty && !dma_dest_q_nearly_full_c2n_d) begin
 	     rxfifo_rd_inc = 1'b 1;
 
 	     dma_vld_n2c_nxt = 1'b 1;
@@ -307,7 +354,10 @@ module nf2_dma_bus_fsm
 	  end
 
 	TRANSF_N2C_DATA_STATE: begin
-	   if (!rxfifo_empty && !dma_dest_q_nearly_full_c2n_d) begin
+           if (watchdog_timer == 'h0) begin
+              state_nxt = TIMEOUT_N2C;
+           end
+	   else if (!rxfifo_empty && !dma_dest_q_nearly_full_c2n_d) begin
 	      rxfifo_rd_inc = 1'b 1;
 
 	      dma_vld_n2c_nxt = 1'b 1;
@@ -338,6 +388,47 @@ module nf2_dma_bus_fsm
 	   endcase // case(dma_op_code_req_d)
 
 	end // case: TRANSF_N2C_DONE_STATE
+
+        TIMEOUT_HOLD: begin
+           // Just sit here and disable all DMA transfers
+        end
+
+        TIMEOUT_C2N: begin
+           // Send data of the correct length but indicate that the packet is
+           // invalid
+           txfifo_wr = 1'b 1;
+           txfifo_wr_is_req=1'b 0;//0:pkt data;1:req code
+           txfifo_wr_data = 'h0;
+
+           if (tx_last_word) begin
+	      state_nxt = TIMEOUT_HOLD;
+
+              tx_pkt_len_nxt = 'h 0;
+              txfifo_wr_pkt_vld=1'b 0;
+              txfifo_wr_type_eop=1'b 1;//0:not EOP; 1:EOP
+              txfifo_wr_valid_bytes=tx_pkt_len[1:0];
+           end
+           else begin
+	      tx_pkt_len_nxt = tx_pkt_len - 'h 4;
+              txfifo_wr_type_eop=1'b 0;//0:not EOP; 1:EOP
+              txfifo_wr_valid_bytes=2'h 4;//1 byte of pkt data
+           end
+        end
+
+        TIMEOUT_N2C: begin
+           // Retrieve the current packet and then sit idle
+	   if (!rxfifo_empty) begin
+	      rxfifo_rd_inc = 1'b 1;
+
+              if (rx_last_word) begin
+		 rx_pkt_len_nxt = 'h 0;
+
+		 state_nxt = TIMEOUT_HOLD;
+              end
+              else
+		rx_pkt_len_nxt = rx_pkt_len - 4;
+	   end // if (!rxfifo_empty)
+        end
 
       endcase // case(state)
 
@@ -380,5 +471,37 @@ module nf2_dma_bus_fsm
      end
 
    end // always @ (posedge cpci_clk)
+
+   // Watchdog timer logic
+   //
+   // Monitors for DMA timeout conditions in which a DMA transaction is
+   // partially complete but no forward progress is made.
+   //
+   // Note: When a timeout occurs, the state machine goes into a DISABLED
+   // state until reset by the user.
+   always @(posedge cpci_clk)
+   begin
+      // Reset the timer on reset or when some data is being transferred
+      if (cpci_reset || reset_watchdog || txfifo_wr || dma_vld_n2c_nxt) begin
+         watchdog_timer <= WATCHDOG_TIMEOUT;
+         timeout <= 1'b0;
+      end
+      else begin
+         if (watchdog_timer != 'h0) begin
+            watchdog_timer <= watchdog_timer - 'h1;
+         end
+
+         // Generate a time-out if the timer has expired and we are in one of
+         // the transfer states.
+         if (watchdog_timer == 'h0 &&
+             (state == TRANSF_C2N_LEN_STATE ||
+              state == TRANSF_C2N_DATA_STATE ||
+              state == TRANSF_N2C_LEN_STATE ||
+              state == TRANSF_N2C_DATA_STATE))
+            timeout <= 1'b1;
+         else
+            timeout <= 1'b0;
+      end
+   end
 
 endmodule // nf2_dma_bus_fsm

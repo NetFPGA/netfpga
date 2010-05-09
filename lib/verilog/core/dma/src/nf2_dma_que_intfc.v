@@ -65,27 +65,32 @@ module nf2_dma_que_intfc
 
     // signals to/from CPU tx queue 0
     output reg cpu_q_dma_wr_0,
+    output reg cpu_q_dma_wr_pkt_vld_0,
     output reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_0,
     output reg [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_0,
 
     // signals to/from CPU tx queue 1
     output reg cpu_q_dma_wr_1,
+    output reg cpu_q_dma_wr_pkt_vld_1,
     output reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_1,
     output reg [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_1,
 
     // signals to/from CPU tx queue 2
     output reg cpu_q_dma_wr_2,
+    output reg cpu_q_dma_wr_pkt_vld_2,
     output reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_2,
     output reg [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_2,
 
     // signals to/from CPU tx queue 3
     output reg cpu_q_dma_wr_3,
+    output reg cpu_q_dma_wr_pkt_vld_3,
     output reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_3,
     output reg [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_3,
 
     // --- signals to/from nf2_dma_sync
     input txfifo_empty,
     input txfifo_rd_is_req,
+    input txfifo_rd_pkt_vld,
     input txfifo_rd_type_eop,
     input [1:0] txfifo_rd_valid_bytes,
     input [DMA_DATA_WIDTH-1:0] txfifo_rd_data,
@@ -111,6 +116,7 @@ module nf2_dma_que_intfc
 
    reg [3:0] queue_id, queue_id_nxt;
 
+   reg [DMA_DATA_WIDTH-1:0]    dma_wr_pkt_vld;
    reg [DMA_DATA_WIDTH-1:0]    dma_wr_data;
    reg [DMA_CTRL_WIDTH-1:0]    dma_wr_ctrl;
    reg                         dma_rd_vld, dma_rd_vld_nxt;
@@ -118,6 +124,7 @@ module nf2_dma_que_intfc
    wire [DMA_CTRL_WIDTH-1:0]    dma_rd_ctrl;
 
    reg                         cpu_q_dma_wr_nxt[0:NUM_CPU_QUEUES-1];
+   reg                         cpu_q_dma_wr_pkt_vld_nxt[0:NUM_CPU_QUEUES-1];
    reg [DMA_DATA_WIDTH-1:0]    cpu_q_dma_wr_data_nxt[0:NUM_CPU_QUEUES-1];
    reg [DMA_CTRL_WIDTH-1:0]    cpu_q_dma_wr_ctrl_nxt[0:NUM_CPU_QUEUES-1];
 
@@ -194,6 +201,7 @@ module nf2_dma_que_intfc
 
       for (i = 0; i < NUM_CPU_QUEUES; i = i + 1) begin
          cpu_q_dma_wr_nxt[i] = 1'b 0;
+         cpu_q_dma_wr_pkt_vld_nxt[i] = 1'b 0;
          cpu_q_dma_wr_data_nxt[i] = 'h 0;
          cpu_q_dma_wr_ctrl_nxt[i] = 'h 0;
 
@@ -274,11 +282,13 @@ module nf2_dma_que_intfc
                   end // case: 1'b 1
                endcase // case(txfifo_rd_type_eop)
 
+               dma_wr_pkt_vld = txfifo_rd_pkt_vld;
                dma_wr_data = txfifo_rd_data;
 
                if (queue_sel != 'h0) begin
                   if ((cpu_q_dma_nearly_full & queue_sel) == 'h0) begin
                      cpu_q_dma_wr_nxt[queue_id] = 1'b 1;
+                     cpu_q_dma_wr_pkt_vld_nxt[queue_id] = dma_wr_pkt_vld;
                      cpu_q_dma_wr_data_nxt[queue_id] = dma_wr_data;
                      cpu_q_dma_wr_ctrl_nxt[queue_id] = dma_wr_ctrl;
 
@@ -430,18 +440,22 @@ module nf2_dma_que_intfc
         dma_que_wr_queue_id <= dma_que_wr_queue_id_nxt;
 
         cpu_q_dma_wr_0 <= cpu_q_dma_wr_nxt[0];
+        cpu_q_dma_wr_pkt_vld_0 <= cpu_q_dma_wr_pkt_vld_nxt[0];
         cpu_q_dma_wr_data_0 <= cpu_q_dma_wr_data_nxt[0];
         cpu_q_dma_wr_ctrl_0 <= cpu_q_dma_wr_ctrl_nxt[0];
 
         cpu_q_dma_wr_1 <= cpu_q_dma_wr_nxt[1];
+        cpu_q_dma_wr_pkt_vld_1 <= cpu_q_dma_wr_pkt_vld_nxt[1];
         cpu_q_dma_wr_data_1 <= cpu_q_dma_wr_data_nxt[1];
         cpu_q_dma_wr_ctrl_1 <= cpu_q_dma_wr_ctrl_nxt[1];
 
         cpu_q_dma_wr_2 <= cpu_q_dma_wr_nxt[2];
+        cpu_q_dma_wr_pkt_vld_2 <= cpu_q_dma_wr_pkt_vld_nxt[2];
         cpu_q_dma_wr_data_2 <= cpu_q_dma_wr_data_nxt[2];
         cpu_q_dma_wr_ctrl_2 <= cpu_q_dma_wr_ctrl_nxt[2];
 
         cpu_q_dma_wr_3 <= cpu_q_dma_wr_nxt[3];
+        cpu_q_dma_wr_pkt_vld_3 <= cpu_q_dma_wr_pkt_vld_nxt[3];
         cpu_q_dma_wr_data_3 <= cpu_q_dma_wr_data_nxt[3];
         cpu_q_dma_wr_ctrl_3 <= cpu_q_dma_wr_ctrl_nxt[3];
 
