@@ -161,6 +161,13 @@ module nf2_dma
    wire [1:0]                 rxfifo_wr_valid_bytes;
    wire [DMA_DATA_WIDTH-1:0]  rxfifo_wr_data;
 
+   // Register interface signals
+   wire                       iface_reset;
+   wire                       pkt_ingress;
+   wire                       pkt_egress;
+   wire [11:0]                pkt_len;
+   wire                       timeout;
+
    //---------------------------
    // register block
 
@@ -383,11 +390,39 @@ module nf2_dma
     .rxfifo_wr_valid_bytes ( rxfifo_wr_valid_bytes ),//[DMA_DATA_WIDTH +2:0]
     .rxfifo_wr_data ( rxfifo_wr_data ),//[DMA_DATA_WIDTH +2:0]
 
+    // register update signals
+    .pkt_ingress                           (pkt_ingress),
+    .pkt_egress                            (pkt_egress),
+    .pkt_len                               (pkt_len),
+
     //--- misc
     //input:
     .enable_dma ( 1'b 1 ),
     .reset ( reset ),
     .clk ( clk )
     );
+
+nf2_dma_regs nf2_dma_regs
+   (
+      // Register interface
+      .reg_req                               (reg_req),
+      .reg_rd_wr_L                           (reg_rd_wr_L),
+      .reg_addr                              (reg_addr),
+      .reg_wr_data                           (reg_wr_data),
+
+      .reg_rd_data                           (reg_rd_data),
+      .reg_ack                               (reg_ack),
+
+      // Interface to DMA logic
+      .iface_reset                           (iface_reset),
+      .pkt_ingress                           (pkt_ingress),
+      .pkt_egress                            (pkt_egress),
+      .pkt_len                               (pkt_len),
+      .timeout                               (timeout),
+
+      // --- Misc
+      .reset                                 (reset),
+      .clk                                   (clk)
+   );
 
 endmodule // nf2_dma

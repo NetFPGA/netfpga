@@ -98,6 +98,11 @@ module nf2_dma_que_intfc
     output reg [1:0] rxfifo_wr_valid_bytes,
     output reg [DMA_DATA_WIDTH-1:0] rxfifo_wr_data,
 
+    // register update signals
+    output reg                      pkt_ingress,
+    output reg                      pkt_egress,
+    output reg [11:0]               pkt_len,
+
     //--- misc
     input        enable_dma,
     input        reset,
@@ -125,6 +130,13 @@ module nf2_dma_que_intfc
 
    // support a max "USER_DATA_PATH_WIDTH / DMA_DATA_WIDTH" ratio of 8
    reg [3:0] align_cnt, align_cnt_nxt;
+
+   reg first_word;
+   reg first_word_nxt;
+
+   reg         pkt_ingress_nxt;
+   reg         pkt_egress_nxt;
+   reg [11:0]  pkt_len_nxt;
 
    wire [3:0] align_cnt_plus_1 =
               ((align_cnt+'h 1)==(USER_DATA_PATH_WIDTH / DMA_DATA_WIDTH)) ?
@@ -193,6 +205,11 @@ module nf2_dma_que_intfc
       rxfifo_wr_valid_bytes = 'h 0;
       rxfifo_wr_data = 'h 0;
 
+      first_word_nxt = first_word;
+      pkt_ingress_nxt = 0;
+      pkt_egress_nxt = 0;
+      pkt_len_nxt = pkt_len;
+
       case (state)
          IDLE_STATE: begin
             if (enable_dma) begin
@@ -220,6 +237,8 @@ module nf2_dma_que_intfc
                         queue_id_nxt = txfifo_rd_data;
                         queue_sel_nxt = queue_decoded;
 
+                        first_word_nxt = 1'b1;
+
                         // Identify Rx/Tx
                         case (txfifo_rd_type_eop)
                            DMA_TX_REQ: state_nxt = TX_STATE;
@@ -236,6 +255,11 @@ module nf2_dma_que_intfc
 
          TX_STATE: begin
             if (! txfifo_empty) begin
+               if (first_word) begin
+                  first_word_nxt = 1'b0;
+                  pkt_len_nxt = txfifo_rd_data;
+               end
+
                case (txfifo_rd_type_eop)
                   XFER_NOT_EOP: dma_wr_ctrl = 'b 0;
 
@@ -266,7 +290,7 @@ module nf2_dma_que_intfc
                            state_nxt = TX_PAD_STATE;
                         else
                            state_nxt = IDLE_STATE;
-
+                        pkt_ingress_nxt = 1'b1;
                      end
                   end
                end
@@ -303,6 +327,11 @@ module nf2_dma_que_intfc
             rxfifo_wr = 1'b 1;
             rxfifo_wr_data = dma_rd_data;
 
+            if (first_word) begin
+               first_word_nxt = 1'b0;
+               pkt_len_nxt = dma_rd_data;
+            end
+
             if (dma_rd_ctrl == 'h 0) begin
                //not EOP
                rxfifo_wr_eop=1'b 0;
@@ -326,6 +355,7 @@ module nf2_dma_que_intfc
                else
                   state_nxt = IDLE_STATE;
 
+               pkt_egress_nxt = 1'b1;
             end // else: !if(dma_rd_ctrl == 'h 0)
 
          end // if (!rxfifo_nearly_full)
@@ -339,7 +369,6 @@ module nf2_dma_que_intfc
 
          if (align_cnt_nxt == 'h 0)
             state_nxt = IDLE_STATE;
-
       end // case: RX_PAD_STATE
 
 
@@ -383,6 +412,11 @@ module nf2_dma_que_intfc
         cpu_q_dma_wr_data_3 <= 'h 0;
         cpu_q_dma_wr_ctrl_3 <= 'h 0;
 
+        first_word <= 1'b1;
+
+        pkt_ingress <= 1'b0;
+        pkt_egress <= 1'b0;
+        pkt_len <= 1'b0;
      end
      else begin
         state <= state_nxt;
@@ -411,6 +445,11 @@ module nf2_dma_que_intfc
         cpu_q_dma_wr_data_3 <= cpu_q_dma_wr_data_nxt[3];
         cpu_q_dma_wr_ctrl_3 <= cpu_q_dma_wr_ctrl_nxt[3];
 
+        first_word <= first_word_nxt;
+
+        pkt_ingress <= pkt_ingress_nxt;
+        pkt_egress <= pkt_egress_nxt;
+        pkt_len <= pkt_len_nxt;
      end
    end // always @ (posedge clk)
 
