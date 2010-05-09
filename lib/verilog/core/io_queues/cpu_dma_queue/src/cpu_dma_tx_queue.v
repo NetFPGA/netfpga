@@ -18,12 +18,17 @@
 // is reset on every write.) If the timer expires and the fifo is non-empty
 // but has zero complete packets then the fifo is reset.
 //
+// Note (3): Pakcets *must* have the 0xff header for this module to work
+// correctly.
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 module cpu_dma_tx_queue
    #(
       parameter DATA_WIDTH = 64,
       parameter CTRL_WIDTH=DATA_WIDTH/8,
+      parameter ENABLE_HEADER    = 0,
+      parameter STAGE_NUMBER     = 'hff,
       parameter DMA_DATA_WIDTH = `CPCI_NF2_DATA_WIDTH,
       parameter DMA_CTRL_WIDTH = DMA_DATA_WIDTH/8,
       parameter TX_WATCHDOG_TIMEOUT = 125000
@@ -38,18 +43,18 @@ module cpu_dma_tx_queue
       output reg                    cpu_q_dma_pkt_avail,
 
       input                         cpu_q_dma_rd,
-      output [DMA_DATA_WIDTH-1:0]   cpu_q_dma_rd_data,
-      output [DMA_CTRL_WIDTH-1:0]   cpu_q_dma_rd_ctrl,
+      output reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data,
+      output reg [DMA_CTRL_WIDTH-1:0] cpu_q_dma_rd_ctrl,
 
       // Register interface -- TX
       input                         tx_queue_en,
       output reg                    tx_pkt_stored,
-      output                        tx_pkt_removed,
+      output reg                    tx_pkt_removed,
       output reg                    tx_q_underrun,
       output reg                    tx_q_overrun,
       output reg                    tx_timeout,
-      output [11:0]                 tx_pkt_byte_cnt,
-      output [9:0]                  tx_pkt_word_cnt,
+      output reg [11:0]             tx_pkt_byte_cnt,
+      output reg [9:0]              tx_pkt_word_cnt,
 
       // --- Misc
       input                         reset,
@@ -70,56 +75,74 @@ module cpu_dma_tx_queue
 
    parameter TX_WATCHDOG_TIMER_WIDTH = log2(TX_WATCHDOG_TIMEOUT);
 
+   localparam MAX_PKT_SIZE             = 2048;
+
+   localparam LAST_WORD_BYTE_CNT_WIDTH = log2(CTRL_WIDTH);
+   localparam PKT_BYTE_CNT_WIDTH       = log2(MAX_PKT_SIZE)+1;
+   localparam PKT_WORD_CNT_WIDTH       = PKT_BYTE_CNT_WIDTH - LAST_WORD_BYTE_CNT_WIDTH;
+
+   localparam IN_PROCESS_HDR           = 1'b0;
+   localparam IN_PROCESS_BODY          = 1'b1;
+
+   localparam OUT_PROCESS_HDR          = 1'b0;
+   localparam OUT_PROCESS_BODY         = 1'b1;
+
    // ------------- Wires/reg ------------------
 
-   reg [5:0]                            num_pkts_in_q; //the max count of pkts is 35.
+   reg [5:0]                           num_pkts_in_q; //the max count of pkts is 35.
 
-   reg                                  in_ctrl_prev_is_0;
-
-   wire                                 tx_fifo_rd_en;
+   reg                                 tx_fifo_rd;
 
    // wires from endianness reordering
-   wire [CTRL_WIDTH+DATA_WIDTH-1:0]     tx_fifo_din;
-   wire [CTRL_WIDTH-1:0]                reordered_in_ctrl;
-   wire [DATA_WIDTH-1:0]                reordered_in_data;
-   wire [CTRL_WIDTH-1:0]                reordered_out_ctrl;
-   wire [DATA_WIDTH-1:0]                reordered_out_data;
+   wire [CTRL_WIDTH-1:0]               tx_fifo_ctrl_in;
+   wire [DATA_WIDTH-1:0]               tx_fifo_data_in;
 
    // wires from tx_fifo
-   wire [`CPCI_NF2_DATA_WIDTH*9/8-1:0]  tx_fifo_dout;
-   wire [`CPCI_NF2_DATA_WIDTH/8-1:0] 	cpu_q_reg_rd_ctrl;
-   wire [`CPCI_NF2_DATA_WIDTH-1:0] 	cpu_q_reg_rd_data;
-   wire                                 tx_fifo_almost_full;
-   wire 				tx_fifo_full;
-   wire 				tx_fifo_empty;
+   wire [DMA_CTRL_WIDTH-1:0]           tx_fifo_ctrl_out;
+   wire [DMA_DATA_WIDTH-1:0]           tx_fifo_data_out;
+   wire                                tx_fifo_almost_full;
+   wire                                tx_fifo_full;
+   wire                                tx_fifo_empty;
 
    // tx watchdog signals
-   reg					tx_in_pkt;
-   reg [TX_WATCHDOG_TIMER_WIDTH-1:0]    tx_watchdog_timer;
-   reg					tx_reset;
+   reg [TX_WATCHDOG_TIMER_WIDTH-1:0]   tx_watchdog_timer;
+
+   reg [PKT_BYTE_CNT_WIDTH-1:0]        tx_pkt_byte_cnt_nxt;
+
+   reg [PKT_WORD_CNT_WIDTH-1:0]        tx_pkt_word_cnt_nxt;
+
+   wire [PKT_BYTE_CNT_WIDTH-1:0]       curr_pkt_byte_len;
+   wire [PKT_WORD_CNT_WIDTH-1:0]       curr_pkt_word_len;
+
+   wire [PKT_BYTE_CNT_WIDTH-1:0]       pkt_len_out;
+
+   reg                                 tx_pkt_stored_nxt;
+
+   reg                                 in_state;
+   reg                                 in_state_nxt;
+
+   reg                                 out_state;
+   reg                                 out_state_nxt;
+
+   reg                                 tx_fifo_wr;
+   reg                                 pkt_len_wr;
+   reg                                 pkt_len_wr_nxt;
 
 
    // ------------- Modules -------------------
    generate
-      genvar k;
-
       if(DATA_WIDTH == 32) begin: cpu_fifos32
-         // reorder the input and outputs: CPU uses little endian, the User Data Path uses big endian
-         for(k=0; k<CTRL_WIDTH; k=k+1) begin: reorder_endianness
-            assign tx_fifo_din[CTRL_WIDTH+DATA_WIDTH-1-k] = in_ctrl[k];
-            assign tx_fifo_din[DATA_WIDTH-1-8*k:DATA_WIDTH-8*(k+1)] = in_data[8*k+7:8*k];
-         end
 
 	 // pkt data and ctrl stored in tx_fifo are in little endian
          async_fifo_512x36_progfull_500 tx_fifo
-           (.din(tx_fifo_din),
-	    .dout(tx_fifo_dout),
+           (.din({tx_fifo_ctrl_in, tx_fifo_data_in}),
+	    .dout({tx_fifo_ctrl_out, tx_fifo_data_out}),
             .clk(clk),
             .rst(reset || tx_timeout),
             .rd_data_count(),
 	    .wr_data_count(),
-            .wr_en(in_wr),
-            .rd_en(tx_fifo_rd_en),
+            .wr_en(tx_fifo_wr),
+            .rd_en(tx_fifo_rd),
             .full(tx_fifo_full),
             .prog_full(tx_fifo_almost_full),
             .empty(tx_fifo_empty)
@@ -129,23 +152,20 @@ module cpu_dma_tx_queue
 
       else if(DATA_WIDTH == 64) begin: cpu_fifos64
          /* need to reorder for endianness and so that ctrl is next to data on the cpu side*/
-         for(k=0; k<CTRL_WIDTH; k=k+1) begin: reorder_endianness
-            assign reordered_in_ctrl[CTRL_WIDTH-1-k] = in_ctrl[k];
-            assign reordered_in_data[DATA_WIDTH-1-8*k:DATA_WIDTH-8*(k+1)] = in_data[8*k+7:8*k];
-         end
-         assign tx_fifo_din = {reordered_in_ctrl[3:0], reordered_in_data[31:0],
-                               reordered_in_ctrl[7:4], reordered_in_data[63:32]};
+         wire [CTRL_WIDTH+DATA_WIDTH-1:0] tx_fifo_din;
+         assign tx_fifo_din = {tx_fifo_ctrl_in[3:0], tx_fifo_data_in[31:0],
+                               tx_fifo_ctrl_in[7:4], tx_fifo_data_in[63:32]};
 
          // stored in little endian for each 32-bit data and 4-bit ctrl
          async_fifo_256x72_to_36 tx_fifo
            (.din(tx_fifo_din),
             .rd_clk(clk),
-            .rd_en(tx_fifo_rd_en),
+            .rd_en(tx_fifo_rd),
             .rst(reset || tx_timeout),
             .wr_clk(clk),
-            .wr_en(in_wr),
+            .wr_en(tx_fifo_wr),
             .almost_full(tx_fifo_almost_full),
-	    .dout(tx_fifo_dout),
+	    .dout({tx_fifo_ctrl_out, tx_fifo_data_out}),
             .empty(tx_fifo_empty),
             .full(tx_fifo_full),
             .rd_data_count()
@@ -155,29 +175,159 @@ module cpu_dma_tx_queue
 
    endgenerate
 
+   /* Whenever a packet is received, this fifo will store its status
+    * and length after it is done. This is used to indicate that a packet is
+    * available and whether it is good to read.
+    * The depth of this fifo has to be the max number of pkt in the
+    * rxfifo.
+    */
+  fallthrough_small_fifo
+    #(.WIDTH (PKT_BYTE_CNT_WIDTH),
+      .MAX_DEPTH_BITS (3)
+   ) pkt_len_fifo (
+
+     .din            (tx_pkt_byte_cnt),
+     .wr_en          (pkt_len_wr),
+
+     .rd_en          (pkt_len_rd),
+
+     .dout           (pkt_len_out),
+     .full           (pkt_len_full),
+     .nearly_full    (pkt_len_nearly_full),
+     .prog_full      (),
+     .empty          (pkt_len_empty),
+
+     .reset          (reset),
+     .clk            (clk)
+   );
+
    // -------------- Logic --------------------
 
-   // Generate the DMA outputs based upon the FIFO output
-   assign {cpu_q_dma_rd_ctrl, cpu_q_dma_rd_data} = tx_fifo_dout;
-
-   // Monitor when pkts are read
-   assign tx_pkt_removed = (| cpu_q_dma_rd_ctrl) && cpu_q_dma_rd;
+   generate
+      // Reorder the input: CPU uses little endian, the User Data Path uses
+      // big endian
+      genvar k;
+      for(k=0; k<CTRL_WIDTH; k=k+1) begin: reorder_endianness
+         assign tx_fifo_ctrl_in[k] = in_ctrl[CTRL_WIDTH-1-k];
+         assign tx_fifo_data_in[8*k+:8] = in_data[DATA_WIDTH-8-8*k+:8];
+      end
+   endgenerate
 
    // Internal signal generation
-   assign in_rdy = !tx_fifo_almost_full;
-   assign tx_fifo_rd_en = cpu_q_dma_rd && (!tx_fifo_empty);
+   assign in_rdy = !tx_fifo_almost_full && !pkt_len_full;
 
-   /* State machine to track data written into fifo */
+   // Extract the byte length from the input data
+   assign curr_pkt_byte_len = in_data[PKT_BYTE_CNT_WIDTH-1:0];
+
+   generate
+      if (CTRL_WIDTH == 8) begin: extract_word_len
+         // Extract the word length from the input data
+         assign curr_pkt_word_len = in_data[`IOQ_WORD_LEN_POS +: PKT_WORD_CNT_WIDTH];
+      end
+      else begin: calc_word_len
+         // Calculate the word length based on the byte length
+         assign curr_pkt_word_len = curr_pkt_byte_len[LAST_WORD_BYTE_CNT_WIDTH-1:0] == 'h0 ?
+            curr_pkt_byte_len[PKT_BYTE_CNT_WIDTH-1:LAST_WORD_BYTE_CNT_WIDTH] :
+            curr_pkt_byte_len[PKT_BYTE_CNT_WIDTH-1:LAST_WORD_BYTE_CNT_WIDTH] + 'h1;
+      end
+   endgenerate
+
+   // Input state machine
+   always @* begin
+      in_state_nxt = in_state;
+      tx_pkt_byte_cnt_nxt = tx_pkt_byte_cnt;
+      tx_pkt_word_cnt_nxt = tx_pkt_word_cnt;
+      tx_pkt_stored_nxt = 0;
+      pkt_len_wr_nxt = 0;
+      tx_fifo_wr = 0;
+
+      if (reset) begin
+         in_state_nxt = IN_PROCESS_HDR;
+         tx_pkt_byte_cnt_nxt = 'h0;
+         tx_pkt_word_cnt_nxt = 'h0;
+      end
+      else begin
+         case (in_state)
+            IN_PROCESS_HDR: begin
+               if (in_wr) begin
+                  if (in_ctrl == STAGE_NUMBER) begin
+                     pkt_len_wr_nxt = 1;
+                     tx_pkt_byte_cnt_nxt = curr_pkt_byte_len;
+                     tx_pkt_word_cnt_nxt = curr_pkt_word_len;
+                  end
+                  else if (in_ctrl == 'h0) begin
+                     in_state_nxt = IN_PROCESS_BODY;
+                     tx_fifo_wr = 1;
+                  end
+               end
+            end
+
+            IN_PROCESS_BODY: begin
+               if (in_wr) begin
+                  tx_fifo_wr = 1;
+                  if (in_ctrl != 'h0) begin
+                     in_state_nxt = IN_PROCESS_HDR;
+                     tx_pkt_stored_nxt = 1;
+                  end
+               end
+            end
+         endcase
+      end
+   end
+
+   always @(posedge clk) begin
+      in_state <= in_state_nxt;
+      tx_pkt_byte_cnt <= tx_pkt_byte_cnt_nxt;
+      tx_pkt_word_cnt <= tx_pkt_word_cnt_nxt;
+      tx_pkt_stored <= tx_pkt_stored_nxt;
+      pkt_len_wr <= pkt_len_wr_nxt;
+   end
+
+   // Output state machine
+   always @* begin
+      out_state_nxt = out_state;
+      cpu_q_dma_rd_ctrl = 'h0;
+      cpu_q_dma_rd_data = 'h0;
+      tx_pkt_removed = 0;
+
+      if (reset) begin
+         out_state_nxt = OUT_PROCESS_HDR;
+      end
+      else begin
+         case (out_state)
+            OUT_PROCESS_HDR: begin
+               cpu_q_dma_rd_ctrl = 'h0;
+               cpu_q_dma_rd_data = pkt_len_out;
+               if (cpu_q_dma_rd) begin
+                  out_state_nxt = OUT_PROCESS_BODY;
+               end
+            end
+
+            OUT_PROCESS_BODY: begin
+               cpu_q_dma_rd_ctrl = tx_fifo_ctrl_out;
+               cpu_q_dma_rd_data = tx_fifo_data_out;
+               if (cpu_q_dma_rd && tx_fifo_ctrl_out != 'h0) begin
+                  out_state_nxt = OUT_PROCESS_HDR;
+                  tx_pkt_removed = 1;
+               end
+               tx_fifo_rd = cpu_q_dma_rd && (!tx_fifo_empty);
+            end
+         endcase
+
+      end
+   end
+
+   always @(posedge clk) begin
+      out_state <= out_state_nxt;
+   end
+
+   // Joint state machine to track queue occupancy
    always @(posedge clk) begin
       if(reset) begin
-         in_ctrl_prev_is_0    <= 1'b 0;
 	 num_pkts_in_q        <= 'h 0;
 	 cpu_q_dma_pkt_avail  <= 1'b 0;
-         tx_pkt_stored <= 1'b 0;
       end // if (reset)
       else begin
-         in_ctrl_prev_is_0  <= in_wr ? (in_ctrl==0) : in_ctrl_prev_is_0;
-
          if (tx_timeout)
             num_pkts_in_q <= 'h0;
          else begin
@@ -187,9 +337,10 @@ module cpu_dma_tx_queue
             endcase // case({tx_pkt_removed, tx_pkt_stored})
          end
 
-	 cpu_q_dma_pkt_avail <= (| num_pkts_in_q);
-
-         tx_pkt_stored <= (in_wr && (|in_ctrl) && in_ctrl_prev_is_0);
+         if (tx_pkt_stored)
+            cpu_q_dma_pkt_avail <= 1;
+         else if (num_pkts_in_q == 'h1 && out_state == OUT_PROCESS_HDR && cpu_q_dma_rd)
+            cpu_q_dma_pkt_avail <= 0;
       end // else: !if(reset)
    end // always @ (posedge clk)
 
@@ -202,7 +353,7 @@ module cpu_dma_tx_queue
    // start a new DMA transfer but also can't start removing the packet.)
    always @(posedge clk)
    begin
-      if (reset || in_wr || tx_fifo_rd_en) begin
+      if (reset || in_wr || tx_fifo_rd) begin
          tx_watchdog_timer <= TX_WATCHDOG_TIMEOUT;
          tx_timeout <= 1'b0;
       end
@@ -222,9 +373,6 @@ module cpu_dma_tx_queue
    end
 
    // Register update logic
-   assign tx_pkt_byte_cnt = 'h0;
-   assign tx_pkt_word_cnt = 'h0;
-
    always @(posedge clk)
    begin
       tx_q_underrun <= cpu_q_dma_rd && tx_fifo_empty;
