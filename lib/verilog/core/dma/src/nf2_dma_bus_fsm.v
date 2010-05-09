@@ -113,18 +113,11 @@ module nf2_dma_bus_fsm
    reg [PKT_LEN_CNT_WIDTH-1:0] tx_pkt_len, tx_pkt_len_nxt;
    reg [PKT_LEN_CNT_WIDTH-1:0] rx_pkt_len, rx_pkt_len_nxt;
 
-   reg rxbuf_srst, rxbuf_rd_en, rxbuf_rd_en_d, rxbuf_wr_en;
-   reg [31:0] rxbuf_wr_data;
-   wire rxbuf_empty, rxbuf_full;
-
    wire tx_last_word;
    wire rx_last_word;
 
    assign tx_last_word = tx_pkt_len <= 4;
    assign rx_last_word = rx_pkt_len <= 4;
-
-   //wires from rxbuf
-   wire [31:0] rxbuf_rd_data;
 
    reg [3:0] state, state_nxt;
    parameter IDLE_STATE = 4'h 0,
@@ -134,10 +127,9 @@ module nf2_dma_bus_fsm
 	     TRANSF_C2N_DATA_STATE = 4'h 4,
 	     TRANSF_C2N_DONE_STATE = 4'h 5,
 	     TRANSF_N2C_QID_STATE = 4'h 6,
-	     TRANSF_N2C_DATA_ENQ_STATE = 4'h 7,
-	     TRANSF_N2C_LEN_STATE = 4'h 8,
-	     TRANSF_N2C_DATA_DEQ_STATE = 4'h 9,
-	     TRANSF_N2C_DONE_STATE = 4'h A;
+	     TRANSF_N2C_LEN_STATE = 4'h 7,
+	     TRANSF_N2C_DATA_STATE = 4'h 8,
+	     TRANSF_N2C_DONE_STATE = 4'h 9;
 
    always @(*) begin
       state_nxt = state;
@@ -154,11 +146,6 @@ module nf2_dma_bus_fsm
       txfifo_wr_type_eop = 1'b0;
       txfifo_wr_valid_bytes = 'h0;
       txfifo_wr_data = 'h 0;
-
-      rxbuf_srst = 1'b 0;
-      rxbuf_wr_en = 1'b 0;
-      rxbuf_wr_data = 'h 0;
-      rxbuf_rd_en = 1'b 0;
 
       rxfifo_rd_inc = 1'b 0;
 
@@ -300,60 +287,30 @@ module nf2_dma_bus_fsm
 	   txfifo_wr_data={{(DMA_DATA_WIDTH-4) {1'b 0}}, queue_id_nxt};
 
 	   rx_pkt_len_nxt = 'h 0;
-	   rxbuf_srst = 1'b 1;
 
-	   state_nxt = TRANSF_N2C_DATA_ENQ_STATE;
+	   state_nxt = TRANSF_N2C_LEN_STATE;
 
 	end // case: TRANSF_N2C_QID_STATE
 
-	TRANSF_N2C_DATA_ENQ_STATE: begin
-	   if (!rxfifo_empty) begin
-	      rxfifo_rd_inc = 1'b 1;
-
-	      rxbuf_wr_en = 1'b 1;
-	      rxbuf_wr_data = rxfifo_rd_data[DMA_DATA_WIDTH -1:0];
-
-	      case (rxfifo_rd_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH])
-		2'h 0:
-		  rx_pkt_len_nxt = rx_pkt_len + 'h 4;
-		2'h 1:
-		  rx_pkt_len_nxt = rx_pkt_len + 'h 1;
-		2'h 2:
-		  rx_pkt_len_nxt = rx_pkt_len + 'h 2;
-		2'h 3:
-		  rx_pkt_len_nxt = rx_pkt_len + 'h 3;
-	      endcase // case(rxfifo_rd_data[DMA_DATA_WIDTH +1:DMA_DATA_WIDTH])
-
-	      if ( (rx_pkt_len_nxt > PKT_LEN_THRESHOLD) ||
-		   (rxfifo_rd_data[DMA_DATA_WIDTH +2] ) ) //EOP
-		state_nxt = TRANSF_N2C_LEN_STATE;
-
-	   end // if (!rxfifo_empty)
-
-           //TODO: add transaction aborted by CPCI
-
-	end // case: TRANSF_N2C_DATA_ENQ_STATE
-
 	TRANSF_N2C_LEN_STATE:
-	  if (! dma_dest_q_nearly_full_c2n_d) begin
-	     dma_vld_n2c_nxt = 1'b 1;
-	     dma_data_n2c_nxt = { { (DMA_DATA_WIDTH-PKT_LEN_CNT_WIDTH) {1'b 0}},
-				  rx_pkt_len };
+	  if (!rxfifo_empty && !dma_dest_q_nearly_full_c2n_d) begin
+	     rxfifo_rd_inc = 1'b 1;
 
-	     state_nxt = TRANSF_N2C_DATA_DEQ_STATE;
+	     dma_vld_n2c_nxt = 1'b 1;
+	     dma_data_n2c_nxt = rxfifo_rd_data[DMA_DATA_WIDTH -1:0];
+	     rx_pkt_len_nxt = rxfifo_rd_data[PKT_LEN_CNT_WIDTH-1:0];
+
+	     state_nxt = TRANSF_N2C_DATA_STATE;
 
              //TODO: add transaction aborted by CPCI
-
 	  end
 
-	TRANSF_N2C_DATA_DEQ_STATE: begin
-	   if (! dma_dest_q_nearly_full_c2n_d) begin
-	      rxbuf_rd_en = 1'b 1;
-	   end
+	TRANSF_N2C_DATA_STATE: begin
+	   if (!rxfifo_empty && !dma_dest_q_nearly_full_c2n_d) begin
+	      rxfifo_rd_inc = 1'b 1;
 
-	   if (rxbuf_rd_en_d) begin
 	      dma_vld_n2c_nxt = 1'b 1;
-	      dma_data_n2c_nxt = rxbuf_rd_data;
+	      dma_data_n2c_nxt = rxfifo_rd_data[DMA_DATA_WIDTH -1:0];
 
               if (rx_last_word) begin
 		 rx_pkt_len_nxt = 'h 0;
@@ -365,7 +322,7 @@ module nf2_dma_bus_fsm
 
               //TODO: add transaction aborted by CPCI
 
-	   end // if (rxbuf_rd_en_d)
+	   end // if (!rxfifo_empty && !dma_dest_q_nearly_full_c2n_d)
 	   else
 	     dma_vld_n2c_nxt = 1'b 0;
 
@@ -407,7 +364,6 @@ module nf2_dma_bus_fsm
 	queue_id <= 'h 0;
 	tx_pkt_len <= 'h 0;
 	rx_pkt_len <= 'h 0;
-	rxbuf_rd_en_d <= 1'b 0;
 
      end
      else begin
@@ -426,31 +382,9 @@ module nf2_dma_bus_fsm
 	queue_id <= queue_id_nxt;
 	tx_pkt_len <= tx_pkt_len_nxt;
 	rx_pkt_len <= rx_pkt_len_nxt;
-	rxbuf_rd_en_d <= rxbuf_rd_en;
 
      end
 
    end // always @ (posedge cpci_clk)
-
-   //------------------------------------------------
-   // Instantiations
-
-   // rxbuf is a standard FIFO (not first-word-fall-through FIFO)
-
-   syncfifo_512x32 rxbuf
-     (
-      .clk ( cpci_clk ),
-      .srst ( rxbuf_srst ),
-
-      //rd intfc
-      .empty ( rxbuf_empty ),
-      .rd_en ( rxbuf_rd_en ),
-      .dout ( rxbuf_rd_data ),
-
-      //wr intfc
-      .full ( rxbuf_full ),
-      .wr_en ( rxbuf_wr_en ),
-      .din ( rxbuf_wr_data )
-      );
 
 endmodule // nf2_dma_bus_fsm
