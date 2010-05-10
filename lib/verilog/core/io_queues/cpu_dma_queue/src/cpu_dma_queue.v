@@ -40,6 +40,7 @@
     output                               cpu_q_dma_nearly_full,
 
     input                                cpu_q_dma_wr,
+    input                                cpu_q_dma_wr_pkt_vld,
     input [DMA_DATA_WIDTH-1:0]           cpu_q_dma_wr_data,
     input [DMA_CTRL_WIDTH-1:0]           cpu_q_dma_wr_ctrl,
 
@@ -100,6 +101,7 @@ cpu_dma_rx_queue #(
       .cpu_q_dma_nearly_full        (cpu_q_dma_nearly_full),
 
       .cpu_q_dma_wr                 (cpu_q_dma_wr),
+      .cpu_q_dma_wr_pkt_vld         (cpu_q_dma_wr_pkt_vld),
       .cpu_q_dma_wr_data            (cpu_q_dma_wr_data),
       .cpu_q_dma_wr_ctrl            (cpu_q_dma_wr_ctrl),
 

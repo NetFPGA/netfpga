@@ -81,21 +81,25 @@ module nf2_dma
 
      // signals to/from CPU tx queue 0
      output cpu_q_dma_wr_0,
+     output cpu_q_dma_wr_pkt_vld_0,
      output [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_0,
      output [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_0,
 
      // signals to/from CPU tx queue 1
      output cpu_q_dma_wr_1,
+     output cpu_q_dma_wr_pkt_vld_1,
      output [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_1,
      output [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_1,
 
      // signals to/from CPU tx queue 2
      output cpu_q_dma_wr_2,
+     output cpu_q_dma_wr_pkt_vld_2,
      output [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_2,
      output [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_2,
 
      // signals to/from CPU tx queue 3
      output cpu_q_dma_wr_3,
+     output cpu_q_dma_wr_pkt_vld_3,
      output [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_3,
      output [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_3,
 
@@ -359,24 +363,28 @@ module nf2_dma
     // signals to/from CPU tx queue 0
     //output:
     .cpu_q_dma_wr_0 ( cpu_q_dma_wr_0 ),
+    .cpu_q_dma_wr_pkt_vld_0 ( cpu_q_dma_wr_pkt_vld_0 ),
     .cpu_q_dma_wr_data_0 ( cpu_q_dma_wr_data_0 ), //[DMA_DATA_WIDTH-1:0]
     .cpu_q_dma_wr_ctrl_0 ( cpu_q_dma_wr_ctrl_0 ),//[DMA_CTRL_WIDTH-1:0]
 
     // signals to/from CPU tx queue 1
     //output:
     .cpu_q_dma_wr_1 ( cpu_q_dma_wr_1 ),
+    .cpu_q_dma_wr_pkt_vld_1 ( cpu_q_dma_wr_pkt_vld_1 ),
     .cpu_q_dma_wr_data_1 ( cpu_q_dma_wr_data_1 ), //[DMA_DATA_WIDTH-1:0]
     .cpu_q_dma_wr_ctrl_1 ( cpu_q_dma_wr_ctrl_1 ), //[DMA_CTRL_WIDTH-1:0]
 
     // signals to/from CPU tx queue 2
     //output
     .cpu_q_dma_wr_2 ( cpu_q_dma_wr_2 ),
+    .cpu_q_dma_wr_pkt_vld_2 ( cpu_q_dma_wr_pkt_vld_2 ),
     .cpu_q_dma_wr_data_2 ( cpu_q_dma_wr_data_2 ), //[DMA_DATA_WIDTH-1:0]
     .cpu_q_dma_wr_ctrl_2 ( cpu_q_dma_wr_ctrl_2 ),//[DMA_CTRL_WIDTH-1:0]
 
     // signals to/from CPU tx queue 3
     //output:
     .cpu_q_dma_wr_3 ( cpu_q_dma_wr_3 ),
+    .cpu_q_dma_wr_pkt_vld_3 ( cpu_q_dma_wr_pkt_vld_3 ),
     .cpu_q_dma_wr_data_3 ( cpu_q_dma_wr_data_3 ), //[DMA_DATA_WIDTH-1:0]
     .cpu_q_dma_wr_ctrl_3 ( cpu_q_dma_wr_ctrl_3 ),//[DMA_CTRL_WIDTH-1:0]
 

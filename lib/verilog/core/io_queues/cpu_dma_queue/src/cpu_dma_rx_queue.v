@@ -44,13 +44,14 @@ module cpu_dma_rx_queue
       output reg                    cpu_q_dma_nearly_full,
 
       input                         cpu_q_dma_wr,
+      input                         cpu_q_dma_wr_pkt_vld,
       input [DMA_DATA_WIDTH-1:0]    cpu_q_dma_wr_data,
       input [DMA_CTRL_WIDTH-1:0]    cpu_q_dma_wr_ctrl,
 
       // Register interface -- RX
       input                         rx_queue_en,
       output  reg                   rx_pkt_stored,
-      output                        rx_pkt_dropped,
+      output  reg                   rx_pkt_dropped,
       output  reg                   rx_pkt_removed,
       output  reg                   rx_q_underrun,
       output  reg                   rx_q_overrun,
@@ -83,6 +84,10 @@ module cpu_dma_rx_queue
    localparam PKT_BYTE_CNT_WIDTH       = log2(MAX_PKT_SIZE)+1;
    localparam PKT_WORD_CNT_WIDTH       = PKT_BYTE_CNT_WIDTH - LAST_WORD_BYTE_CNT_WIDTH;
 
+   localparam OUT_WAIT_FOR_PKT         = 2'h0;
+   localparam OUT_XFER_PKT             = 2'h1;
+   localparam OUT_DROP_PKT             = 2'h2;
+
    // ------------- Wires/reg ------------------
 
    reg [5:0]                           num_pkts_in_q; //the max count of pkts is 35.
@@ -108,6 +113,7 @@ module cpu_dma_rx_queue
 
    reg [PKT_BYTE_CNT_WIDTH-1:0]        num_bytes_written;
 
+   wire [PKT_BYTE_CNT_WIDTH-1:0]       pkt_vld_out;
    wire [PKT_BYTE_CNT_WIDTH-1:0]       pkt_byte_len_out;
    wire [PKT_WORD_CNT_WIDTH-1:0]       pkt_word_len_out;
 
@@ -122,6 +128,16 @@ module cpu_dma_rx_queue
    reg [CTRL_WIDTH-1:0]                out_ctrl_nxt;
    reg                                 out_wr_nxt;
    wire                                pkt_len_nearly_full;
+
+   reg                                 rx_pkt_vld;
+
+   reg [1:0]                           out_state;
+   reg [1:0]                           out_state_nxt;
+
+   reg                                 local_pkt_stored;
+   reg                                 local_pkt_stored_nxt;
+   reg                                 local_pkt_removed;
+   reg                                 local_pkt_removed_nxt;
 
    // ------------- Modules -------------------
 
@@ -200,12 +216,12 @@ module cpu_dma_rx_queue
       .MAX_DEPTH_BITS (3)
    ) pkt_len_fifo (
 
-     .din            ({1'b1, rx_pkt_byte_cnt}),
-     .wr_en          (rx_pkt_stored),
+     .din            ({rx_pkt_vld, rx_pkt_byte_cnt}),
+     .wr_en          (local_pkt_stored),
 
-     .rd_en          (rx_pkt_removed),
+     .rd_en          (local_pkt_removed),
 
-     .dout           ({pkt_len_fifo_dout, pkt_byte_len_out}),
+     .dout           ({pkt_vld_out, pkt_byte_len_out}),
      .full           (),
      .nearly_full    (pkt_len_nearly_full),
      .prog_full      (),
@@ -246,41 +262,77 @@ module cpu_dma_rx_queue
       output_in_pkt_nxt = output_in_pkt;
       rx_fifo_rd_en = 0;
       rx_pkt_removed = 0;
+      local_pkt_removed = 0;
       out_data_nxt = 'h0;
       out_ctrl_nxt = 'h0;
       out_wr_nxt = 0;
+      out_state_nxt = out_state;
 
       if (reset) begin
+         out_state_nxt = OUT_WAIT_FOR_PKT;
          output_in_pkt_nxt = 0;
       end
       else begin
-         // Check that the output is ready and that we have a packet
-         // (indicated by the pkt_len_fifo being non-empty)
-         if (out_rdy && !pkt_len_fifo_empty) begin
-            if (ENABLE_HEADER && !output_in_pkt) begin
-               out_data_nxt =
-                     {pkt_word_len_out,
-                      port_number,
-                      {(`IOQ_SRC_PORT_POS - PKT_BYTE_CNT_WIDTH){1'b0}},
-                      pkt_byte_len_out};
-               out_ctrl_nxt = STAGE_NUMBER;
-               output_in_pkt_nxt = 1;
+         case (out_state)
+            OUT_WAIT_FOR_PKT: begin
+               if (out_rdy && !pkt_len_fifo_empty) begin
+                  if (pkt_vld_out) begin
+                     if (ENABLE_HEADER) begin
+                        out_data_nxt =
+                              {pkt_word_len_out,
+                               port_number,
+                               {(`IOQ_SRC_PORT_POS - PKT_BYTE_CNT_WIDTH){1'b0}},
+                               pkt_byte_len_out};
+                        out_ctrl_nxt = STAGE_NUMBER;
+                        out_state_nxt = OUT_XFER_PKT;
+                     end
+                     else begin
+                        out_data_nxt = out_data_local;
+                        out_ctrl_nxt = out_ctrl_local;
+                        if (out_ctrl_local != 'h0) begin
+                           rx_pkt_removed = 1;
+                           local_pkt_removed = 1;
+                           out_state_nxt = OUT_WAIT_FOR_PKT;
+                        end
+                        else
+                           out_state_nxt = OUT_XFER_PKT;
+                        rx_fifo_rd_en = 1;
+                     end
+                     out_wr_nxt = 1;
+                  end
+                  else begin
+                     out_state_nxt = OUT_DROP_PKT;
+                  end
+               end
             end
-            else begin
-               out_data_nxt = out_data_local;
-               out_ctrl_nxt = out_ctrl_local;
+
+            OUT_XFER_PKT: begin
+               if (out_rdy) begin
+                  out_data_nxt = out_data_local;
+                  out_ctrl_nxt = out_ctrl_local;
+                  if (out_ctrl_local != 'h0) begin
+                     rx_pkt_removed = 1;
+                     local_pkt_removed = 1;
+                     out_state_nxt = OUT_WAIT_FOR_PKT;
+                  end
+                  rx_fifo_rd_en = 1;
+                  out_wr_nxt = 1;
+               end
+            end
+
+            OUT_DROP_PKT: begin
                if (out_ctrl_local != 'h0) begin
-                  output_in_pkt_nxt = 0;
-                  rx_pkt_removed = 1;
+                  local_pkt_removed = 1;
+                  out_state_nxt = OUT_WAIT_FOR_PKT;
                end
                rx_fifo_rd_en = 1;
             end
-            out_wr_nxt = 1;
-         end
+         endcase
       end
    end
 
    always @(posedge clk) begin
+      out_state <= out_state_nxt;
       output_in_pkt <= output_in_pkt_nxt;
       out_data <= out_data_nxt;
       out_ctrl <= out_ctrl_nxt;
@@ -297,7 +349,9 @@ module cpu_dma_rx_queue
          input_in_pkt            <= 1'b 0;
 	 num_pkts_in_q           <= 'h 0;
 	 cpu_q_dma_nearly_full   <= 1'b 0;
+         rx_pkt_vld              <= 1'b 0;
          rx_pkt_stored           <= 1'b 0;
+         local_pkt_stored           <= 1'b 0;
          num_bytes_written       <= 'h 0;
       end // if (reset)
 
@@ -338,7 +392,15 @@ module cpu_dma_rx_queue
 	 cpu_q_dma_nearly_full <= rx_fifo_almost_full ||
                                   pkt_len_nearly_full;
 
-         rx_pkt_stored <= rx_fifo_wr_en && (| cpu_q_dma_wr_ctrl);
+         // Packet stored/dropped signals
+         //
+         // Note: The rx_pkt_stored signal indicates the storage of a *good*
+         // packet, whereas local_pkt_stored indicates the storage of *any*
+         // packet.
+         rx_pkt_vld <= cpu_q_dma_wr_pkt_vld;
+         rx_pkt_stored <= rx_fifo_wr_en && (| cpu_q_dma_wr_ctrl) && cpu_q_dma_wr_pkt_vld;
+         rx_pkt_dropped <= rx_fifo_wr_en && (| cpu_q_dma_wr_ctrl) && !cpu_q_dma_wr_pkt_vld;
+         local_pkt_stored <= rx_fifo_wr_en && (| cpu_q_dma_wr_ctrl);
       end // else: !if(reset)
 
    end // always @ (posedge clk)
@@ -372,8 +434,6 @@ module cpu_dma_rx_queue
    end
 
    // Register update logic
-   assign rx_pkt_dropped = 'h0;
-
    always @(posedge clk)
    begin
       rx_q_underrun <= rx_fifo_rd_en && rx_fifo_empty;
