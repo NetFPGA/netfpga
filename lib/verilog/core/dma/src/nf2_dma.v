@@ -126,8 +126,8 @@ module nf2_dma
      input [`DMA_REG_ADDR_WIDTH -1:0] dma_reg_addr,
      input [CPCI_NF2_DATA_WIDTH -1:0] dma_reg_wr_data,
      input dma_reg_rd_wr_L,
-     output reg [CPCI_NF2_DATA_WIDTH -1:0] dma_reg_rd_data,
-     output reg dma_reg_ack,
+     output [CPCI_NF2_DATA_WIDTH -1:0] dma_reg_rd_data,
+     output dma_reg_ack,
 
      //--- misc
      input  reset,
@@ -183,15 +183,6 @@ module nf2_dma
    reg                        cpci_iface_disable;
    reg                        cpci_iface_reset_p1;
    reg                        cpci_iface_reset;
-
-   //---------------------------
-   // register block
-
-   initial
-   begin
-      dma_reg_rd_data = 'h0;
-      dma_reg_ack = 'h0;
-   end
 
    //--------------------------------------
    // Instantiations
@@ -432,13 +423,13 @@ module nf2_dma
 nf2_dma_regs nf2_dma_regs
    (
       // Register interface
-      .reg_req                               (reg_req),
-      .reg_rd_wr_L                           (reg_rd_wr_L),
-      .reg_addr                              (reg_addr),
-      .reg_wr_data                           (reg_wr_data),
+      .reg_req                               (dma_reg_req),
+      .reg_rd_wr_L                           (dma_reg_rd_wr_L),
+      .reg_addr                              (dma_reg_addr),
+      .reg_wr_data                           (dma_reg_wr_data),
 
-      .reg_rd_data                           (reg_rd_data),
-      .reg_ack                               (reg_ack),
+      .reg_rd_data                           (dma_reg_rd_data),
+      .reg_ack                               (dma_reg_ack),
 
       // Interface to DMA logic
       .iface_disable                         (iface_disable),
