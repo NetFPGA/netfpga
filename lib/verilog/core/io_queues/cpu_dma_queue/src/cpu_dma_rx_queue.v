@@ -82,8 +82,6 @@ module cpu_dma_rx_queue
    reg [5:0]                           num_pkts_in_q; //the max count of pkts is 35.
 
    reg                                 input_in_pkt;
-   reg                                 output_in_pkt;
-   reg                                 output_in_pkt_nxt;
 
    reg                                 rx_fifo_rd_en;
    wire                                rx_fifo_wr_en;
@@ -245,7 +243,6 @@ module cpu_dma_rx_queue
 
    // Output state machine
    always @* begin
-      output_in_pkt_nxt = output_in_pkt;
       rx_fifo_rd_en = 0;
       rx_pkt_removed = 0;
       local_pkt_removed = 0;
@@ -256,7 +253,6 @@ module cpu_dma_rx_queue
 
       if (reset) begin
          out_state_nxt = OUT_WAIT_FOR_PKT;
-         output_in_pkt_nxt = 0;
       end
       else begin
          case (out_state)
@@ -324,7 +320,6 @@ module cpu_dma_rx_queue
 
    always @(posedge clk) begin
       out_state <= out_state_nxt;
-      output_in_pkt <= output_in_pkt_nxt;
       out_data <= out_data_nxt;
       out_ctrl <= out_ctrl_nxt;
       out_wr <= out_wr_nxt;
