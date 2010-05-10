@@ -395,7 +395,8 @@ module nf2_core #(
          cpu_dma_queue
          #(.DATA_WIDTH     (DATA_WIDTH),
            .CTRL_WIDTH     (CTRL_WIDTH),
-           .ENABLE_HEADER  (1)
+           .ENABLE_HEADER  (1),
+           .PORT_NUMBER    (2*k+1)
            ) cpu_dma_queue_i
 
            (
