@@ -14,77 +14,95 @@
 		</nf:register>
 		<nf:register>
 			<nf:name>rx_queue_num_pkts_in_queue</nf:name>
-			<nf:description>Number of packets in the RX queue</nf:description>
+			<nf:description>Number of packets in the RX queue (current)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
-			<nf:name>rx_queue_num_pkts_stored</nf:name>
-			<nf:description>Number of RX packets stored</nf:description>
+			<nf:name>rx_queue_num_pkts_enqueued</nf:name>
+			<nf:description>Number of packets enqueued (stored) to RX queue (cumulative)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
 			<nf:name>rx_queue_num_pkts_dropped_full</nf:name>
-			<nf:description>Number of RX packets dropped because
-				the queue was full</nf:description>
-			<nf:type>counter32</nf:type>
-		</nf:register>
-		<nf:register>
-			<nf:name>rx_queue_num_pkts_dropped_bad</nf:name>
-			<nf:description>Number of RX packets dropped because
-				the packet was bad</nf:description>
+			<nf:description>Number of packets dropped
+				due to full RX queue (cumulative)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
 			<nf:name>rx_queue_num_pkts_dequeued</nf:name>
-			<nf:description>Number of packets dequeud from the
-				RX queue</nf:description>
+			<nf:description>Number of packets dequeued (removed) from
+				RX queue (cumulative)</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rx_queue_num_underruns</nf:name>
+			<nf:description>Number of underruns of the
+				RX queue (cumulative)</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>rx_queue_num_overruns</nf:name>
+			<nf:description>Number of overruns of the
+				RX queue (cumulative)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
 			<nf:name>rx_queue_num_words_pushed</nf:name>
 			<nf:description>Number of words pushed out of the
-				RX queue</nf:description>
+				RX queue (cumulative)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
 			<nf:name>rx_queue_num_bytes_pushed</nf:name>
 			<nf:description>Number of bytes pushed out of the
-				RX queue</nf:description>
+				RX queue (cumulative)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
 			<nf:name>tx_queue_num_pkts_in_queue</nf:name>
-			<nf:description>Number of packets in the TX queue</nf:description>
+			<nf:description>Number of packets in the TX queue (current)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
 			<nf:name>tx_queue_num_pkts_enqueued</nf:name>
-			<nf:description>Number of packets enqueud to the
-				TX queue</nf:description>
+			<nf:description>Number of packets enqueued (stored) to the
+				TX queue (cumulative)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
-			<nf:name>tx_queue_num_pkts_sent</nf:name>
-			<nf:description>Number of packets sent out the TX
-				queue</nf:description>
+			<nf:name>tx_queue_num_pkts_dequeued</nf:name>
+			<nf:description>Number of packets dequeued (sent) from the TX
+				queue (cumulative)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
-			<nf:name>tx_queue_num_words_pushed</nf:name>
-			<nf:description>Number of words pushed out of the
-				TX queue</nf:description>
+			<nf:name>tx_queue_num_underruns</nf:name>
+			<nf:description>Number of underruns of the TX
+				queue (cumulative)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
-			<nf:name>tx_queue_num_bytes_pushed</nf:name>
-			<nf:description>Number of bytes pushed out of the
-				TX queue</nf:description>
+			<nf:name>tx_queue_num_overruns</nf:name>
+			<nf:description>Number of overruns of the TX
+				queue (cumulative)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
 			<nf:name>tx_queue_num_timeouts</nf:name>
 			<nf:description>Number of timeouts in transfers from
 				TX queue</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>tx_queue_num_words_pushed</nf:name>
+			<nf:description>Number of words pushed out of the
+				TX queue (cumulative)</nf:description>
+			<nf:type>counter32</nf:type>
+		</nf:register>
+		<nf:register>
+			<nf:name>tx_queue_num_bytes_pushed</nf:name>
+			<nf:description>Number of bytes pushed out of the
+				TX queue (cumulative)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 	</nf:registers>
