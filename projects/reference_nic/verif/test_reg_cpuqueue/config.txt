@@ -1,0 +1,2 @@
+test_desc = Verify the CPU DMA queue registers
+finish = 60000
