@@ -39,9 +39,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 module cpu_dma_queue_regs
-   #(
-      parameter TX_WATCHDOG_TIMEOUT = 125000
-   )
    (
       // Register interface
       input                                  reg_req,
@@ -69,7 +66,6 @@ module cpu_dma_queue_regs
       input                                  tx_pkt_removed,
       input                                  tx_q_overrun,
       input                                  tx_q_underrun,
-      input                                  tx_timeout,
       input [11:0]                           tx_pkt_byte_cnt,
       input [9:0]                            tx_pkt_word_cnt,
 
@@ -172,8 +168,6 @@ module cpu_dma_queue_regs
 
    reg [2:0]                           tx_queue_delta;
    reg [2:0]                           rx_queue_delta;
-
-   reg [1:0]                           tx_num_timeouts_delta;
 
    // Overrun/underrun tracking
    reg [REG_FILE_ADDR_WIDTH-1:0]       tx_num_underruns_delta;
@@ -342,14 +336,6 @@ module cpu_dma_queue_regs
       else
          tx_num_overruns_delta <= tx_num_overruns_delta + tx_q_overrun;
 
-
-      if (reset)
-         tx_num_timeouts_delta <= 'h0;
-      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_TX_QUEUE_NUM_TIMEOUTS)
-         tx_num_timeouts_delta <= tx_timeout;
-      else
-         tx_num_timeouts_delta <= tx_num_timeouts_delta + tx_timeout;
-
    end // always block for delta logic
 
    /* extend the reset */
@@ -452,7 +438,6 @@ module cpu_dma_queue_regs
                      `CPU_QUEUE_TX_QUEUE_NUM_BYTES_PUSHED :      delta = tx_byte_cnt_delta;
                      `CPU_QUEUE_TX_QUEUE_NUM_UNDERRUNS :         delta = tx_num_underruns_delta;
                      `CPU_QUEUE_TX_QUEUE_NUM_OVERRUNS :          delta = tx_num_overruns_delta;
-                     `CPU_QUEUE_TX_QUEUE_NUM_TIMEOUTS :          delta = tx_num_timeouts_delta;
                      `CPU_QUEUE_TX_QUEUE_NUM_PKTS_IN_QUEUE :     delta = {{(DELTA_WIDTH - 3){tx_queue_delta[2]}}, tx_queue_delta};
                      `CPU_QUEUE_RX_QUEUE_NUM_PKTS_IN_QUEUE :     delta = {{(DELTA_WIDTH - 3){rx_queue_delta[2]}}, rx_queue_delta};
                      default :                                  delta = 0;

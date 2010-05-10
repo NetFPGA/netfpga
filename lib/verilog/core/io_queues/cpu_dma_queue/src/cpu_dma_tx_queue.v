@@ -11,14 +11,7 @@
 // Note (1): Transmit is relative to the NetFPGA -- this is, transmit represents
 // transfers from the NetFPGA to the host.
 //
-// Note (2): A watchdog is included to monitor the state of the TX queue to
-// ensure that permanent lockup never occurs.
-//
-// A watchdog timer starts whenever data is written to the TX fifo. (The timer
-// is reset on every write.) If the timer expires and the fifo is non-empty
-// but has zero complete packets then the fifo is reset.
-//
-// Note (3): Pakcets *must* have the 0xff header for this module to work
+// Note (2): Pakcets *must* have the 0xff header for this module to work
 // correctly.
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,8 +23,7 @@ module cpu_dma_tx_queue
       parameter ENABLE_HEADER    = 0,
       parameter STAGE_NUMBER     = 'hff,
       parameter DMA_DATA_WIDTH = `CPCI_NF2_DATA_WIDTH,
-      parameter DMA_CTRL_WIDTH = DMA_DATA_WIDTH/8,
-      parameter TX_WATCHDOG_TIMEOUT = 125000
+      parameter DMA_CTRL_WIDTH = DMA_DATA_WIDTH/8
    )
    (
       input  [DATA_WIDTH-1:0]       in_data,
@@ -52,7 +44,6 @@ module cpu_dma_tx_queue
       output reg                    tx_pkt_removed,
       output reg                    tx_q_underrun,
       output reg                    tx_q_overrun,
-      output reg                    tx_timeout,
       output reg [11:0]             tx_pkt_byte_cnt,
       output reg [9:0]              tx_pkt_word_cnt,
 
@@ -72,8 +63,6 @@ module cpu_dma_tx_queue
    endfunction // log2
 
    // -------- Internal parameters --------------
-
-   parameter TX_WATCHDOG_TIMER_WIDTH = log2(TX_WATCHDOG_TIMEOUT);
 
    localparam MAX_PKT_SIZE             = 2048;
 
@@ -103,9 +92,6 @@ module cpu_dma_tx_queue
    wire                                tx_fifo_almost_full;
    wire                                tx_fifo_full;
    wire                                tx_fifo_empty;
-
-   // tx watchdog signals
-   reg [TX_WATCHDOG_TIMER_WIDTH-1:0]   tx_watchdog_timer;
 
    reg [PKT_BYTE_CNT_WIDTH-1:0]        tx_pkt_byte_cnt_nxt;
 
@@ -138,7 +124,7 @@ module cpu_dma_tx_queue
            (.din({tx_fifo_ctrl_in, tx_fifo_data_in}),
 	    .dout({tx_fifo_ctrl_out, tx_fifo_data_out}),
             .clk(clk),
-            .rst(reset || tx_timeout),
+            .rst(reset),
             .rd_data_count(),
 	    .wr_data_count(),
             .wr_en(tx_fifo_wr),
@@ -161,7 +147,7 @@ module cpu_dma_tx_queue
            (.din(tx_fifo_din),
             .rd_clk(clk),
             .rd_en(tx_fifo_rd),
-            .rst(reset || tx_timeout),
+            .rst(reset),
             .wr_clk(clk),
             .wr_en(tx_fifo_wr),
             .almost_full(tx_fifo_almost_full),
@@ -328,14 +314,10 @@ module cpu_dma_tx_queue
 	 cpu_q_dma_pkt_avail  <= 1'b 0;
       end // if (reset)
       else begin
-         if (tx_timeout)
-            num_pkts_in_q <= 'h0;
-         else begin
-            case ({tx_pkt_removed, tx_pkt_stored})
-              2'b 10: num_pkts_in_q <= num_pkts_in_q - 'h 1;
-              2'b 01: num_pkts_in_q <= num_pkts_in_q + 'h 1;
-            endcase // case({tx_pkt_removed, tx_pkt_stored})
-         end
+         case ({tx_pkt_removed, tx_pkt_stored})
+           2'b 10: num_pkts_in_q <= num_pkts_in_q - 'h 1;
+           2'b 01: num_pkts_in_q <= num_pkts_in_q + 'h 1;
+         endcase // case({tx_pkt_removed, tx_pkt_stored})
 
          if (tx_pkt_stored)
             cpu_q_dma_pkt_avail <= 1;
@@ -344,33 +326,6 @@ module cpu_dma_tx_queue
       end // else: !if(reset)
    end // always @ (posedge clk)
 
-
-
-   // Watchdog timer logic
-   //
-   // Attempts to reset the TX fifo if the fifo enters a "lock-up" state in
-   // which there is data in the FIFO but not a complete packet. (Can't
-   // start a new DMA transfer but also can't start removing the packet.)
-   always @(posedge clk)
-   begin
-      if (reset || in_wr || tx_fifo_rd) begin
-         tx_watchdog_timer <= TX_WATCHDOG_TIMEOUT;
-         tx_timeout <= 1'b0;
-      end
-      else begin
-         if (!tx_fifo_empty) begin
-            if (tx_watchdog_timer > 0) begin
-               tx_watchdog_timer <= tx_watchdog_timer - 'h1;
-            end
-         end
-
-         // Generate a time-out if the timer has expired, there is data in the
-         // FIFO (but not a whole packet) and we didn't just assert the
-         // timeout signal.
-         tx_timeout <= (tx_watchdog_timer == 'h0) && !tx_fifo_empty &&
-                       (num_pkts_in_q == 'h0) && !tx_timeout;
-      end
-   end
 
    // Register update logic
    always @(posedge clk)

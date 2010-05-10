@@ -15,9 +15,7 @@
     #(parameter DATA_WIDTH = 64,
       parameter CTRL_WIDTH=DATA_WIDTH/8,
       parameter DMA_DATA_WIDTH = `CPCI_NF2_DATA_WIDTH,
-      parameter DMA_CTRL_WIDTH = DMA_DATA_WIDTH/8,
-      parameter TX_WATCHDOG_TIMEOUT = 125000,
-      parameter RX_WATCHDOG_TIMEOUT = 125000
+      parameter DMA_CTRL_WIDTH = DMA_DATA_WIDTH/8
       )
    (output [DATA_WIDTH-1:0]              out_data,
     output [CTRL_WIDTH-1:0]              out_ctrl,
@@ -78,7 +76,6 @@
    wire                          tx_pkt_removed;
    wire                          tx_q_underrun;
    wire                          tx_q_overrun;
-   wire                          tx_timeout;
    wire [11:0]                   tx_pkt_byte_cnt;
    wire [9:0]                    tx_pkt_word_cnt;
 
@@ -89,8 +86,7 @@ cpu_dma_rx_queue #(
       .DATA_WIDTH          (DATA_WIDTH),
       .CTRL_WIDTH          (CTRL_WIDTH),
       .DMA_DATA_WIDTH      (DMA_DATA_WIDTH),
-      .DMA_CTRL_WIDTH      (DMA_CTRL_WIDTH),
-      .RX_WATCHDOG_TIMEOUT (RX_WATCHDOG_TIMEOUT)
+      .DMA_CTRL_WIDTH      (DMA_CTRL_WIDTH)
    ) cpu_dma_rx_queue (
       .out_data                     (out_data),
       .out_ctrl                     (out_ctrl),
@@ -126,8 +122,7 @@ cpu_dma_tx_queue
       .DATA_WIDTH          (DATA_WIDTH),
       .CTRL_WIDTH          (CTRL_WIDTH),
       .DMA_DATA_WIDTH      (DMA_DATA_WIDTH),
-      .DMA_CTRL_WIDTH      (DMA_CTRL_WIDTH),
-      .TX_WATCHDOG_TIMEOUT (TX_WATCHDOG_TIMEOUT)
+      .DMA_CTRL_WIDTH      (DMA_CTRL_WIDTH)
    ) cpu_dma_tx_queue (
       .in_data                      (in_data),
       .in_ctrl                      (in_ctrl),
@@ -147,7 +142,6 @@ cpu_dma_tx_queue
       .tx_pkt_removed               (tx_pkt_removed),
       .tx_q_underrun                (tx_q_underrun),
       .tx_q_overrun                 (tx_q_overrun),
-      .tx_timeout                   (tx_timeout),
       .tx_pkt_byte_cnt              (tx_pkt_byte_cnt),
       .tx_pkt_word_cnt              (tx_pkt_word_cnt),
 
@@ -157,10 +151,7 @@ cpu_dma_tx_queue
    );
 
 
-cpu_dma_queue_regs
-   #(
-      .TX_WATCHDOG_TIMEOUT (TX_WATCHDOG_TIMEOUT)
-   ) cpu_dma_queue_regs (
+cpu_dma_queue_regs cpu_dma_queue_regs (
       // Register interface
       .reg_req                               (reg_req),
       .reg_rd_wr_L                           (reg_rd_wr_L),
@@ -189,7 +180,6 @@ cpu_dma_queue_regs
       .tx_pkt_removed                        (tx_pkt_removed),
       .tx_q_underrun                         (tx_q_underrun),
       .tx_q_overrun                          (tx_q_overrun),
-      .tx_timeout                            (tx_timeout),
       .tx_pkt_byte_cnt                       (tx_pkt_byte_cnt),
       .tx_pkt_word_cnt                       (tx_pkt_word_cnt),
 

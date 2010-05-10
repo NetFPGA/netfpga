@@ -88,12 +88,6 @@
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
-			<nf:name>tx_queue_num_timeouts</nf:name>
-			<nf:description>Number of timeouts in transfers from
-				TX queue</nf:description>
-			<nf:type>counter32</nf:type>
-		</nf:register>
-		<nf:register>
 			<nf:name>tx_queue_num_words_pushed</nf:name>
 			<nf:description>Number of words pushed out of the
 				TX queue (cumulative)</nf:description>
