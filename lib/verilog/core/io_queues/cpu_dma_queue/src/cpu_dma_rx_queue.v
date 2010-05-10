@@ -327,14 +327,12 @@ module cpu_dma_rx_queue
 
    assign rx_fifo_wr_en = cpu_q_dma_wr && (!rx_fifo_full) && input_in_pkt;
 
-   // State machine to track data written into fifo */
+   // Input state machine
    always @(posedge clk) begin
       if(reset) begin
          rx_pkt_byte_cnt         <= 'h0;
          rx_pkt_word_cnt         <= 'h0;
          input_in_pkt            <= 1'b 0;
-	 num_pkts_in_q           <= 'h 0;
-	 cpu_q_dma_nearly_full   <= 1'b 0;
          rx_pkt_vld              <= 1'b 0;
          rx_pkt_stored           <= 1'b 0;
          local_pkt_stored           <= 1'b 0;
@@ -366,14 +364,6 @@ module cpu_dma_rx_queue
          //   end
          //end
 
-         case ({rx_pkt_removed, rx_pkt_stored})
-           2'b 10: num_pkts_in_q <= num_pkts_in_q - 'h 1;
-           2'b 01: num_pkts_in_q <= num_pkts_in_q + 'h 1;
-         endcase // case({rx_pkt_removed, rx_pkt_stored})
-
-	 cpu_q_dma_nearly_full <= rx_fifo_almost_full ||
-                                  pkt_len_nearly_full;
-
          // Packet stored/dropped signals
          //
          // Note: The rx_pkt_stored signal indicates the storage of a *good*
@@ -386,6 +376,24 @@ module cpu_dma_rx_queue
       end // else: !if(reset)
 
    end // always @ (posedge clk)
+
+
+   // Joint state machine to track queue occupancy
+   always @(posedge clk) begin
+      if(reset) begin
+	 num_pkts_in_q           <= 'h 0;
+	 cpu_q_dma_nearly_full   <= 1'b 0;
+      end // if (reset)
+      else begin
+         case ({rx_pkt_removed, rx_pkt_stored})
+           2'b 10: num_pkts_in_q <= num_pkts_in_q - 'h 1;
+           2'b 01: num_pkts_in_q <= num_pkts_in_q + 'h 1;
+         endcase // case({rx_pkt_removed, rx_pkt_stored})
+
+	 cpu_q_dma_nearly_full <= rx_fifo_almost_full ||
+                                  pkt_len_nearly_full;
+      end
+   end
 
    // Register update logic
    always @(posedge clk)
