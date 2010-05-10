@@ -277,13 +277,15 @@ sub validateOutput {
 		my $phyInt = `grep -c 'Seen Phy Interrupt.' $config{'log'}`;
 		my $pktAvailInt = `grep -c 'Packet available. Starting' $config{'log'}`;
 		my $cnetRdTimeoutInt = `grep -c 'Seen CNET Read' $config{'log'}`;
+		my $dmaStarts = `grep -c 'Info: Starting DMA transfer' $config{'log'}`;
 		my $expectedReads = $explicitReads +
 			$intStatusReads +
 			$iDMADoneInt * 3 +
 			$eDMADoneInt * 1 +
 			$phyInt * 1 +
 			$pktAvailInt * 1 +
-			$cnetRdTimeoutInt * 0;
+			$cnetRdTimeoutInt * 0 +
+			$dmaStarts * 1;
 		if ($expectedReads != $actualReads) {
 			print "--- Test failed ($dir) - incorrect number of reads seen. (Saw: $actualReads   Expected: $expectedReads)\n";
 			tcTestFailed($test, 'Incorrect number of reads seen in simulation', $logErrors);
