@@ -97,7 +97,7 @@ module cpu_dma_rx_queue
 
    reg [PKT_BYTE_CNT_WIDTH-1:0]        num_bytes_written;
 
-   wire [PKT_BYTE_CNT_WIDTH-1:0]       pkt_vld_out;
+   wire                                pkt_vld_out;
    wire [PKT_BYTE_CNT_WIDTH-1:0]       pkt_byte_len_out;
    wire [PKT_WORD_CNT_WIDTH-1:0]       pkt_word_len_out;
 
