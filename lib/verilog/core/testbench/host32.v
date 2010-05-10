@@ -187,7 +187,7 @@ module host32 (
 
             if (pci_cmd == `PCI_DMA) begin
 
-               $display("%t %m: Starting DMA transfer", $time);
+               $display("%t %m: Info: Starting DMA transfer", $time);
 
                dma_in_progress = 1;
 
