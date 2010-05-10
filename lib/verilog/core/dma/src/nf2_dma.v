@@ -170,6 +170,9 @@ module nf2_dma
    wire [11:0]                pkt_len;
    wire                       timeout;
 
+   wire                       cpci_timeout;
+   wire                       sys_timeout;
+
    //---------------------------
    // register block
 
@@ -239,6 +242,9 @@ module nf2_dma
 	// --- enable_dma
 	//inputs:
 	.enable_dma (1'b 1),
+
+        // --- register interface signals
+        .timeout (cpci_timeout),
 
 	// -- misc
 	.cpci_clk ( cpci_clk ),
@@ -424,11 +430,25 @@ nf2_dma_regs nf2_dma_regs
       .pkt_ingress                           (pkt_ingress),
       .pkt_egress                            (pkt_egress),
       .pkt_len                               (pkt_len),
-      .timeout                               (timeout),
+      .timeout                               (sys_timeout),
 
       // --- Misc
       .reset                                 (reset),
       .clk                                   (clk)
+   );
+
+
+// Pulse synchronizer to transfer timeout signal from CPCI clock domain to the
+// core clock domain
+pulse_synchronizer timeout_synchronizer
+   (
+      .pulse_in_clkA    (cpci_timeout),
+      .reset_clkA       (cpci_reset),
+      .clkA             (cpci_clk),
+
+      .pulse_out_clkB   (sys_timeout),
+      .reset_clkB       (reset),
+      .clkB             (clk)
    );
 
 endmodule // nf2_dma
