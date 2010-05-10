@@ -274,6 +274,8 @@ module cpu_dma_rx_queue
       end
       else begin
          case (out_state)
+            // Wait for a packet to be placed in the FIFO
+            // The entire packet must be in the FIFO before proceeding.
             OUT_WAIT_FOR_PKT: begin
                if (out_rdy && !pkt_len_fifo_empty) begin
                   if (pkt_vld_out) begin
@@ -306,6 +308,7 @@ module cpu_dma_rx_queue
                end
             end
 
+            // Send the packet to the user data path
             OUT_XFER_PKT: begin
                if (out_rdy) begin
                   out_data_nxt = out_data_local;
@@ -320,6 +323,8 @@ module cpu_dma_rx_queue
                end
             end
 
+            // Drop the packet (an invalid packet was written into the FIFO,
+            // most likely as a result of a DMA timeout)
             OUT_DROP_PKT: begin
                if (out_ctrl_local != 'h0) begin
                   local_pkt_removed = 1;
