@@ -157,8 +157,9 @@ module nf2_dma_bus_fsm
 	     TRANSF_N2C_DATA_STATE = 4'h 8,
 	     TRANSF_N2C_DONE_STATE = 4'h 9,
 	     TIMEOUT_HOLD = 4'h A,
-	     TIMEOUT_C2N = 4'h B,
-	     TIMEOUT_N2C = 4'h C;
+	     TIMEOUT_QUERY = 4'h B,
+	     TIMEOUT_C2N = 4'h C,
+	     TIMEOUT_N2C = 4'h D;
 
    always @(*) begin
       state_nxt = state;
@@ -390,8 +391,33 @@ module nf2_dma_bus_fsm
 	end // case: TRANSF_N2C_DONE_STATE
 
         TIMEOUT_HOLD: begin
-           // Just sit here and disable all DMA transfers
-        end
+            // A DMA timeout has occured. Remain in a timeout state until
+            // reset.
+            if (enable_dma) begin
+	       case (dma_op_code_req_d)
+	          OP_CODE_STATUS_QUERY: begin
+	             state_nxt = TIMEOUT_QUERY;
+	          end
+	       endcase // case(dma_op_code_req_d)
+            end // if (enable_dma)
+        end // case: TIMEOUT_HOLD
+
+        TIMEOUT_QUERY: begin
+            // Timeout state in which to return query information
+            //
+            // Sit in this state forever
+	    dma_op_code_ack_nxt = OP_CODE_STATUS_QUERY;
+	    dma_data_tri_en_nxt = 1'b 1;
+	    dma_vld_n2c_nxt = 1'b 1;
+
+	    dma_data_n2c_nxt = {
+			        {(16 - NUM_CPU_QUEUES) {1'b 0}},
+			        {NUM_CPU_QUEUES {1'b 0}}, // Pkt avail
+			        {(16 - NUM_CPU_QUEUES) {1'b 0}},
+			        {NUM_CPU_QUEUES {1'b 1}} // Nearly full
+			       };
+
+        end // case: TIMEOUT_QUERY
 
         TIMEOUT_C2N: begin
            // Send data of the correct length but indicate that the packet is
