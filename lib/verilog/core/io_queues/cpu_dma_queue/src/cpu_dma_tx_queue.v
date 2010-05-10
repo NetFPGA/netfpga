@@ -32,7 +32,7 @@ module cpu_dma_tx_queue
       output                        in_rdy,
 
       // --- DMA rd nterface
-      output reg                    cpu_q_dma_pkt_avail,
+      output                        cpu_q_dma_pkt_avail,
 
       input                         cpu_q_dma_rd,
       output reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data,
@@ -113,6 +113,8 @@ module cpu_dma_tx_queue
    reg                                 tx_fifo_wr;
    reg                                 pkt_len_wr;
    reg                                 pkt_len_wr_nxt;
+
+   reg                                 pkt_avail_internal;
 
 
    // ------------- Modules -------------------
@@ -198,6 +200,8 @@ module cpu_dma_tx_queue
          assign tx_fifo_data_in[8*k+:8] = in_data[DATA_WIDTH-8-8*k+:8];
       end
    endgenerate
+
+   assign cpu_q_dma_pkt_avail = pkt_avail_internal && tx_queue_en;
 
    // Internal signal generation
    assign in_rdy = !tx_fifo_almost_full && !pkt_len_full;
@@ -311,7 +315,7 @@ module cpu_dma_tx_queue
    always @(posedge clk) begin
       if(reset) begin
 	 num_pkts_in_q        <= 'h 0;
-	 cpu_q_dma_pkt_avail  <= 1'b 0;
+	 pkt_avail_internal   <= 1'b 0;
       end // if (reset)
       else begin
          case ({tx_pkt_removed, tx_pkt_stored})
@@ -320,9 +324,9 @@ module cpu_dma_tx_queue
          endcase // case({tx_pkt_removed, tx_pkt_stored})
 
          if (tx_pkt_stored)
-            cpu_q_dma_pkt_avail <= 1;
+            pkt_avail_internal <= 1;
          else if (num_pkts_in_q == 'h1 && out_state == OUT_PROCESS_HDR && cpu_q_dma_rd)
-            cpu_q_dma_pkt_avail <= 0;
+            pkt_avail_internal <= 0;
       end // else: !if(reset)
    end // always @ (posedge clk)
 

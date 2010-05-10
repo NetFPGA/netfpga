@@ -465,7 +465,10 @@ module cpu_dma_queue_regs
          // Register access logic
          if(new_reg_req) begin // read request
             if(addr_good) begin
-               reg_rd_data <= reg_file_out;
+               if (addr == `CPU_QUEUE_CONTROL)
+                  reg_rd_data <= control_reg;
+               else
+                  reg_rd_data <= reg_file_out;
             end
             else begin
                reg_rd_data <= 32'hdead_beef;

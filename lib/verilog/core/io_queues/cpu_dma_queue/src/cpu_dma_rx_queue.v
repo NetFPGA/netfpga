@@ -391,7 +391,8 @@ module cpu_dma_rx_queue
          endcase // case({rx_pkt_removed, rx_pkt_stored})
 
 	 cpu_q_dma_nearly_full <= rx_fifo_almost_full ||
-                                  pkt_len_nearly_full;
+                                  pkt_len_nearly_full ||
+                                  !rx_queue_en;
       end
    end
 
