@@ -391,29 +391,14 @@ module nf2_core #(
       genvar k;
 
       for(k=0; k<NUM_QUEUES/2; k=k+1) begin: cpu_queues
-
-         // TEMPORARY CODE TO ADD/REMOVE LENGTH/SRC HEADERS
-         //
-         // REMOVE THIS CODE WHEN THE CPU QUEUES HAVE BEEN UPDATED!
-         wire [DATA_WIDTH - 1:0] rx_data;
-         wire [CTRL_WIDTH - 1:0] rx_ctrl;
-         wire                    rx_wr;
-         wire                    rx_rdy;
-
-         wire [DATA_WIDTH - 1:0] tx_data;
-         wire [CTRL_WIDTH - 1:0] tx_ctrl;
-         wire                    tx_wr;
-         wire                    tx_rdy;
-
-
          // CPU DMA QUEUE
          cpu_dma_queue
-         #(.DATA_WIDTH(DATA_WIDTH),
-           .CTRL_WIDTH(CTRL_WIDTH)
+         #(.DATA_WIDTH     (DATA_WIDTH),
+           .CTRL_WIDTH     (CTRL_WIDTH),
+           .ENABLE_HEADER  (1)
            ) cpu_dma_queue_i
 
            (
-/********************************
             .out_data               (in_data[2*k+1]),
             .out_ctrl               (in_ctrl[2*k+1]),
             .out_wr                 (in_wr[2*k+1]),
@@ -423,16 +408,6 @@ module nf2_core #(
             .in_ctrl                (out_ctrl[2*k+1]),
             .in_wr                  (out_wr[2*k+1]),
             .in_rdy                 (out_rdy[2*k+1]),
-********************************/
-            .out_data               (rx_data),
-            .out_ctrl               (rx_ctrl),
-            .out_wr                 (rx_wr),
-            .out_rdy                (rx_rdy),
-
-            .in_data                (tx_data),
-            .in_ctrl                (tx_ctrl),
-            .in_wr                  (tx_wr),
-            .in_rdy                 (tx_rdy),
 
             // --- DMA rd rxfifo interface
             .cpu_q_dma_pkt_avail    (cpu_q_dma_pkt_avail[k]),
@@ -462,37 +437,6 @@ module nf2_core #(
             .reset                  (reset),
             .clk                    (core_clk_int)
             );
-
-         add_rm_hdr #(
-            .DATA_WIDTH(DATA_WIDTH),
-            .PORT_NUMBER(2 * k + 1),
-            .STAGE_NUMBER(`IO_QUEUE_STAGE_NUM)
-         ) add_rm_hdr (
-            .rx_in_data                (rx_data),
-            .rx_in_ctrl                (rx_ctrl),
-            .rx_in_wr                  (rx_wr),
-            .rx_in_rdy                 (rx_rdy),
-
-            .rx_out_data               (in_data[2*k+1]),
-            .rx_out_ctrl               (in_ctrl[2*k+1]),
-            .rx_out_wr                 (in_wr[2*k+1]),
-            .rx_out_rdy                (in_rdy[2*k+1]),
-
-            .tx_in_data                (out_data[2*k+1]),
-            .tx_in_ctrl                (out_ctrl[2*k+1]),
-            .tx_in_wr                  (out_wr[2*k+1]),
-            .tx_in_rdy                 (out_rdy[2*k+1]),
-
-            .tx_out_data               (tx_data),
-            .tx_out_ctrl               (tx_ctrl),
-            .tx_out_wr                 (tx_wr),
-            .tx_out_rdy                (tx_rdy),
-
-            // --- Misc
-            .reset                     (reset),
-            .clk                       (core_clk_int)
-         );
-
       end // block: cpu_queues
 
    endgenerate

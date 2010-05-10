@@ -15,7 +15,8 @@
     #(parameter DATA_WIDTH = 64,
       parameter CTRL_WIDTH=DATA_WIDTH/8,
       parameter DMA_DATA_WIDTH = `CPCI_NF2_DATA_WIDTH,
-      parameter DMA_CTRL_WIDTH = DMA_DATA_WIDTH/8
+      parameter DMA_CTRL_WIDTH = DMA_DATA_WIDTH/8,
+      parameter ENABLE_HEADER = 1
       )
    (output [DATA_WIDTH-1:0]              out_data,
     output [CTRL_WIDTH-1:0]              out_ctrl,
@@ -86,7 +87,8 @@ cpu_dma_rx_queue #(
       .DATA_WIDTH          (DATA_WIDTH),
       .CTRL_WIDTH          (CTRL_WIDTH),
       .DMA_DATA_WIDTH      (DMA_DATA_WIDTH),
-      .DMA_CTRL_WIDTH      (DMA_CTRL_WIDTH)
+      .DMA_CTRL_WIDTH      (DMA_CTRL_WIDTH),
+      .ENABLE_HEADER       (ENABLE_HEADER)
    ) cpu_dma_rx_queue (
       .out_data                     (out_data),
       .out_ctrl                     (out_ctrl),
@@ -122,7 +124,8 @@ cpu_dma_tx_queue
       .DATA_WIDTH          (DATA_WIDTH),
       .CTRL_WIDTH          (CTRL_WIDTH),
       .DMA_DATA_WIDTH      (DMA_DATA_WIDTH),
-      .DMA_CTRL_WIDTH      (DMA_CTRL_WIDTH)
+      .DMA_CTRL_WIDTH      (DMA_CTRL_WIDTH),
+      .ENABLE_HEADER       (ENABLE_HEADER)
    ) cpu_dma_tx_queue (
       .in_data                      (in_data),
       .in_ctrl                      (in_ctrl),
