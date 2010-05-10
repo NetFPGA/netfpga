@@ -208,21 +208,28 @@ module nf2_dma_bus_fsm
 	   dma_data_tri_en_nxt = 1'b 1;
 	   dma_vld_n2c_nxt = 1'b 1;
 
-	   dma_data_n2c_nxt = {
-			       {12 {1'b 0}},
-			       cpu_q_dma_pkt_avail, //[NUM_CPU_QUEUES-1:0]
-			       {12 {1'b 0}},
-			       cpu_q_dma_nearly_full //[NUM_CPU_QUEUES-1:0]
-			       };
+           if (enable_dma) begin
+              dma_data_n2c_nxt = {
+                                  {12 {1'b 0}},
+                                  cpu_q_dma_pkt_avail, //[NUM_CPU_QUEUES-1:0]
+                                  {12 {1'b 0}},
+                                  cpu_q_dma_nearly_full //[NUM_CPU_QUEUES-1:0]
+                                  };
+	      if (dma_op_code_req_d == OP_CODE_TRANSF_C2N) begin
+	         state_nxt = TRANSF_C2N_QID_STATE;
+	      end
 
-	   if (dma_op_code_req_d == OP_CODE_TRANSF_C2N) begin
-	      state_nxt = TRANSF_C2N_QID_STATE;
-	   end
-
-	   else if (dma_op_code_req_d == OP_CODE_TRANSF_N2C) begin
-              state_nxt = TRANSF_N2C_QID_STATE;
+	      else if (dma_op_code_req_d == OP_CODE_TRANSF_N2C) begin
+                 state_nxt = TRANSF_N2C_QID_STATE;
+              end
            end
-
+           else
+	      dma_data_n2c_nxt = {
+			          {(16 - NUM_CPU_QUEUES) {1'b 0}},
+			          {NUM_CPU_QUEUES {1'b 0}}, // Pkt avail
+			          {(16 - NUM_CPU_QUEUES) {1'b 0}},
+			          {NUM_CPU_QUEUES {1'b 1}} // Nearly full
+			         };
 	end // case: QUERY_STATE
 
 	TRANSF_C2N_QID_STATE: begin
@@ -302,16 +309,19 @@ module nf2_dma_bus_fsm
 	end // case: TRANSF_C2N_DATA_STATE
 
 	TRANSF_C2N_DONE_STATE: begin
-	   case (dma_op_code_req_d)
-	     OP_CODE_STATUS_QUERY: begin
-		state_nxt = QUERY_STATE;
-             end
+           if (enable_dma) begin
+              case (dma_op_code_req_d)
+                OP_CODE_STATUS_QUERY: begin
+                   state_nxt = QUERY_STATE;
+                end
 
-             OP_CODE_TRANSF_N2C: begin
-                state_nxt = TRANSF_N2C_QID_STATE;
-             end
-
-	   endcase
+                OP_CODE_TRANSF_N2C: begin
+                   state_nxt = TRANSF_N2C_QID_STATE;
+                end
+              endcase
+           end
+           else
+              state_nxt = QUERY_STATE;
 
 	end // case: TRANSF_C2N_DONE_STATE
 
@@ -378,15 +388,19 @@ module nf2_dma_bus_fsm
 	end // case: TRANSF_N2C_DATA_DEQ_STATE
 
 	TRANSF_N2C_DONE_STATE: begin
-           case (dma_op_code_req_d)
-             OP_CODE_STATUS_QUERY: begin
-                state_nxt = QUERY_STATE;
-             end
+           if (enable_dma) begin
+              case (dma_op_code_req_d)
+                OP_CODE_STATUS_QUERY: begin
+                   state_nxt = QUERY_STATE;
+                end
 
-             OP_CODE_TRANSF_C2N: begin
-                state_nxt = TRANSF_C2N_QID_STATE;
-             end
-	   endcase // case(dma_op_code_req_d)
+                OP_CODE_TRANSF_C2N: begin
+                   state_nxt = TRANSF_C2N_QID_STATE;
+                end
+              endcase // case(dma_op_code_req_d)
+           end
+           else
+              state_nxt = QUERY_STATE;
 
 	end // case: TRANSF_N2C_DONE_STATE
 

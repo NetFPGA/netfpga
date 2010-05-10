@@ -168,6 +168,7 @@ module nf2_dma
    wire [DMA_DATA_WIDTH-1:0]  rxfifo_wr_data;
 
    // Register interface signals
+   wire                       iface_disable;
    wire                       iface_reset;
    wire                       pkt_ingress;
    wire                       pkt_egress;
@@ -176,6 +177,12 @@ module nf2_dma
 
    wire                       cpci_timeout;
    wire                       sys_timeout;
+
+   // Clock domain crossing signals
+   reg                        cpci_iface_disable_p1;
+   reg                        cpci_iface_disable;
+   reg                        cpci_iface_reset_p1;
+   reg                        cpci_iface_reset;
 
    //---------------------------
    // register block
@@ -245,14 +252,14 @@ module nf2_dma
 
 	// --- enable_dma
 	//inputs:
-	.enable_dma (1'b 1),
+	.enable_dma (~cpci_iface_disable),
 
         // --- register interface signals
         .timeout (cpci_timeout),
 
 	// -- misc
 	.cpci_clk ( cpci_clk ),
-	.cpci_reset ( cpci_reset )
+	.cpci_reset ( cpci_reset || cpci_iface_reset)
 	);
 
    // synthesis attribute keep_hierarchy of nf2_dma_bus_fsm is false;
@@ -310,10 +317,10 @@ module nf2_dma
 
 	//clks and resets
 	.cpci_clk ( cpci_clk ),
-	.cpci_reset ( cpci_reset ),
+	.cpci_reset ( cpci_reset || cpci_iface_reset ),
 
 	.sys_clk ( clk ),
-	.sys_reset ( reset )
+	.sys_reset ( reset || iface_reset )
 	);
 
    nf2_dma_que_intfc
@@ -417,8 +424,8 @@ module nf2_dma
 
     //--- misc
     //input:
-    .enable_dma ( 1'b 1 ),
-    .reset ( reset ),
+    .enable_dma ( ~iface_disable ),
+    .reset ( reset || iface_reset ),
     .clk ( clk )
     );
 
@@ -434,6 +441,7 @@ nf2_dma_regs nf2_dma_regs
       .reg_ack                               (reg_ack),
 
       // Interface to DMA logic
+      .iface_disable                         (iface_disable),
       .iface_reset                           (iface_reset),
       .pkt_ingress                           (pkt_ingress),
       .pkt_egress                            (pkt_egress),
@@ -458,5 +466,14 @@ pulse_synchronizer timeout_synchronizer
       .reset_clkB       (reset),
       .clkB             (clk)
    );
+
+   // Transfer disable/reset signals from core to CPCI clock domains
+   always @(posedge cpci_clk) begin
+      cpci_iface_disable_p1 <= iface_disable;
+      cpci_iface_disable <= cpci_iface_disable_p1;
+
+      cpci_iface_reset_p1 <= iface_reset;
+      cpci_iface_reset <= cpci_iface_reset_p1;
+   end
 
 endmodule // nf2_dma

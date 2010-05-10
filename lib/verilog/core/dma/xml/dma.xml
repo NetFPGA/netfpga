@@ -44,9 +44,14 @@
 			<nf:description>DMA interface control register</nf:description>
 			<nf:width>9</nf:width>
 			<nf:bitmask>
+				<nf:name>disable</nf:name>
+				<nf:description>Disable the DMA interface (default: enabled)</nf:description>
+				<nf:pos>0</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
 				<nf:name>reset</nf:name>
 				<nf:description>Reset the DMA interface</nf:description>
-				<nf:pos>0</nf:pos>
+				<nf:pos>1</nf:pos>
 			</nf:bitmask>
 		</nf:type>
 	</nf:types>

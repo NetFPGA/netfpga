@@ -50,6 +50,7 @@ module nf2_dma_regs
       output reg                             reg_ack,
 
       // Interface to DMA logic
+      output                                 iface_disable,
       output                                 iface_reset,
       input                                  pkt_ingress,
       input                                  pkt_egress,
@@ -147,6 +148,10 @@ module nf2_dma_regs
 
    reg [DELTA_WIDTH-1:0]               delta;
 
+   wire                                iface_reset_internal;
+
+   reg [31:0]                          iface_reset_internal_extend;
+
    // -------------------------------------------
    // Register file RAM
    // -------------------------------------------
@@ -207,7 +212,8 @@ module nf2_dma_regs
    end // always block for delta logic
 
    //assign control_reg = reg_file[`CPU_QUEUE_CONTROL];
-   assign iface_reset         = control_reg[`DMA_IFACE_CTRL_RESET_POS];
+   assign iface_disable       = control_reg[`DMA_IFACE_CTRL_DISABLE_POS];
+   assign iface_reset_internal= control_reg[`DMA_IFACE_CTRL_RESET_POS];
 
    assign addr                = reg_addr[REG_FILE_ADDR_WIDTH-1:0];
    assign addr_good           = reg_addr[`CPU_QUEUE_REG_ADDR_WIDTH-1:REG_FILE_ADDR_WIDTH] == 'h0 &&
@@ -215,11 +221,24 @@ module nf2_dma_regs
 
    assign new_reg_req         = reg_req && !reg_req_d1;
 
+   // Reset logic
+   always @(posedge clk) begin
+      if (reset)
+         iface_reset_internal_extend <= 'h0;
+      else
+         iface_reset_internal_extend <= {iface_reset_internal_extend[30:0], iface_reset_internal};
+   end
+
+   assign iface_reset = |iface_reset_internal_extend;
+
+
+   // Main state machine
    always @*
    begin
       // Set the defaults
       state_nxt = state;
       control_reg_nxt = control_reg;
+      control_reg_nxt[`DMA_IFACE_CTRL_RESET_POS] = 1'b0;
       reg_file_in = reg_file_out;
       reg_cnt_nxt = reg_cnt;
       reg_file_addr = 'h0;
@@ -315,7 +334,10 @@ module nf2_dma_regs
          // Register access logic
          if(new_reg_req) begin // read request
             if(addr_good) begin
-               reg_rd_data <= reg_file_out;
+               if (addr == `CPU_QUEUE_CONTROL)
+                  reg_rd_data <= control_reg;
+               else
+                  reg_rd_data <= reg_file_out;
             end
             else begin
                reg_rd_data <= 32'hdead_beef;
