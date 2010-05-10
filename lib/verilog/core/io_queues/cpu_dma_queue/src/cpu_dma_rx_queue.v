@@ -146,7 +146,7 @@ module cpu_dma_rx_queue
 
       else if(DATA_WIDTH == 64) begin: cpu_fifos64
          wire [CTRL_WIDTH+DATA_WIDTH-1:0]    rx_fifo_dout;
-         wire [CTRL_WIDTH+DATA_WIDTH-1:0]    rx_fifo_din;
+         wire [DMA_CTRL_WIDTH+DMA_DATA_WIDTH-1:0] rx_fifo_din;
 
          // The control/data words are mixed due to 32->64 bit conversion.
          // Reorder these.
