@@ -273,7 +273,7 @@ sub validateOutput {
 		my $actualReads = `grep -c 'Host read.*cmd 0x6:.*Disconnect with Data' $config{'log'}`;
 		my $intStatusReads = `grep -c 'Info: Interrupt signaled' $config{'log'}`;
 		my $iDMADoneInt = `grep -c 'Info: DMA ingress transfer complete.' $config{'log'}`;
-		my $eDMADoneInt = `grep -c 'Info: DMA engress transfer complete.' $config{'log'}`;
+		my $eDMADoneInt = `grep -c 'Info: DMA egress transfer complete.' $config{'log'}`;
 		my $phyInt = `grep -c 'Seen Phy Interrupt.' $config{'log'}`;
 		my $pktAvailInt = `grep -c 'Packet available. Starting' $config{'log'}`;
 		my $cnetRdTimeoutInt = `grep -c 'Seen CNET Read' $config{'log'}`;

@@ -330,7 +330,7 @@ module host32 (
             interrupt_mask = interrupt_mask & ~(32'h00000100);
             PCI_DW_WR({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h7, interrupt_mask, success);
 
-            $display("%t %m: Info: DMA engress transfer complete.", $time);
+            $display("%t %m: Info: DMA egress transfer complete.", $time);
 
             // Clear the DMA in progress flag
             dma_in_progress = 0;
