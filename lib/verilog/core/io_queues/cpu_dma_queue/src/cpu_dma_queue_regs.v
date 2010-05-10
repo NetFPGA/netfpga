@@ -156,7 +156,7 @@ module cpu_dma_queue_regs
    reg [BYTE_CNT_WIDTH-1:0]            tx_byte_cnt_delta;
 
    // Can't receive multiple packets less than a single cycle
-   reg                                 rx_pkt_dropped_full_delta;
+   reg                                 rx_pkt_dropped_bad_delta;
    reg                                 rx_pkt_stored_delta;
 
    // Can't send multiple packets in less than a single cycle
@@ -199,11 +199,11 @@ module cpu_dma_queue_regs
    // These are committed later to the register file
    always @(posedge clk) begin
       if (reset)
-         rx_pkt_dropped_full_delta <= 'h0;
-      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_RX_QUEUE_NUM_PKTS_DROPPED_FULL)
-         rx_pkt_dropped_full_delta <= rx_pkt_dropped;
+         rx_pkt_dropped_bad_delta <= 'h0;
+      else if (!new_reg_req && reg_cnt == `CPU_QUEUE_RX_QUEUE_NUM_PKTS_DROPPED_BAD)
+         rx_pkt_dropped_bad_delta <= rx_pkt_dropped;
       else
-         rx_pkt_dropped_full_delta <= rx_pkt_dropped_full_delta  || rx_pkt_dropped;
+         rx_pkt_dropped_bad_delta <= rx_pkt_dropped_bad_delta  || rx_pkt_dropped;
 
 
       if (reset)
@@ -427,7 +427,7 @@ module cpu_dma_queue_regs
                      `CPU_QUEUE_CONTROL :                        delta = 0;
                      `CPU_QUEUE_RX_QUEUE_NUM_PKTS_ENQUEUED :     delta = rx_pkt_stored_delta;
                      `CPU_QUEUE_RX_QUEUE_NUM_PKTS_DEQUEUED :     delta = rx_pkt_removed_delta;
-                     `CPU_QUEUE_RX_QUEUE_NUM_PKTS_DROPPED_FULL : delta = rx_pkt_dropped_full_delta;
+                     `CPU_QUEUE_RX_QUEUE_NUM_PKTS_DROPPED_BAD :  delta = rx_pkt_dropped_bad_delta;
                      `CPU_QUEUE_RX_QUEUE_NUM_UNDERRUNS :         delta = rx_num_underruns_delta;
                      `CPU_QUEUE_RX_QUEUE_NUM_OVERRUNS :          delta = rx_num_overruns_delta;
                      `CPU_QUEUE_RX_QUEUE_NUM_WORDS_PUSHED :      delta = rx_word_cnt_delta;

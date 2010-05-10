@@ -23,9 +23,9 @@
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
-			<nf:name>rx_queue_num_pkts_dropped_full</nf:name>
+			<nf:name>rx_queue_num_pkts_dropped_bad</nf:name>
 			<nf:description>Number of packets dropped
-				due to full RX queue (cumulative)</nf:description>
+				due to invalid marking (cumulative)</nf:description>
 			<nf:type>counter32</nf:type>
 		</nf:register>
 		<nf:register>
