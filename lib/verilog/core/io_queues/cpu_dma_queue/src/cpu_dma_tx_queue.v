@@ -295,6 +295,7 @@ module cpu_dma_tx_queue
       cpu_q_dma_rd_data = 'h0;
       tx_pkt_removed = 0;
       pkt_len_rd = 0;
+      tx_fifo_rd = 0;
 
       if (reset) begin
          out_state_nxt = OUT_PROCESS_HDR;
