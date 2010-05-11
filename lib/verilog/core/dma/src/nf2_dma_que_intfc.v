@@ -135,9 +135,6 @@ module nf2_dma_que_intfc
    reg [3:0] queue_sel_nxt;
    reg [3:0] queue_sel;
 
-   // support a max "USER_DATA_PATH_WIDTH / DMA_DATA_WIDTH" ratio of 8
-   reg [3:0] align_cnt, align_cnt_nxt;
-
    reg first_word;
    reg first_word_nxt;
 
@@ -145,16 +142,10 @@ module nf2_dma_que_intfc
    reg         pkt_egress_nxt;
    reg [11:0]  pkt_len_nxt;
 
-   wire [3:0] align_cnt_plus_1 =
-              ((align_cnt+'h 1)==(USER_DATA_PATH_WIDTH / DMA_DATA_WIDTH)) ?
-              'h 0 : align_cnt+'h 1;
-
-   reg [2:0] state, state_nxt;
-   parameter IDLE_STATE = 3'h 0,
-             TX_STATE = 3'h 1,
-             TX_PAD_STATE = 3'h 2,
-             RX_STATE = 3'h 3,
-             RX_PAD_STATE = 3'h 4;
+   reg [1:0] state, state_nxt;
+   parameter IDLE_STATE = 2'h 0,
+             TX_STATE = 2'h 1,
+             RX_STATE = 2'h 2;
 
    localparam
       DMA_WORD_IS_DATA = 1'b0,
@@ -192,7 +183,6 @@ module nf2_dma_que_intfc
       queue_id_nxt = queue_id;
       queue_sel_nxt = queue_sel;
       dma_rd_vld_nxt = 1'b 0;
-      align_cnt_nxt = align_cnt;
 
       txfifo_rd_inc = 1'b 0;
 
@@ -240,8 +230,6 @@ module nf2_dma_que_intfc
                      end
 
                      DMA_WORD_IS_REQ: begin
-                        align_cnt_nxt = 'h 0;
-
                         queue_id_nxt = txfifo_rd_data;
                         queue_sel_nxt = queue_decoded;
 
@@ -292,14 +280,9 @@ module nf2_dma_que_intfc
                      cpu_q_dma_wr_data_nxt[queue_id] = dma_wr_data;
                      cpu_q_dma_wr_ctrl_nxt[queue_id] = dma_wr_ctrl;
 
-                     align_cnt_nxt = align_cnt_plus_1;
-
                      txfifo_rd_inc = 1'b 1;
                      if (| dma_wr_ctrl) begin
-                        if (align_cnt_nxt != 'h 0)
-                           state_nxt = TX_PAD_STATE;
-                        else
-                           state_nxt = IDLE_STATE;
+                        state_nxt = IDLE_STATE;
                         pkt_ingress_nxt = 1'b1;
                      end
                   end
@@ -314,25 +297,12 @@ module nf2_dma_que_intfc
             end // if (! txfifo_empty)
          end // TX_STATE
 
-      TX_PAD_STATE: begin
-         if ((cpu_q_dma_nearly_full & queue_sel) == 0) begin
-            cpu_q_dma_wr_nxt[queue_id] = 1'b 1;
-
-            align_cnt_nxt = align_cnt_plus_1;
-
-            if (align_cnt_nxt == 'h 0)
-               state_nxt = IDLE_STATE;
-         end
-      end // case: TX_PAD_STATE
-
       RX_STATE: begin
 
          if (!rxfifo_nearly_full) begin
             // note that cpu queues are fall-thru queues.
             // So data are available now
             cpu_q_dma_rd[queue_id] = 1'b1;
-
-            align_cnt_nxt = align_cnt_plus_1;
 
             rxfifo_wr = 1'b 1;
             rxfifo_wr_data = dma_rd_data;
@@ -360,10 +330,7 @@ module nf2_dma_que_intfc
                   default: rxfifo_wr_valid_bytes=2'h 0;
                endcase // case(dma_rd_ctrl)
 
-               if (align_cnt_nxt != 'h 0)
-                  state_nxt = RX_PAD_STATE;
-               else
-                  state_nxt = IDLE_STATE;
+               state_nxt = IDLE_STATE;
 
                pkt_egress_nxt = 1'b1;
             end // else: !if(dma_rd_ctrl == 'h 0)
@@ -371,16 +338,6 @@ module nf2_dma_que_intfc
          end // if (!rxfifo_nearly_full)
 
       end // case: RX_STATE
-
-      RX_PAD_STATE: begin
-         cpu_q_dma_rd[queue_id] = 1'b1;
-
-         align_cnt_nxt = align_cnt_plus_1;
-
-         if (align_cnt_nxt == 'h 0)
-            state_nxt = IDLE_STATE;
-      end // case: RX_PAD_STATE
-
 
       endcase // case(state)
 
@@ -401,7 +358,6 @@ module nf2_dma_que_intfc
         queue_id <= 'h 0;
         queue_sel <= 'h 0;
         dma_rd_vld <= 'h 0;
-        align_cnt <= 'h 0;
 
         dma_que_wr_align_cnt <= 'h 0;
         dma_que_wr_queue_id <= 'h 0;
@@ -434,7 +390,6 @@ module nf2_dma_que_intfc
         queue_id <= queue_id_nxt;
         queue_sel <= queue_sel_nxt;
         dma_rd_vld <= dma_rd_vld_nxt;
-        align_cnt <= align_cnt_nxt;
 
         dma_que_wr_align_cnt <= dma_que_wr_align_cnt_nxt;
         dma_que_wr_queue_id <= dma_que_wr_queue_id_nxt;
