@@ -113,6 +113,7 @@ module cpu_dma_tx_queue
    reg                                 tx_fifo_wr;
    reg                                 pkt_len_wr;
    reg                                 pkt_len_wr_nxt;
+   reg                                 pkt_len_rd;
 
    reg                                 pkt_avail_internal;
 
@@ -293,6 +294,7 @@ module cpu_dma_tx_queue
       cpu_q_dma_rd_ctrl = 'h0;
       cpu_q_dma_rd_data = 'h0;
       tx_pkt_removed = 0;
+      pkt_len_rd = 0;
 
       if (reset) begin
          out_state_nxt = OUT_PROCESS_HDR;
@@ -304,6 +306,7 @@ module cpu_dma_tx_queue
                cpu_q_dma_rd_data = pkt_len_out;
                if (cpu_q_dma_rd) begin
                   out_state_nxt = OUT_PROCESS_BODY;
+                  pkt_len_rd = 1;
                end
             end
 
