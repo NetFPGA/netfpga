@@ -144,11 +144,25 @@ module cpu_dma_tx_queue
          assign tx_fifo_din = {tx_fifo_ctrl_in[3:0], tx_fifo_data_in[31:0],
                                tx_fifo_ctrl_in[7:4], tx_fifo_data_in[63:32]};
 
+         // Deal with 64->32 width change tracking the need for an extra read
+         reg aligned64;
+         wire need_extra_rd = !aligned64 && out_state != OUT_PROCESS_BODY;
+         always @(posedge clk) begin
+            if (reset)
+               aligned64 <= 1'b1;
+            else begin
+               if (tx_fifo_rd)
+                  aligned64 <= !aligned64;
+               else if (need_extra_rd)
+                  aligned64 <= 1'b1;
+            end
+         end
+
          // stored in little endian for each 32-bit data and 4-bit ctrl
          async_fifo_256x72_to_36 tx_fifo
            (.din(tx_fifo_din),
             .rd_clk(clk),
-            .rd_en(tx_fifo_rd),
+            .rd_en(tx_fifo_rd || need_extra_rd),
             .rst(reset),
             .wr_clk(clk),
             .wr_en(tx_fifo_wr),
