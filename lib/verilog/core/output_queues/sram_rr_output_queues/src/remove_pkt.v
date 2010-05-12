@@ -147,7 +147,6 @@
    reg [NUM_OUTPUT_QUEUES-1:0]  output_fifo_wr_en;
    wire [NUM_OUTPUT_QUEUES-1:0] output_fifo_rd_en;
    wire [NUM_OUTPUT_QUEUES-1:0] output_fifo_empty;
-   wire [NUM_OUTPUT_QUEUES-1:0] output_fifo_almost_empty;
    wire [DATA_WIDTH+CTRL_WIDTH-1:0] output_fifo_dout[0:NUM_OUTPUT_QUEUES-1];
 
    reg [SRAM_ADDR_WIDTH-1:0]   lo_addr;
@@ -182,7 +181,6 @@
 
             .empty       (output_fifo_empty[i]),
             .full        (),
-            .prog_empty  (output_fifo_almost_empty[i]),
             .rst         (reset)
             );
       end // block: output_fifos
@@ -202,7 +200,6 @@
 
             .empty       (output_fifo_empty[i]),
             .full        (),
-            .prog_empty  (output_fifo_almost_empty[i]),
             .rst         (reset)
             );
       end // block: output_fifos
