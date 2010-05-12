@@ -123,18 +123,19 @@ module cpu_dma_tx_queue
       if(DATA_WIDTH == 32) begin: cpu_fifos32
 
 	 // pkt data and ctrl stored in tx_fifo are in little endian
-         async_fifo_512x36_progfull_500 tx_fifo
-           (.din({tx_fifo_ctrl_in, tx_fifo_data_in}),
-	    .dout({tx_fifo_ctrl_out, tx_fifo_data_out}),
-            .clk(clk),
-            .rst(reset),
-            .rd_data_count(),
-	    .wr_data_count(),
-            .wr_en(tx_fifo_wr),
-            .rd_en(tx_fifo_rd),
-            .full(tx_fifo_full),
-            .prog_full(tx_fifo_almost_full),
-            .empty(tx_fifo_empty)
+         syncfifo_512x36_fallthrough tx_fifo (
+            .din        ({tx_fifo_ctrl_in, tx_fifo_data_in}),
+            .wr_en      (tx_fifo_wr),
+
+	    .dout       ({tx_fifo_ctrl_out, tx_fifo_data_out}),
+            .rd_en      (tx_fifo_rd),
+
+            .full       (tx_fifo_full),
+            .almost_full(tx_fifo_almost_full),
+            .empty      (tx_fifo_empty),
+
+            .rst        (reset),
+            .clk        (clk)
 	    );
 
       end // block: cpu_tx_fifo32
@@ -160,18 +161,27 @@ module cpu_dma_tx_queue
          end
 
          // stored in little endian for each 32-bit data and 4-bit ctrl
-         async_fifo_256x72_to_36 tx_fifo
-           (.din(tx_fifo_din),
-            .rd_clk(clk),
-            .rd_en(tx_fifo_rd || need_extra_rd),
-            .rst(reset),
-            .wr_clk(clk),
-            .wr_en(tx_fifo_wr),
+         //
+         // Note: An *async* fifo is used because of the width change. The
+         // Xilinx FIFO generator only supports width changes in asyncrhonous
+         // FIFOs.
+         //
+         // Unforunately this has the side effect of increasing the delay
+         // between writing data and having that data availabe at the output.
+         async_fifo_256x72_to_36 tx_fifo (
+            .din        (tx_fifo_din),
+            .wr_en      (tx_fifo_wr),
+
+	    .dout       ({tx_fifo_ctrl_out, tx_fifo_data_out}),
+            .rd_en      (tx_fifo_rd || need_extra_rd),
+
+            .full       (tx_fifo_full),
             .almost_full(tx_fifo_almost_full),
-	    .dout({tx_fifo_ctrl_out, tx_fifo_data_out}),
-            .empty(tx_fifo_empty),
-            .full(tx_fifo_full),
-            .rd_data_count()
+            .empty      (tx_fifo_empty),
+
+            .rst        (reset),
+            .wr_clk     (clk),
+            .rd_clk     (clk)
 	    );
 
      end // block: cpu_fifos64
