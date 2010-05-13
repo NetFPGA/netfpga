@@ -8,6 +8,9 @@
 //
 // Acts as a MUX/DEMUX between the DMA interface and the CPU queues.
 //
+// WARNING: Directions TX/RX are relative to the *host* in this module.
+//          This is different to most other modules.
+//
 /////////////////////////////////////////////////////////////////////////
 //
 // txfifo_rd_data includes:
@@ -32,87 +35,87 @@
 
 
 module nf2_dma_que_intfc
-  #( parameter NUM_CPU_QUEUES = 4,
-     parameter DMA_DATA_WIDTH = 32,
-     parameter DMA_CTRL_WIDTH=DMA_DATA_WIDTH/8,
-     parameter USER_DATA_PATH_WIDTH=64,
-     parameter CPCI_NF2_DATA_WIDTH=32
-     )
-
+  #(
+      parameter NUM_CPU_QUEUES         = 4,
+      parameter DMA_DATA_WIDTH         = 32,
+      parameter DMA_CTRL_WIDTH         = DMA_DATA_WIDTH/8,
+      parameter USER_DATA_PATH_WIDTH   = 64,
+      parameter CPCI_NF2_DATA_WIDTH    = 32
+   )
    (
-    // ---- signals to/from CPU rx queue 0
-    output reg cpu_q_dma_rd_0,
-    input [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data_0,
-    input [DMA_CTRL_WIDTH-1:0] cpu_q_dma_rd_ctrl_0,
+      // ---- signals to/from CPU rx queue 0
+      output reg                       cpu_q_dma_rd_0,
+      input [DMA_DATA_WIDTH-1:0]       cpu_q_dma_rd_data_0,
+      input [DMA_CTRL_WIDTH-1:0]       cpu_q_dma_rd_ctrl_0,
 
-    // ---- signals to/from CPU rx queue 1
-    output reg cpu_q_dma_rd_1,
-    input [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data_1,
-    input [DMA_CTRL_WIDTH-1:0] cpu_q_dma_rd_ctrl_1,
+      // ---- signals to/from CPU rx queue 1
+      output reg                       cpu_q_dma_rd_1,
+      input [DMA_DATA_WIDTH-1:0]       cpu_q_dma_rd_data_1,
+      input [DMA_CTRL_WIDTH-1:0]       cpu_q_dma_rd_ctrl_1,
 
-    // ---- signals to/from CPU rx queue 2
-    output reg cpu_q_dma_rd_2,
-    input [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data_2,
-    input [DMA_CTRL_WIDTH-1:0] cpu_q_dma_rd_ctrl_2,
+      // ---- signals to/from CPU rx queue 2
+      output reg                       cpu_q_dma_rd_2,
+      input [DMA_DATA_WIDTH-1:0]       cpu_q_dma_rd_data_2,
+      input [DMA_CTRL_WIDTH-1:0]       cpu_q_dma_rd_ctrl_2,
 
-    // ---- signals to/from CPU rx queue 3
-    output reg cpu_q_dma_rd_3,
-    input [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data_3,
-    input [DMA_CTRL_WIDTH-1:0] cpu_q_dma_rd_ctrl_3,
+      // ---- signals to/from CPU rx queue 3
+      output reg                       cpu_q_dma_rd_3,
+      input [DMA_DATA_WIDTH-1:0]       cpu_q_dma_rd_data_3,
+      input [DMA_CTRL_WIDTH-1:0]       cpu_q_dma_rd_ctrl_3,
 
-    // signals to/from CPU tx queues
-    input [NUM_CPU_QUEUES-1:0] cpu_q_dma_nearly_full,
+      // signals to/from CPU tx queues
+      input [NUM_CPU_QUEUES-1:0]       cpu_q_dma_nearly_full,
 
-    // signals to/from CPU tx queue 0
-    output reg cpu_q_dma_wr_0,
-    output reg cpu_q_dma_wr_pkt_vld_0,
-    output reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_0,
-    output reg [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_0,
+      // signals to/from CPU tx queue 0
+      output reg                       cpu_q_dma_wr_0,
+      output reg                       cpu_q_dma_wr_pkt_vld_0,
+      output reg [DMA_DATA_WIDTH-1:0]  cpu_q_dma_wr_data_0,
+      output reg [DMA_CTRL_WIDTH-1:0]  cpu_q_dma_wr_ctrl_0,
 
-    // signals to/from CPU tx queue 1
-    output reg cpu_q_dma_wr_1,
-    output reg cpu_q_dma_wr_pkt_vld_1,
-    output reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_1,
-    output reg [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_1,
+      // signals to/from CPU tx queue 1
+      output reg                       cpu_q_dma_wr_1,
+      output reg                       cpu_q_dma_wr_pkt_vld_1,
+      output reg [DMA_DATA_WIDTH-1:0]  cpu_q_dma_wr_data_1,
+      output reg [DMA_CTRL_WIDTH-1:0]  cpu_q_dma_wr_ctrl_1,
 
-    // signals to/from CPU tx queue 2
-    output reg cpu_q_dma_wr_2,
-    output reg cpu_q_dma_wr_pkt_vld_2,
-    output reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_2,
-    output reg [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_2,
+      // signals to/from CPU tx queue 2
+      output reg                       cpu_q_dma_wr_2,
+      output reg                       cpu_q_dma_wr_pkt_vld_2,
+      output reg [DMA_DATA_WIDTH-1:0]  cpu_q_dma_wr_data_2,
+      output reg [DMA_CTRL_WIDTH-1:0]  cpu_q_dma_wr_ctrl_2,
 
-    // signals to/from CPU tx queue 3
-    output reg cpu_q_dma_wr_3,
-    output reg cpu_q_dma_wr_pkt_vld_3,
-    output reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_wr_data_3,
-    output reg [DMA_CTRL_WIDTH-1:0] cpu_q_dma_wr_ctrl_3,
+      // signals to/from CPU tx queue 3
+      output reg                       cpu_q_dma_wr_3,
+      output reg                       cpu_q_dma_wr_pkt_vld_3,
+      output reg [DMA_DATA_WIDTH-1:0]  cpu_q_dma_wr_data_3,
+      output reg [DMA_CTRL_WIDTH-1:0]  cpu_q_dma_wr_ctrl_3,
 
-    // --- signals to/from nf2_dma_sync
-    input txfifo_empty,
-    input txfifo_rd_is_req,
-    input txfifo_rd_pkt_vld,
-    input txfifo_rd_type_eop,
-    input [1:0] txfifo_rd_valid_bytes,
-    input [DMA_DATA_WIDTH-1:0] txfifo_rd_data,
-    output reg txfifo_rd_inc,
+      // --- signals to/from nf2_dma_sync
+      input                            txfifo_empty,
+      input                            txfifo_rd_is_req,
+      input                            txfifo_rd_pkt_vld,
+      input                            txfifo_rd_type_eop,
+      input [1:0]                      txfifo_rd_valid_bytes,
+      input [DMA_DATA_WIDTH-1:0]       txfifo_rd_data,
+      output reg                       txfifo_rd_inc,
 
-    input rxfifo_full,
-    input rxfifo_nearly_full,
-    output reg rxfifo_wr,
-    output reg rxfifo_wr_eop,
-    output reg [1:0] rxfifo_wr_valid_bytes,
-    output reg [DMA_DATA_WIDTH-1:0] rxfifo_wr_data,
+      input                            rxfifo_full,
+      input                            rxfifo_nearly_full,
+      output reg                       rxfifo_wr,
+      output reg                       rxfifo_wr_eop,
+      output reg [1:0]                 rxfifo_wr_valid_bytes,
+      output reg [DMA_DATA_WIDTH-1:0]  rxfifo_wr_data,
 
-    // register update signals
-    output reg                      pkt_ingress,
-    output reg                      pkt_egress,
-    output reg [11:0]               pkt_len,
+      // register update signals
+      output reg                       pkt_ingress,
+      output reg                       pkt_egress,
+      output reg [11:0]                pkt_len,
 
-    //--- misc
-    input        enable_dma,
-    input        reset,
-    input        clk
-    );
+      //--- misc
+      input                            enable_dma,
+      input                            reset,
+      input                            clk
+   );
 
    reg [3:0] queue_id, queue_id_nxt;
 
