@@ -14,6 +14,17 @@
 // Note (2): Pakcets *must* have the 0xff header for this module to work
 // correctly.
 //
+// Explanation of signals:
+//
+//   cpu_q_dma_pkt_avail: One or more *complete* packets are in the queue.
+//      - The signal is only asserted after the *last* word of a packet is
+//        written if the queue was previously empty.
+//      - The signal is deasserted when the first word is read when the queue
+//        contains only a single packet.
+//
+//   cpu_q_dma_rd_rdy: Data is available for reading on the data/ctrl buses.
+//      - Asserted independently of the dma_pkt_avail signal
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 module cpu_dma_tx_queue
@@ -33,6 +44,7 @@ module cpu_dma_tx_queue
 
       // --- DMA rd nterface
       output                        cpu_q_dma_pkt_avail,
+      output reg                    cpu_q_dma_rd_rdy,
 
       input                         cpu_q_dma_rd,
       output reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data,
@@ -114,8 +126,6 @@ module cpu_dma_tx_queue
    reg                                 pkt_len_wr;
    reg                                 pkt_len_wr_nxt;
    reg                                 pkt_len_rd;
-
-   reg                                 pkt_avail_internal;
 
 
    // ------------- Modules -------------------
@@ -226,7 +236,7 @@ module cpu_dma_tx_queue
       end
    endgenerate
 
-   assign cpu_q_dma_pkt_avail = pkt_avail_internal && tx_queue_en;
+   assign cpu_q_dma_pkt_avail = num_pkts_in_q != 0 && tx_queue_en;
 
    // Internal signal generation
    assign in_rdy = !tx_fifo_almost_full && !pkt_len_full;
@@ -306,6 +316,7 @@ module cpu_dma_tx_queue
       tx_pkt_removed = 0;
       pkt_len_rd = 0;
       tx_fifo_rd = 0;
+      cpu_q_dma_rd_rdy = 0;
 
       if (reset) begin
          out_state_nxt = OUT_PROCESS_HDR;
@@ -315,6 +326,7 @@ module cpu_dma_tx_queue
             OUT_PROCESS_HDR: begin
                cpu_q_dma_rd_ctrl = 'h0;
                cpu_q_dma_rd_data = pkt_len_out;
+               cpu_q_dma_rd_rdy = !pkt_len_empty && tx_queue_en;
                if (cpu_q_dma_rd) begin
                   out_state_nxt = OUT_PROCESS_BODY;
                   pkt_len_rd = 1;
@@ -322,8 +334,12 @@ module cpu_dma_tx_queue
             end
 
             OUT_PROCESS_BODY: begin
+               // Note: the rd_vld signal is independent of tx_queue_en. This
+               // is to allow the end of a packet to be read of the queue_en
+               // is modified during a packet read.
                cpu_q_dma_rd_ctrl = tx_fifo_ctrl_out;
                cpu_q_dma_rd_data = tx_fifo_data_out;
+               cpu_q_dma_rd_rdy = !tx_fifo_empty;
                if (cpu_q_dma_rd && tx_fifo_ctrl_out != 'h0) begin
                   out_state_nxt = OUT_PROCESS_HDR;
                   tx_pkt_removed = 1;
@@ -343,18 +359,16 @@ module cpu_dma_tx_queue
    always @(posedge clk) begin
       if(reset) begin
 	 num_pkts_in_q        <= 'h 0;
-	 pkt_avail_internal   <= 1'b 0;
       end // if (reset)
       else begin
-         case ({tx_pkt_removed, tx_pkt_stored})
+         // Track the number of *whole* packets in the FIFO
+         //
+         // Note: pkt_len_rd is asserted when the first word of a packet is
+         // read.
+         case ({pkt_len_rd, tx_pkt_stored})
            2'b 10: num_pkts_in_q <= num_pkts_in_q - 'h 1;
            2'b 01: num_pkts_in_q <= num_pkts_in_q + 'h 1;
-         endcase // case({tx_pkt_removed, tx_pkt_stored})
-
-         if (tx_pkt_stored)
-            pkt_avail_internal <= 1;
-         else if (num_pkts_in_q == 'h1 && out_state == OUT_PROCESS_HDR && cpu_q_dma_rd)
-            pkt_avail_internal <= 0;
+         endcase // case({pkt_len_rd, tx_pkt_stored})
       end // else: !if(reset)
    end // always @ (posedge clk)
 
