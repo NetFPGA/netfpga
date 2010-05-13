@@ -163,7 +163,7 @@ module nf2_dma
 
    //wires from nf2_dma_sync
    wire [NUM_CPU_QUEUES-1:0]  cpci_cpu_q_dma_pkt_avail;
-   wire [NUM_CPU_QUEUES-1:0]  cpci_cpu_q_dma_nearly_full;
+   wire [NUM_CPU_QUEUES-1:0]  cpci_cpu_q_dma_can_wr_pkt;
    wire                       cpci_rxfifo_rd_eop;
    wire [1:0]                 cpci_rxfifo_rd_valid_bytes;
    wire [DMA_DATA_WIDTH-1:0]  cpci_rxfifo_rd_data;
@@ -230,7 +230,7 @@ module nf2_dma
       // through async fifo
       //inputs:
       .cpu_q_dma_pkt_avail    (cpci_cpu_q_dma_pkt_avail),
-      .cpu_q_dma_nearly_full  (cpci_cpu_q_dma_nearly_full),
+      .cpu_q_dma_can_wr_pkt  (cpci_cpu_q_dma_can_wr_pkt),
 
       // -- signals to cpu queues
       //inputs:
@@ -275,7 +275,7 @@ module nf2_dma
       // -- signals from/to bus FSM
       //outputs:
       .cpci_cpu_q_dma_pkt_avail  (cpci_cpu_q_dma_pkt_avail),
-      .cpci_cpu_q_dma_nearly_full(cpci_cpu_q_dma_nearly_full),
+      .cpci_cpu_q_dma_can_wr_pkt (cpci_cpu_q_dma_can_wr_pkt),
 
       .cpci_txfifo_full          (cpci_txfifo_full),
       .cpci_txfifo_nearly_full   (cpci_txfifo_nearly_full),
@@ -300,7 +300,7 @@ module nf2_dma
       // --- signals from/to NetFPGA core logic
       //inputs:
       .sys_cpu_q_dma_pkt_avail   (cpu_q_dma_pkt_avail),
-      .sys_cpu_q_dma_nearly_full (cpu_q_dma_nearly_full),
+      .sys_cpu_q_dma_can_wr_pkt (cpu_q_dma_can_wr_pkt),
 
       //outputs:
       .sys_txfifo_empty          (sys_txfifo_empty),
