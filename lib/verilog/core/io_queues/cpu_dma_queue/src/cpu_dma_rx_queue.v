@@ -34,6 +34,7 @@ module cpu_dma_rx_queue
 
       // DMA wr txfifo interface
       output reg                    cpu_q_dma_nearly_full,
+      output reg                    cpu_q_dma_can_wr_pkt,
 
       input                         cpu_q_dma_wr,
       input                         cpu_q_dma_wr_pkt_vld,
@@ -87,9 +88,9 @@ module cpu_dma_rx_queue
    wire                                rx_fifo_wr_en;
 
    // wires from rx_fifo
-   wire [8:0] 			       rx_fifo_wr_data_count;
    wire                                rx_fifo_full;
    wire                                rx_fifo_almost_full;
+   wire                                rx_fifo_prog_full;
    wire                                rx_fifo_empty;
 
    wire [DATA_WIDTH-1:0]               out_data_local;
@@ -128,19 +129,21 @@ module cpu_dma_rx_queue
    generate
       if(DATA_WIDTH == 32) begin: cpu_fifos32
 
-         async_fifo_512x36_progfull_500 rx_fifo
-           (.din({rx_fifo_ctrl_in, rx_fifo_data_in}),
-            .dout({out_ctrl_local, out_data_local}),
-            .clk(clk),
-            .wr_en(rx_fifo_wr_en),
-            .rd_en(rx_fifo_rd_en),
-            .rst(reset),
-	    .rd_data_count(  ),
-            .wr_data_count(rx_fifo_wr_data_count),
-            .full(rx_fifo_full),
-            .prog_full(rx_fifo_almost_full),
-            .empty(rx_fifo_empty)
-	    );
+         cdq_rx_fifo_512x36 rx_fifo (
+            .din        ({rx_fifo_ctrl_in, rx_fifo_data_in}),
+            .wr_en      (rx_fifo_wr_en),
+
+            .dout       ({out_ctrl_local, out_data_local}),
+            .rd_en      (rx_fifo_rd_en),
+
+            .full       (rx_fifo_full),
+            .almost_full(rx_fifo_almost_full),
+            .prog_full  (rx_fifo_prog_full),
+            .empty      (rx_fifo_empty),
+
+            .clk        (clk),
+            .rst        (reset)
+         );
 
       end // block: cpu_rx_fifo32
 
@@ -169,20 +172,28 @@ module cpu_dma_rx_queue
          assign rx_fifo_din = (need_pad && !input_in_pkt) ? 'h0 :
             {rx_fifo_ctrl_in, rx_fifo_data_in};
 
-         async_fifo_512x36_to_72_progfull_500 rx_fifo
-           (.din(rx_fifo_din), // Bus [35 : 0]
-            .rd_clk(clk),
-            .rd_en(rx_fifo_rd_en),
-            .rst(reset),
-            .wr_clk(clk),
-            .wr_en(rx_fifo_wr_en || (need_pad && !input_in_pkt)),
-            .prog_full(rx_fifo_almost_full),
-            .dout(rx_fifo_dout), // Bus [71 : 0]
-            .empty(rx_fifo_empty),
-            .full(rx_fifo_full),
-	    .rd_data_count(),
-            .wr_data_count(rx_fifo_wr_data_count) // Bus [8 : 0]
-	    );
+         // Note: An *async* fifo is used because of the width change. The
+         // Xilinx FIFO generator only supports width changes in asyncrhonous
+         // FIFOs.
+         //
+         // Unforunately this has the side effect of increasing the delay
+         // between writing data and having that data availabe at the output.
+         cdq_rx_fifo_512x36_to_72 rx_fifo (
+            .din        (rx_fifo_din),
+            .wr_en      (rx_fifo_wr_en || (need_pad && !input_in_pkt)),
+
+            .dout       (rx_fifo_dout),
+            .rd_en      (rx_fifo_rd_en),
+
+            .full       (rx_fifo_full),
+            .almost_full(rx_fifo_almost_full),
+            .prog_full  (rx_fifo_prog_full),
+            .empty      (rx_fifo_empty),
+
+            .rst        (reset),
+            .wr_clk     (clk),
+            .rd_clk     (clk)
+	 );
 
      end // block: cpu_fifos64
 
@@ -383,6 +394,7 @@ module cpu_dma_rx_queue
       if(reset) begin
 	 num_pkts_in_q           <= 'h 0;
 	 cpu_q_dma_nearly_full   <= 1'b 0;
+	 cpu_q_dma_can_wr_pkt    <= 1'b 0;
       end // if (reset)
       else begin
          case ({rx_pkt_removed, rx_pkt_stored})
@@ -393,6 +405,9 @@ module cpu_dma_rx_queue
 	 cpu_q_dma_nearly_full <= rx_fifo_almost_full ||
                                   pkt_len_nearly_full ||
                                   !rx_queue_en;
+	 cpu_q_dma_can_wr_pkt <= !rx_fifo_prog_full &&
+                                 !pkt_len_nearly_full &&
+                                 rx_queue_en;
       end
    end
 

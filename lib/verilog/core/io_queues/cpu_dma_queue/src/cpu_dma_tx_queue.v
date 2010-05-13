@@ -123,7 +123,7 @@ module cpu_dma_tx_queue
       if(DATA_WIDTH == 32) begin: cpu_fifos32
 
 	 // pkt data and ctrl stored in tx_fifo are in little endian
-         syncfifo_512x36_fallthrough tx_fifo (
+         cdq_tx_fifo_512x36 tx_fifo (
             .din        ({tx_fifo_ctrl_in, tx_fifo_data_in}),
             .wr_en      (tx_fifo_wr),
 
@@ -168,7 +168,7 @@ module cpu_dma_tx_queue
          //
          // Unforunately this has the side effect of increasing the delay
          // between writing data and having that data availabe at the output.
-         async_fifo_256x72_to_36 tx_fifo (
+         cdq_tx_fifo_256x72_to_36 tx_fifo (
             .din        (tx_fifo_din),
             .wr_en      (tx_fifo_wr),
 
