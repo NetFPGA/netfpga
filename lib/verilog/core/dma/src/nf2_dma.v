@@ -57,27 +57,32 @@ module nf2_dma
      input [NUM_CPU_QUEUES-1:0] cpu_q_dma_pkt_avail,
 
      // ---- signals to/from CPU rx queue 0
+     input cpu_q_dma_rd_rdy_0,
      output cpu_q_dma_rd_0,
      input [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data_0,
      input [DMA_CTRL_WIDTH-1:0] cpu_q_dma_rd_ctrl_0,
 
      // ---- signals to/from CPU rx queue 1
+     input cpu_q_dma_rd_rdy_1,
      output cpu_q_dma_rd_1,
      input [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data_1,
      input [DMA_CTRL_WIDTH-1:0] cpu_q_dma_rd_ctrl_1,
 
      // ---- signals to/from CPU rx queue 2
+     input cpu_q_dma_rd_rdy_2,
      output cpu_q_dma_rd_2,
      input [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data_2,
      input [DMA_CTRL_WIDTH-1:0] cpu_q_dma_rd_ctrl_2,
 
      // ---- signals to/from CPU rx queue 3
+     input cpu_q_dma_rd_rdy_3,
      output cpu_q_dma_rd_3,
      input [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data_3,
      input [DMA_CTRL_WIDTH-1:0] cpu_q_dma_rd_ctrl_3,
 
      // signals to/from CPU tx queues
      input [NUM_CPU_QUEUES-1:0] cpu_q_dma_nearly_full,
+     input [NUM_CPU_QUEUES-1:0] cpu_q_dma_can_wr_pkt,
 
      // signals to/from CPU tx queue 0
      output cpu_q_dma_wr_0,

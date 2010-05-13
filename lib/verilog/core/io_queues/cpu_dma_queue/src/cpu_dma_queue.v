@@ -4,10 +4,8 @@
 //
 // Module: cpu_dma_queue.v
 // Project: NF2.1
-// Description:
-//              a slim CPU rx_fifo and tx_fifo connecting to the DMA interface
-//
-//              Note that both rx_fifo and tx_fifo are first-word-fall-through FIFOs.
+// Description: Queues/FIFOs sitting between the DMA interface and the user
+//              data path.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -31,6 +29,7 @@
 
     // --- DMA rd rxfifo interface
     output                               cpu_q_dma_pkt_avail,
+    output                               cpu_q_dma_rd_rdy,
 
     input                                cpu_q_dma_rd,
     output [DMA_DATA_WIDTH-1:0]          cpu_q_dma_rd_data,
@@ -38,6 +37,7 @@
 
     // DMA wr txfifo interface
     output                               cpu_q_dma_nearly_full,
+    output                               cpu_q_dma_can_wr_pkt,
 
     input                                cpu_q_dma_wr,
     input                                cpu_q_dma_wr_pkt_vld,
@@ -99,6 +99,7 @@ cpu_dma_rx_queue #(
 
       // DMA wr txfifo interface
       .cpu_q_dma_nearly_full        (cpu_q_dma_nearly_full),
+      .cpu_q_dma_can_wr_pkt         (cpu_q_dma_can_wr_pkt),
 
       .cpu_q_dma_wr                 (cpu_q_dma_wr),
       .cpu_q_dma_wr_pkt_vld         (cpu_q_dma_wr_pkt_vld),
@@ -136,6 +137,7 @@ cpu_dma_tx_queue
 
       // --- DMA rd nterface
       .cpu_q_dma_pkt_avail          (cpu_q_dma_pkt_avail),
+      .cpu_q_dma_rd_rdy             (cpu_q_dma_rd_rdy),
 
       .cpu_q_dma_rd                 (cpu_q_dma_rd),
       .cpu_q_dma_rd_data            (cpu_q_dma_rd_data),
