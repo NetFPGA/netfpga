@@ -44,22 +44,22 @@ module nf2_dma_que_intfc
    )
    (
       // ---- signals to/from CPU rx queue 0
-      output reg                       cpu_q_dma_rd_0,
+      output                           cpu_q_dma_rd_0,
       input [DMA_DATA_WIDTH-1:0]       cpu_q_dma_rd_data_0,
       input [DMA_CTRL_WIDTH-1:0]       cpu_q_dma_rd_ctrl_0,
 
       // ---- signals to/from CPU rx queue 1
-      output reg                       cpu_q_dma_rd_1,
+      output                           cpu_q_dma_rd_1,
       input [DMA_DATA_WIDTH-1:0]       cpu_q_dma_rd_data_1,
       input [DMA_CTRL_WIDTH-1:0]       cpu_q_dma_rd_ctrl_1,
 
       // ---- signals to/from CPU rx queue 2
-      output reg                       cpu_q_dma_rd_2,
+      output                           cpu_q_dma_rd_2,
       input [DMA_DATA_WIDTH-1:0]       cpu_q_dma_rd_data_2,
       input [DMA_CTRL_WIDTH-1:0]       cpu_q_dma_rd_ctrl_2,
 
       // ---- signals to/from CPU rx queue 3
-      output reg                       cpu_q_dma_rd_3,
+      output                           cpu_q_dma_rd_3,
       input [DMA_DATA_WIDTH-1:0]       cpu_q_dma_rd_data_3,
       input [DMA_CTRL_WIDTH-1:0]       cpu_q_dma_rd_ctrl_3,
 
@@ -132,8 +132,8 @@ module nf2_dma_que_intfc
    reg [DMA_CTRL_WIDTH-1:0]    cpu_q_dma_wr_ctrl_nxt[0:NUM_CPU_QUEUES-1];
 
    reg  cpu_q_dma_rd[0:NUM_CPU_QUEUES-1];
-   reg [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data[0:NUM_CPU_QUEUES-1];
-   reg [DMA_CTRL_WIDTH-1:0] cpu_q_dma_rd_ctrl[0:NUM_CPU_QUEUES-1];
+   wire [DMA_DATA_WIDTH-1:0] cpu_q_dma_rd_data[0:NUM_CPU_QUEUES-1];
+   wire [DMA_CTRL_WIDTH-1:0] cpu_q_dma_rd_ctrl[0:NUM_CPU_QUEUES-1];
    wire [3:0] queue_decoded;
    reg [3:0] queue_sel_nxt;
    reg [3:0] queue_sel;
@@ -164,22 +164,20 @@ module nf2_dma_que_intfc
    assign dma_rd_ctrl = cpu_q_dma_rd_ctrl[queue_id];
    integer i;
 
-   always @(*) begin
-      cpu_q_dma_rd_0 = cpu_q_dma_rd[0];
-      cpu_q_dma_rd_1 = cpu_q_dma_rd[1];
-      cpu_q_dma_rd_2 = cpu_q_dma_rd[2];
-      cpu_q_dma_rd_3 = cpu_q_dma_rd[3];
+   assign cpu_q_dma_rd_0 = cpu_q_dma_rd[0];
+   assign cpu_q_dma_rd_1 = cpu_q_dma_rd[1];
+   assign cpu_q_dma_rd_2 = cpu_q_dma_rd[2];
+   assign cpu_q_dma_rd_3 = cpu_q_dma_rd[3];
 
-      cpu_q_dma_rd_data[0] = cpu_q_dma_rd_data_0;
-      cpu_q_dma_rd_data[1] = cpu_q_dma_rd_data_1;
-      cpu_q_dma_rd_data[2] = cpu_q_dma_rd_data_2;
-      cpu_q_dma_rd_data[3] = cpu_q_dma_rd_data_3;
+   assign cpu_q_dma_rd_data[0] = cpu_q_dma_rd_data_0;
+   assign cpu_q_dma_rd_data[1] = cpu_q_dma_rd_data_1;
+   assign cpu_q_dma_rd_data[2] = cpu_q_dma_rd_data_2;
+   assign cpu_q_dma_rd_data[3] = cpu_q_dma_rd_data_3;
 
-      cpu_q_dma_rd_ctrl[0] = cpu_q_dma_rd_ctrl_0;
-      cpu_q_dma_rd_ctrl[1] = cpu_q_dma_rd_ctrl_1;
-      cpu_q_dma_rd_ctrl[2] = cpu_q_dma_rd_ctrl_2;
-      cpu_q_dma_rd_ctrl[3] = cpu_q_dma_rd_ctrl_3;
-   end
+   assign cpu_q_dma_rd_ctrl[0] = cpu_q_dma_rd_ctrl_0;
+   assign cpu_q_dma_rd_ctrl[1] = cpu_q_dma_rd_ctrl_1;
+   assign cpu_q_dma_rd_ctrl[2] = cpu_q_dma_rd_ctrl_2;
+   assign cpu_q_dma_rd_ctrl[3] = cpu_q_dma_rd_ctrl_3;
 
    always @(*) begin
       state_nxt = state;
