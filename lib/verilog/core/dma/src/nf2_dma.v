@@ -154,11 +154,12 @@ module nf2_dma
    // Wires
 
    //wires from nf2_dma_bus_fsm
-   wire                       txfifo_wr_is_req;
-   wire                       txfifo_wr_type_eop;
-   wire                       txfifo_wr_pkt_vld;
-   wire [1:0]                 txfifo_wr_valid_bytes;
-   wire [DMA_DATA_WIDTH-1:0]  txfifo_wr_data;
+   wire                       cpci_txfifo_wr;
+   wire                       cpci_txfifo_wr_is_req;
+   wire                       cpci_txfifo_wr_pkt_vld;
+   wire                       cpci_txfifo_wr_type_eop;
+   wire [1:0]                 cpci_txfifo_wr_valid_bytes;
+   wire [DMA_DATA_WIDTH-1:0]  cpci_txfifo_wr_data;
 
    //wires from nf2_dma_sync
    wire [NUM_CPU_QUEUES-1:0]  cpci_cpu_q_dma_pkt_avail;
@@ -166,6 +167,7 @@ module nf2_dma
    wire                       cpci_rxfifo_rd_eop;
    wire [1:0]                 cpci_rxfifo_rd_valid_bytes;
    wire [DMA_DATA_WIDTH-1:0]  cpci_rxfifo_rd_data;
+
    wire                       sys_txfifo_rd_is_req;
    wire                       sys_txfifo_rd_pkt_vld;
    wire                       sys_txfifo_rd_type_eop;
@@ -173,9 +175,10 @@ module nf2_dma
    wire [DMA_DATA_WIDTH -1:0] sys_txfifo_rd_data;
 
    //wires from nf2_dma_que_intfc
-   wire                       rxfifo_wr_eop;
-   wire [1:0]                 rxfifo_wr_valid_bytes;
-   wire [DMA_DATA_WIDTH-1:0]  rxfifo_wr_data;
+   wire                       sys_rxfifo_wr;
+   wire                       sys_rxfifo_wr_eop;
+   wire [1:0]                 sys_rxfifo_wr_valid_bytes;
+   wire [DMA_DATA_WIDTH-1:0]  sys_rxfifo_wr_data;
 
    // Register interface signals
    wire                       iface_disable;
@@ -202,7 +205,7 @@ module nf2_dma
       .NUM_CPU_QUEUES (NUM_CPU_QUEUES),
       .PKT_LEN_CNT_WIDTH (PKT_LEN_CNT_WIDTH)
    ) nf2_dma_bus_fsm (
-      // -- signals to cpci pins
+      // signals to cpci pins
       //inputs:
       .dma_op_code_req        (dma_op_code_req),
       .dma_op_queue_id        (dma_op_queue_id),
@@ -235,12 +238,12 @@ module nf2_dma
       .txfifo_nearly_full     (cpci_txfifo_nearly_full),
 
       //outputs:
-      .txfifo_wr              (txfifo_wr),
-      .txfifo_wr_is_req       (txfifo_wr_is_req),
-      .txfifo_wr_pkt_vld      (txfifo_wr_pkt_vld),
-      .txfifo_wr_type_eop     (txfifo_wr_type_eop),
-      .txfifo_wr_valid_bytes  (txfifo_wr_valid_bytes),
-      .txfifo_wr_data         (txfifo_wr_data),
+      .txfifo_wr              (cpci_txfifo_wr),
+      .txfifo_wr_is_req       (cpci_txfifo_wr_is_req),
+      .txfifo_wr_pkt_vld      (cpci_txfifo_wr_pkt_vld),
+      .txfifo_wr_type_eop     (cpci_txfifo_wr_type_eop),
+      .txfifo_wr_valid_bytes  (cpci_txfifo_wr_valid_bytes),
+      .txfifo_wr_data         (cpci_txfifo_wr_data),
 
       //inputs:
       .rxfifo_empty           (cpci_rxfifo_empty),
@@ -249,7 +252,7 @@ module nf2_dma
       .rxfifo_rd_data         (cpci_rxfifo_rd_data),
 
       //outputs:
-      .rxfifo_rd_inc          (rxfifo_rd_inc),
+      .rxfifo_rd_inc          (cpci_rxfifo_rd_inc),
 
       // --- enable_dma
       //inputs:
@@ -278,12 +281,12 @@ module nf2_dma
       .cpci_txfifo_nearly_full   (cpci_txfifo_nearly_full),
 
       //inputs:
-      .cpci_txfifo_wr            (txfifo_wr),
-      .cpci_txfifo_wr_data       ({txfifo_wr_is_req,
-                                   txfifo_wr_pkt_vld,
-                                   txfifo_wr_type_eop,
-                                   txfifo_wr_valid_bytes,
-                                   txfifo_wr_data}),
+      .cpci_txfifo_wr            (cpci_txfifo_wr),
+      .cpci_txfifo_wr_data       ({cpci_txfifo_wr_is_req,
+                                   cpci_txfifo_wr_pkt_vld,
+                                   cpci_txfifo_wr_type_eop,
+                                   cpci_txfifo_wr_valid_bytes,
+                                   cpci_txfifo_wr_data}),
 
       //outputs:
       .cpci_rxfifo_empty         (cpci_rxfifo_empty),
@@ -292,7 +295,7 @@ module nf2_dma
                                    cpci_rxfifo_rd_data}),
 
       //inputs:
-      .cpci_rxfifo_rd_inc        (rxfifo_rd_inc),
+      .cpci_rxfifo_rd_inc        (cpci_rxfifo_rd_inc),
 
       // --- signals from/to NetFPGA core logic
       //inputs:
@@ -308,17 +311,17 @@ module nf2_dma
                                    sys_txfifo_rd_data}),
 
       //inputs:
-      .sys_txfifo_rd_inc         (txfifo_rd_inc),
+      .sys_txfifo_rd_inc         (sys_txfifo_rd_inc),
 
       //outputs:
       .sys_rxfifo_full           (sys_rxfifo_full),
       .sys_rxfifo_nearly_full    (sys_rxfifo_nearly_full),
 
       //inputs:
-      .sys_rxfifo_wr             (rxfifo_wr),
-      .sys_rxfifo_wr_data        ({rxfifo_wr_eop,
-                                   rxfifo_wr_valid_bytes,
-                                   rxfifo_wr_data}),
+      .sys_rxfifo_wr             (sys_rxfifo_wr),
+      .sys_rxfifo_wr_data        ({sys_rxfifo_wr_eop,
+                                   sys_rxfifo_wr_valid_bytes,
+                                   sys_rxfifo_wr_data}),
 
       //clks and resets
       .cpci_clk                  (cpci_clk),
@@ -409,17 +412,17 @@ module nf2_dma
       .txfifo_rd_data            (sys_txfifo_rd_data),
 
       //output:
-      .txfifo_rd_inc             (txfifo_rd_inc),
+      .txfifo_rd_inc             (sys_txfifo_rd_inc),
 
       //input:
       .rxfifo_full               (sys_rxfifo_full),
       .rxfifo_nearly_full        (sys_rxfifo_nearly_full),
 
       //output:
-      .rxfifo_wr                 (rxfifo_wr),
-      .rxfifo_wr_eop             (rxfifo_wr_eop),
-      .rxfifo_wr_valid_bytes     (rxfifo_wr_valid_bytes),
-      .rxfifo_wr_data            (rxfifo_wr_data),
+      .rxfifo_wr                 (sys_rxfifo_wr),
+      .rxfifo_wr_eop             (sys_rxfifo_wr_eop),
+      .rxfifo_wr_valid_bytes     (sys_rxfifo_wr_valid_bytes),
+      .rxfifo_wr_data            (sys_rxfifo_wr_data),
 
       // register update signals
       .pkt_ingress               (pkt_ingress),
