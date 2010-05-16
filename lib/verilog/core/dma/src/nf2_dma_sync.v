@@ -37,12 +37,12 @@ module nf2_dma_sync
     (
      // -- signals from/to bus FSM
      output reg [NUM_CPU_QUEUES-1:0] cpci_cpu_q_dma_pkt_avail,
-     output reg [NUM_CPU_QUEUES-1:0] cpci_cpu_q_dma_nearly_full,
+     output reg [NUM_CPU_QUEUES-1:0] cpci_cpu_q_dma_can_wr_pkt,
 
      output cpci_txfifo_full,
      output cpci_txfifo_nearly_full,
      input cpci_txfifo_wr,
-     input [DMA_DATA_WIDTH +3:0] cpci_txfifo_wr_data,
+     input [DMA_DATA_WIDTH +4:0] cpci_txfifo_wr_data,
 
      output cpci_rxfifo_empty,
      input cpci_rxfifo_rd_inc,
@@ -50,10 +50,10 @@ module nf2_dma_sync
 
      // --- signals from/to NetFPGA core logic
      input [NUM_CPU_QUEUES-1:0] sys_cpu_q_dma_pkt_avail,
-     input [NUM_CPU_QUEUES-1:0] sys_cpu_q_dma_nearly_full,
+     input [NUM_CPU_QUEUES-1:0] sys_cpu_q_dma_can_wr_pkt,
 
      output sys_txfifo_empty,
-     output [DMA_DATA_WIDTH +3:0] sys_txfifo_rd_data,
+     output [DMA_DATA_WIDTH +4:0] sys_txfifo_rd_data,
      input sys_txfifo_rd_inc,
 
      output sys_rxfifo_full,
@@ -70,29 +70,29 @@ module nf2_dma_sync
    );
 
    reg [NUM_CPU_QUEUES-1:0] cpci_sync_cpu_q_dma_pkt_avail;
-   reg [NUM_CPU_QUEUES-1:0] cpci_sync_cpu_q_dma_nearly_full;
+   reg [NUM_CPU_QUEUES-1:0] cpci_sync_cpu_q_dma_can_wr_pkt;
 
    always @(posedge cpci_clk)
      if (cpci_reset) begin
 	cpci_sync_cpu_q_dma_pkt_avail <= 'h 0;
-	cpci_sync_cpu_q_dma_nearly_full <= 'h 0;
+	cpci_sync_cpu_q_dma_can_wr_pkt <= 'h 0;
 
 	cpci_cpu_q_dma_pkt_avail <= 'h 0;
-	cpci_cpu_q_dma_nearly_full <= 'h 0;
+	cpci_cpu_q_dma_can_wr_pkt <= 'h 0;
      end
 
      else begin
 	cpci_sync_cpu_q_dma_pkt_avail <= sys_cpu_q_dma_pkt_avail;
-	cpci_sync_cpu_q_dma_nearly_full <= sys_cpu_q_dma_nearly_full;
+	cpci_sync_cpu_q_dma_can_wr_pkt <= sys_cpu_q_dma_can_wr_pkt;
 
 	cpci_cpu_q_dma_pkt_avail <= cpci_sync_cpu_q_dma_pkt_avail;
-	cpci_cpu_q_dma_nearly_full <= cpci_sync_cpu_q_dma_nearly_full;
+	cpci_cpu_q_dma_can_wr_pkt <= cpci_sync_cpu_q_dma_can_wr_pkt;
      end
 
    //---------------------------------------
    // Instantiations
 
-   small_async_fifo #(.DSIZE(DMA_DATA_WIDTH +4),
+   small_async_fifo #(.DSIZE(DMA_DATA_WIDTH +5),
 		      .ASIZE(3),
 		      .ALMOST_FULL_SIZE(5),
 		      .ALMOST_EMPTY_SIZE(3))

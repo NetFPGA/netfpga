@@ -199,6 +199,11 @@ module nf2_core #(
 
    //------------- local parameters --------------
    localparam NUM_MACS = 4;
+   localparam DATA_WIDTH = 64;
+   localparam CTRL_WIDTH = DATA_WIDTH/8;
+   localparam NUM_QUEUES = 8;
+   localparam PKT_LEN_CNT_WIDTH = 11;
+
    //---------------- Wires/regs ------------------
 
    // FIXME
@@ -344,12 +349,15 @@ module nf2_core #(
 
 
    wire [3:0]                         cpu_q_dma_pkt_avail;
+   wire [3:0]                         cpu_q_dma_rd_rdy;
    wire [3:0]                         cpu_q_dma_rd;
    wire [`DMA_DATA_WIDTH-1:0]         cpu_q_dma_rd_data [3:0];
    wire [`DMA_CTRL_WIDTH-1:0]         cpu_q_dma_rd_ctrl[3:0];
 
    wire [3:0]                         cpu_q_dma_nearly_full;
+   wire [3:0]                         cpu_q_dma_can_wr_pkt;
    wire [3:0]                         cpu_q_dma_wr;
+   wire [3:0]                         cpu_q_dma_wr_pkt_vld;
    wire [`DMA_DATA_WIDTH-1:0]         cpu_q_dma_wr_data[3:0];
    wire [`DMA_CTRL_WIDTH-1:0]         cpu_q_dma_wr_ctrl[3:0];
 
@@ -708,26 +716,77 @@ module nf2_core #(
    generate
       genvar k;
       for(k=0; k<4; k=k+1) begin: cpu_queues
-         cpu_dma_queue cpu_dma_queue_i
-          (
-            // --- DMA rd rxfifo interface
-            .cpu_q_dma_pkt_avail (cpu_q_dma_pkt_avail[k]),
+         wire                       cpu_rdy;
+         wire                       cpu_wr;
+         wire [CTRL_WIDTH-1:0]      cpu_ctrl;
+         wire [DATA_WIDTH-1:0]      cpu_data;
 
-            .cpu_q_dma_rd (cpu_q_dma_rd[k]),
-            .cpu_q_dma_rd_data (cpu_q_dma_rd_data[k]),
-            .cpu_q_dma_rd_ctrl (cpu_q_dma_rd_ctrl[k]),
+         cpu_dma_queue #(
+            .DATA_WIDTH     (DATA_WIDTH),
+            .CTRL_WIDTH     (CTRL_WIDTH)
+           ) cpu_dma_queue_i
+
+           (
+            //.out_data               (cpu_data),
+            //.out_ctrl               (cpu_ctrl),
+            //.out_wr                 (cpu_wr),
+            //.out_rdy                (cpu_rdy),
+
+            //.in_data                (cpu_data),
+            //.in_ctrl                (cpu_ctrl),
+            //.in_wr                  (cpu_wr),
+            //.in_rdy                 (cpu_rdy),
+
+            // --- DMA rd rxfifo interface
+            .cpu_q_dma_pkt_avail    (cpu_q_dma_pkt_avail[k]),
+            .cpu_q_dma_rd_rdy       (cpu_q_dma_rd_rdy[k]),
+
+            .cpu_q_dma_rd           (cpu_q_dma_rd[k]),
+            .cpu_q_dma_rd_data      (cpu_q_dma_rd_data[k]),
+            .cpu_q_dma_rd_ctrl      (cpu_q_dma_rd_ctrl[k]),
 
             // DMA wr txfifo interface
-            .cpu_q_dma_nearly_full (cpu_q_dma_nearly_full[k]),
+            .cpu_q_dma_nearly_full  (cpu_q_dma_nearly_full[k]),
+            .cpu_q_dma_can_wr_pkt   (cpu_q_dma_can_wr_pkt[k]),
 
-            .cpu_q_dma_wr (cpu_q_dma_wr[k]),
-            .cpu_q_dma_wr_data (cpu_q_dma_wr_data[k]),
-            .cpu_q_dma_wr_ctrl (cpu_q_dma_wr_ctrl[k]),
+            .cpu_q_dma_wr           (cpu_q_dma_wr[k]),
+            .cpu_q_dma_wr_pkt_vld   (cpu_q_dma_wr_pkt_vld[k]),
+            .cpu_q_dma_wr_data      (cpu_q_dma_wr_data[k]),
+            .cpu_q_dma_wr_ctrl      (cpu_q_dma_wr_ctrl[k]),
 
+            //.reg_req                (core_256kb_0_reg_req[`WORD(`CPU_QUEUE_0_BLOCK_ADDR + k,1)]),
+            //.reg_ack                (core_256kb_0_reg_ack[`WORD(`CPU_QUEUE_0_BLOCK_ADDR + k,1)]),
+            //.reg_rd_wr_L            (core_256kb_0_reg_rd_wr_L[`WORD(`CPU_QUEUE_0_BLOCK_ADDR + k,1)]),
+            //.reg_addr               (core_256kb_0_reg_addr[`WORD(`CPU_QUEUE_0_BLOCK_ADDR + k,
+            //                         `BLOCK_SIZE_64k_REG_ADDR_WIDTH)]),
+            //.reg_rd_data            (core_256kb_0_reg_rd_data[`WORD(`CPU_QUEUE_0_BLOCK_ADDR + k,
+            //                         `CPCI_NF2_DATA_WIDTH)]),
+            //.reg_wr_data            (core_256kb_0_reg_wr_data[`WORD(`CPU_QUEUE_0_BLOCK_ADDR + k,
+            //                         `CPCI_NF2_DATA_WIDTH)]),
             // --- Misc
-            .reset (reset),
-            .clk (core_clk_int)
+            .reset                  (reset),
+            .clk                    (core_clk_int)
             );
+         //cpu_dma_queue cpu_dma_queue_i
+         // (
+         //   // --- DMA rd rxfifo interface
+         //   .cpu_q_dma_pkt_avail (cpu_q_dma_pkt_avail[k]),
+
+         //   .cpu_q_dma_rd (cpu_q_dma_rd[k]),
+         //   .cpu_q_dma_rd_data (cpu_q_dma_rd_data[k]),
+         //   .cpu_q_dma_rd_ctrl (cpu_q_dma_rd_ctrl[k]),
+
+         //   // DMA wr txfifo interface
+         //   .cpu_q_dma_nearly_full (cpu_q_dma_nearly_full[k]),
+
+         //   .cpu_q_dma_wr (cpu_q_dma_wr[k]),
+         //   .cpu_q_dma_wr_data (cpu_q_dma_wr_data[k]),
+         //   .cpu_q_dma_wr_ctrl (cpu_q_dma_wr_ctrl[k]),
+
+         //   // --- Misc
+         //   .reset (reset),
+         //   .clk (core_clk_int)
+         //   );
       end // block: cpu_queues
 
    endgenerate
@@ -1168,55 +1227,65 @@ module nf2_core #(
    //
    //--------------------------------------------------
    nf2_dma
-     #(.NUM_CPU_QUEUES (4),
-       .PKT_LEN_CNT_WIDTH (11),
-       .USER_DATA_PATH_WIDTH (32)
+     #(.NUM_CPU_QUEUES (NUM_QUEUES/2),
+       .PKT_LEN_CNT_WIDTH (PKT_LEN_CNT_WIDTH),
+       .USER_DATA_PATH_WIDTH (DATA_WIDTH)
        ) nf2_dma
        (
          // --- signals to/from CPU rx queues
          .cpu_q_dma_pkt_avail          (cpu_q_dma_pkt_avail),
+
          // ---- signals to/from CPU rx queue 0
-         .cpu_q_dma_rd_0               (cpu_q_dma_rd[0]),
-         .cpu_q_dma_rd_data_0          (cpu_q_dma_rd_data[0]),
-         .cpu_q_dma_rd_ctrl_0          (cpu_q_dma_rd_ctrl[0]),
+         .cpu_q_dma_rd_rdy_0           ( cpu_q_dma_rd_rdy[0] ),
+         .cpu_q_dma_rd_0               ( cpu_q_dma_rd[0] ),
+         .cpu_q_dma_rd_data_0          ( cpu_q_dma_rd_data[0] ),
+         .cpu_q_dma_rd_ctrl_0          ( cpu_q_dma_rd_ctrl[0] ),
 
          // ---- signals to/from CPU rx queue 1
-         .cpu_q_dma_rd_1               (cpu_q_dma_rd[1]),
-         .cpu_q_dma_rd_data_1          (cpu_q_dma_rd_data[1]),
-         .cpu_q_dma_rd_ctrl_1          (cpu_q_dma_rd_ctrl[1]),
+         .cpu_q_dma_rd_rdy_1           ( cpu_q_dma_rd_rdy[1] ),
+         .cpu_q_dma_rd_1               ( cpu_q_dma_rd[1] ),
+         .cpu_q_dma_rd_data_1          ( cpu_q_dma_rd_data[1] ),
+         .cpu_q_dma_rd_ctrl_1          ( cpu_q_dma_rd_ctrl[1] ),
 
          // ---- signals to/from CPU rx queue 2
-         .cpu_q_dma_rd_2               (cpu_q_dma_rd[2]),
-         .cpu_q_dma_rd_data_2          (cpu_q_dma_rd_data[2]),
-         .cpu_q_dma_rd_ctrl_2          (cpu_q_dma_rd_ctrl[2]),
+         .cpu_q_dma_rd_rdy_2           ( cpu_q_dma_rd_rdy[2] ),
+         .cpu_q_dma_rd_2               ( cpu_q_dma_rd[2] ),
+         .cpu_q_dma_rd_data_2          ( cpu_q_dma_rd_data[2] ),
+         .cpu_q_dma_rd_ctrl_2          ( cpu_q_dma_rd_ctrl[2] ),
 
          // ---- signals to/from CPU rx queue 3
-         .cpu_q_dma_rd_3               (cpu_q_dma_rd[3]),
-         .cpu_q_dma_rd_data_3          (cpu_q_dma_rd_data[3]),
-         .cpu_q_dma_rd_ctrl_3          (cpu_q_dma_rd_ctrl[3]),
+         .cpu_q_dma_rd_rdy_3           ( cpu_q_dma_rd_rdy[3] ),
+         .cpu_q_dma_rd_3               ( cpu_q_dma_rd[3] ),
+         .cpu_q_dma_rd_data_3          ( cpu_q_dma_rd_data[3] ),
+         .cpu_q_dma_rd_ctrl_3          ( cpu_q_dma_rd_ctrl[3] ),
 
          // signals to/from CPU tx queues
          .cpu_q_dma_nearly_full        (cpu_q_dma_nearly_full),
+         .cpu_q_dma_can_wr_pkt         (cpu_q_dma_can_wr_pkt),
 
          // signals to/from CPU tx queue 0
-         .cpu_q_dma_wr_0               (cpu_q_dma_wr[0]),
-         .cpu_q_dma_wr_data_0          (cpu_q_dma_wr_data[0]),
-         .cpu_q_dma_wr_ctrl_0          (cpu_q_dma_wr_ctrl[0]),
+         .cpu_q_dma_wr_0               ( cpu_q_dma_wr[0] ),
+         .cpu_q_dma_wr_pkt_vld_0       ( cpu_q_dma_wr_pkt_vld[0] ),
+         .cpu_q_dma_wr_data_0          ( cpu_q_dma_wr_data[0] ),
+         .cpu_q_dma_wr_ctrl_0          ( cpu_q_dma_wr_ctrl[0] ),
 
          // signals to/from CPU tx queue 1
-         .cpu_q_dma_wr_1               (cpu_q_dma_wr[1]),
-         .cpu_q_dma_wr_data_1          (cpu_q_dma_wr_data[1]),
-         .cpu_q_dma_wr_ctrl_1          (cpu_q_dma_wr_ctrl[1]),
+         .cpu_q_dma_wr_1               ( cpu_q_dma_wr[1] ),
+         .cpu_q_dma_wr_pkt_vld_1       ( cpu_q_dma_wr_pkt_vld[1] ),
+         .cpu_q_dma_wr_data_1          ( cpu_q_dma_wr_data[1] ),
+         .cpu_q_dma_wr_ctrl_1          ( cpu_q_dma_wr_ctrl[1] ),
 
          // signals to/from CPU tx queue 2
-         .cpu_q_dma_wr_2               (cpu_q_dma_wr[2]),
-         .cpu_q_dma_wr_data_2          (cpu_q_dma_wr_data[2]),
-         .cpu_q_dma_wr_ctrl_2          (cpu_q_dma_wr_ctrl[2]),
+         .cpu_q_dma_wr_2               ( cpu_q_dma_wr[2] ),
+         .cpu_q_dma_wr_pkt_vld_2       ( cpu_q_dma_wr_pkt_vld[2] ),
+         .cpu_q_dma_wr_data_2          ( cpu_q_dma_wr_data[2] ),
+         .cpu_q_dma_wr_ctrl_2          ( cpu_q_dma_wr_ctrl[2] ),
 
          // signals to/from CPU tx queue 3
-         .cpu_q_dma_wr_3               (cpu_q_dma_wr[3]),
-         .cpu_q_dma_wr_data_3          (cpu_q_dma_wr_data[3]),
-         .cpu_q_dma_wr_ctrl_3          (cpu_q_dma_wr_ctrl[3]),
+         .cpu_q_dma_wr_3               ( cpu_q_dma_wr[3] ),
+         .cpu_q_dma_wr_pkt_vld_3       ( cpu_q_dma_wr_pkt_vld[3] ),
+         .cpu_q_dma_wr_data_3          ( cpu_q_dma_wr_data[3] ),
+         .cpu_q_dma_wr_ctrl_3          ( cpu_q_dma_wr_ctrl[3] ),
 
          // --- signals to/from CPCI pins
          .dma_op_code_req              (dma_op_code_req),
@@ -1248,7 +1317,7 @@ module nf2_core #(
          .reset                        (reset),
          .clk                          (core_clk_int),
          .cpci_clk                     (cpci_clk_int)
-         );
+        );
 
 
 
