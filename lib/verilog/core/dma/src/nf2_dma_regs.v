@@ -27,7 +27,7 @@
 //      eg.
 //         if (reset)
 //            tx_pkt_stored_delta <= 'h0;
-//         else if (!new_reg_req && reg_cnt == `CPU_QUEUE_TX_QUEUE_NUM_PKTS_ENQUEUED)
+//         else if (!new_reg_req && reg_cnt == `DMA_TX_QUEUE_NUM_PKTS_ENQUEUED)
 //            tx_pkt_stored_delta <= tx_pkt_stored;
 //         else
 //            tx_pkt_stored_delta <= tx_pkt_stored_delta + tx_pkt_stored;
@@ -43,7 +43,7 @@ module nf2_dma_regs
       // Register interface
       input                                  reg_req,
       input                                  reg_rd_wr_L,
-      input  [`CPU_QUEUE_REG_ADDR_WIDTH-1:0] reg_addr,
+      input  [`DMA_REG_ADDR_WIDTH-1:0]       reg_addr,
       input  [`CPCI_NF2_DATA_WIDTH-1:0]      reg_wr_data,
 
       output reg [`CPCI_NF2_DATA_WIDTH-1:0]  reg_rd_data,
@@ -211,12 +211,12 @@ module nf2_dma_regs
 
    end // always block for delta logic
 
-   //assign control_reg = reg_file[`CPU_QUEUE_CONTROL];
+   //assign control_reg = reg_file[`DMA_CTRL];
    assign iface_disable       = control_reg[`DMA_IFACE_CTRL_DISABLE_POS];
    assign iface_reset_internal= control_reg[`DMA_IFACE_CTRL_RESET_POS];
 
    assign addr                = reg_addr[REG_FILE_ADDR_WIDTH-1:0];
-   assign addr_good           = reg_addr[`CPU_QUEUE_REG_ADDR_WIDTH-1:REG_FILE_ADDR_WIDTH] == 'h0 &&
+   assign addr_good           = reg_addr[`DMA_REG_ADDR_WIDTH-1:REG_FILE_ADDR_WIDTH] == 'h0 &&
                                           addr < NUM_REGS_USED;
 
    assign new_reg_req         = reg_req && !reg_req_d1;
@@ -274,7 +274,7 @@ module nf2_dma_regs
                   reg_file_wr = addr_good && !reg_rd_wr_L;
                   reg_file_in = reg_wr_data;
 
-                  if (addr == `CPU_QUEUE_CONTROL) begin
+                  if (addr == `DMA_CTRL) begin
                      if (!reg_rd_wr_L)
                         control_reg_nxt = reg_wr_data;
                   end
@@ -282,7 +282,7 @@ module nf2_dma_regs
                   //
                   //reg_file_wr = addr_good;
 
-                  //if (addr == `CPU_QUEUE_CONTROL) begin
+                  //if (addr == `DMA_CTRL) begin
                   //   if (reg_rd_wr_L)
                   //      reg_file_in = reg_file_out;
                   //   else begin
@@ -303,7 +303,7 @@ module nf2_dma_regs
                      reg_cnt_nxt = reg_cnt + 'h1;
 
                   case (reg_cnt)
-                     `CPU_QUEUE_CONTROL :    delta = 0;
+                     `DMA_CTRL :    delta = 0;
                      `DMA_NUM_INGRESS_PKTS:  delta = ingress_pkt_cnt_delta;
                      `DMA_NUM_INGRESS_BYTES: delta = ingress_byte_cnt_delta;
                      `DMA_NUM_EGRESS_PKTS:   delta = egress_pkt_cnt_delta;
@@ -334,7 +334,7 @@ module nf2_dma_regs
          // Register access logic
          if(new_reg_req) begin // read request
             if(addr_good) begin
-               if (addr == `CPU_QUEUE_CONTROL)
+               if (addr == `DMA_CTRL)
                   reg_rd_data <= control_reg;
                else
                   reg_rd_data <= reg_file_out;
