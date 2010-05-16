@@ -1,7 +1,7 @@
 HEAD -- Version X.X.X beta
 
 Version 2.1.0
-(30 Apr, 2010)
+(21 May, 2010)
 
   Improvements:
    * Register system:
@@ -37,6 +37,10 @@ Version 2.1.0
    * Simulations:
      - verify that the correct number of register reads is performed
      - supports Xilinx ISim in addition to ModelSim and VCS
+   * DMA:
+     - added registers to nf2_dma and cpu_dma_queues
+     - cleaned up DMA code
+     - eliminated need for add_rm_hdr module
 
   Bug fixes:
    * numerous fixes to register system:
@@ -45,6 +49,7 @@ Version 2.1.0
    * cpci_download:
      - should work correctly on Fedora systems
        (Thanks to Paul Rodman)
+   * cleaned up logic in DMA -> reduction in timeout errors
 
   Other changes:
    * CPCI project renamed: CPCI_2.1 -> cpci
