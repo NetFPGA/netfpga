@@ -27,7 +27,7 @@ $delay = 0;
 nf_PCI_read32($delay, 0, DEV_ID_MD5_1_REG(), DEV_ID_MD5_VALUE_V2_1());
 nf_PCI_read32($delay, 0, DEV_ID_MD5_2_REG(), DEV_ID_MD5_VALUE_V2_2());
 nf_PCI_read32($delay, 0, DEV_ID_MD5_3_REG(), DEV_ID_MD5_VALUE_V2_3());
-nf_PCI_read32($delay, 0, DEV_ID_DEVICE_ID_REG(), 0x00000001);
+nf_PCI_read32($delay, 0, DEV_ID_DEVICE_ID_REG(), DEVICE_ID());
 nf_PCI_read32($delay, 0, DEV_ID_VERSION_REG(),
 	(DEVICE_MAJOR() << 16) | (DEVICE_MINOR() << 8) | (DEVICE_REVISION() << 0));
 nf_PCI_read32($delay, 0, DEV_ID_CPCI_ID_REG(),
