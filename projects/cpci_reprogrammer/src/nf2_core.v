@@ -280,12 +280,15 @@ module nf2_core (
    wire [`CPCI_NF2_DATA_WIDTH-1:0]    cpu_queue_reg_rd_data[3:0];
 
    wire [3:0]                         cpu_q_dma_pkt_avail;
+   wire [3:0]                         cpu_q_dma_rd_rdy;
    wire [3:0]                         cpu_q_dma_rd;
    wire [`DMA_DATA_WIDTH-1:0]         cpu_q_dma_rd_data [3:0];
    wire [`DMA_CTRL_WIDTH-1:0]         cpu_q_dma_rd_ctrl[3:0];
 
    wire [3:0]                         cpu_q_dma_nearly_full;
+   wire [3:0]                         cpu_q_dma_can_wr_pkt;
    wire [3:0]                         cpu_q_dma_wr;
+   wire [3:0]                         cpu_q_dma_wr_pkt_vld;
    wire [`DMA_DATA_WIDTH-1:0]         cpu_q_dma_wr_data[3:0];
    wire [`DMA_CTRL_WIDTH-1:0]         cpu_q_dma_wr_ctrl[3:0];
 
