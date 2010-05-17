@@ -231,6 +231,7 @@ NO_SUBST_SRCS := $(filter-out $(SUBST_SRCS), $(SRCS))
 SUBST_DONE_SRCS := $(addsuffix .subst, $(SUBST_SRCS))
 
 ISIM_INC_CMD := -i $(DEFINES_INC_DIR) -i $(TESTBENCH_DIR) -i $(DESIGN_INC_DIR)
+ISIM_INC_CMD := $(ISIM_INC_CMD) $(foreach dir,$(LIB_INC_DIRS),-i $(dir))
 
 %.v.subst: %.v $(REGISTER_SRCS)
 	nf_const_subst.pl --define $(REGISTER_SRCS) $<
