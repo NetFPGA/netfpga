@@ -42,7 +42,13 @@ module host32 (
 `define PCI_FILE_NAME "packet_data/pci_sim_data"
 
    reg dma_in_progress;
+   reg [`PCI_DATA_WIDTH - 1:0] dma_q_status;
+   wire [`PCI_DATA_WIDTH/2 - 1:0] dma_pkt_avail;
+   wire [`PCI_DATA_WIDTH/2 - 1:0] dma_can_wr_pkt;
    localparam MAX_TRIES = 30;
+
+   assign dma_pkt_avail = dma_q_status[`PCI_DATA_WIDTH/2 +: `PCI_DATA_WIDTH/2];
+   assign dma_can_wr_pkt = dma_q_status[`PCI_DATA_WIDTH/2 - 1:0];
 
 // Begin the actual simulation sequence
    initial
@@ -50,6 +56,7 @@ module host32 (
 
       host32_is_active = 0;
       dma_in_progress = 0;
+      dma_q_status = 'h0;
 
       // wait for the system to reset
       RESET_WAIT;
@@ -122,11 +129,13 @@ module host32 (
 	       $display("%t %m: Info: Waiting until time %t to execute next PCI access.",
 			$time, earliest_time);
 
-	    while (($time < earliest_time) || dma_in_progress) begin
+	    while (($time < earliest_time) || dma_in_progress ||
+               (pci_cmd == `PCI_DMA && !dma_can_wr_pkt[pci_addr - 1])) begin
 
                // Wait until either an interrupt occurs
                // or the time elapses without a DMA transfer in progress
-               wait (~INTR_A || (time_elapsed && !dma_in_progress));
+               wait (~INTR_A || (time_elapsed && !dma_in_progress) &&
+                  !(pci_cmd == `PCI_DMA && !dma_can_wr_pkt[pci_addr - 1]));
 
                // Service any interrupts
                if (~INTR_A)
@@ -242,6 +251,7 @@ module host32 (
    reg 	       egress_dma_done;
    reg         phy_int;
    reg         pkt_avail;
+   reg         q_status_change;
    reg         cnet_err;
    reg         cnet_rd_timeout;
    reg         cnet_prog_err;
@@ -271,6 +281,7 @@ module host32 (
 	 egress_dma_done   = 0;
          phy_int           = 0;
          pkt_avail         = 0;
+         q_status_change   = 0;
          cnet_err          = 0;
          cnet_rd_timeout   = 0;
          cnet_prog_err     = 0;
@@ -289,6 +300,7 @@ module host32 (
          egress_dma_done   = returned[30];
          phy_int           = returned[29];
          pkt_avail         = returned[08];
+         q_status_change   = returned[09];
          cnet_err          = returned[05];
          cnet_rd_timeout   = returned[04];
          cnet_prog_err     = returned[03];
@@ -297,6 +309,14 @@ module host32 (
          dma_fatal_error   = returned[00];
 
          #1;
+
+         // Handle queue status changes
+         if (q_status_change) begin
+            $display("%t %m: DMA queue status change", $time);
+
+            // Read the queue status
+            PCI_DW_RD({`CPCI_DMA_QUEUE_STATUS, 2'b0}, 4'h6, dma_q_status, success);
+         end
 
          // Handle ingress DMA completion
          if (ingress_dma_done) begin

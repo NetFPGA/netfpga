@@ -427,6 +427,8 @@ begin
          $write("  DMA egress xfer complete");
       if (intr_flags[29])
          $write("  PHY");
+      if (intr_flags[9])
+         $write("  DMA queue status change");
       if (intr_flags[8])
          $write("  Pkt available");
       if (intr_flags[5])
