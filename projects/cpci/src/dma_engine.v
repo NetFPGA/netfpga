@@ -113,6 +113,8 @@ module dma_engine(
 
             input [15:0]   dma_can_wr_pkt, // Space in Virtex for a full pkt
 
+            input          dma_queue_info_avail, // Is DMA tx full info avail?
+
             input          dma_nearly_empty, // Three words or less left in the buffer
             input          dma_empty,     // Is the buffer empty?
             input          dma_all_in_buf, // All data for the packet is in the buffer
@@ -253,6 +255,7 @@ dma_engine_ctrl dma_engine_ctrl (
             .dma_xfer_size (dma_data_frm_cnet[15:0]),
             .dma_rd_en (dma_rd_en),
             .dma_can_wr_pkt (dma_can_wr_pkt),
+            .dma_queue_info_avail (dma_queue_info_avail),
             .dma_nearly_empty (dma_nearly_empty),
             .dma_all_in_buf (dma_all_in_buf),
             .tx_wait_done (tx_wait_done),

@@ -30,6 +30,8 @@ module cnet_dma_bus_master
 
    output reg [15:0] dma_can_wr_pkt, // Space in the Virtex for a full packet
 
+   output reg     dma_queue_info_avail, // Queue information is currently being output
+
    output         dma_nearly_empty, // Three words or less left in the buffer
    output         dma_empty,        // Is the buffer empty?
    output reg     dma_all_in_buf,   // All data for the packet is in the buffer
@@ -97,6 +99,7 @@ module cnet_dma_bus_master
    reg [3:0] cpci_dma_op_queue_id_nxt;
    reg [15:0] cpci_dma_pkt_avail_nxt, cpci_dma_pkt_avail;
    reg [15:0] cpci_can_wr_pkt_nxt, cpci_can_wr_pkt;
+   reg       cpci_dma_queue_info_avail_nxt, cpci_dma_queue_info_avail;
    reg 	     clr_cpci_dma_rx_req;
    reg 	     clr_cpci_dma_tx_req;
    reg 	     ld_rx_expect;
@@ -115,6 +118,7 @@ module cnet_dma_bus_master
    // to the PCI clock domain
    reg [15:0] dma_pkt_avail_p1;
    reg [15:0] dma_can_wr_pkt_p1;
+   reg        dma_queue_info_avail_p1;
 
    // Local signals to propagate the dma_rd_request signals
    reg dma_rd_request_toggle;
@@ -170,6 +174,7 @@ module cnet_dma_bus_master
       cpci_dma_pkt_avail_nxt = cpci_dma_pkt_avail;
       cpci_can_wr_pkt_nxt = cpci_can_wr_pkt;
       cpci_dma_op_queue_id_nxt = cpci_dma_op_queue_id;
+      cpci_dma_queue_info_avail_nxt = 1'b 0;
 
       cpci_dma_vld_c2n_nxt = cpci_dma_vld_c2n;
       cpci_dma_data_c2n_nxt = cpci_dma_data_c2n;
@@ -189,9 +194,7 @@ module cnet_dma_bus_master
       case (cpci_state)
 	QUERY_REQ_STATE: begin
 	   cpci_dma_op_code_req_nxt = OP_CODE_STATUS_QUERY;
-
-	   if (cpci_dma_op_code_ack_d1 == OP_CODE_STATUS_QUERY)
-	     cpci_state_nxt = QUERY_ACK_STATE;
+	   cpci_state_nxt = QUERY_ACK_STATE;
 
            // Don't drive the tri-state
            // and reset the c2n valid signal
@@ -200,7 +203,8 @@ module cnet_dma_bus_master
 	end
 
 	QUERY_ACK_STATE: begin
-	   if (cpci_dma_vld_n2c_d1) begin
+	   if (cpci_dma_op_code_ack_d1 == OP_CODE_STATUS_QUERY &&
+              cpci_dma_vld_n2c_d1) begin
 
 	      //----------------------------------
 	      // data format is as follows:
@@ -214,6 +218,7 @@ module cnet_dma_bus_master
 
 	      cpci_dma_pkt_avail_nxt = cpci_dma_data_n2c_d1[31:16];
 	      cpci_can_wr_pkt_nxt = cpci_dma_data_n2c_d1[15:0];
+	      cpci_dma_queue_info_avail_nxt = 1'b 1;
 
 	   end // if (cpci_dma_vld_n2c_d1)
 
@@ -335,6 +340,7 @@ module cnet_dma_bus_master
 	 cpci_dma_op_queue_id <= cpci_dma_op_queue_id_nxt;
 	 cpci_dma_pkt_avail <= cpci_dma_pkt_avail_nxt;
 	 cpci_can_wr_pkt <= cpci_can_wr_pkt_nxt;
+	 cpci_dma_queue_info_avail <= cpci_dma_queue_info_avail_nxt;
 
 	 cpci_dma_q_nearly_full_c2n <= cpci_dma_q_nearly_full_c2n_nxt;
 	 cpci_dma_vld_c2n <= cpci_dma_vld_c2n_nxt;
@@ -515,6 +521,9 @@ begin
 
    dma_can_wr_pkt_p1 <= cpci_can_wr_pkt;
    dma_can_wr_pkt <= dma_can_wr_pkt_p1;
+
+   dma_queue_info_avail_p1 <= cpci_dma_queue_info_avail;
+   dma_queue_info_avail <= dma_queue_info_avail_p1;
 end
 
 // all in buffer signal

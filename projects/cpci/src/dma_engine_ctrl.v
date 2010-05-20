@@ -53,6 +53,8 @@ module dma_engine_ctrl (
 
             input [15:0]   dma_can_wr_pkt, // Space in Virtex for full pkt
 
+            input          dma_queue_info_avail,// Is DMA tx full info avail?
+
             input          dma_nearly_empty, // Three words or less left in the buffer
             input          dma_all_in_buf, // All data for the packet is in the buffer
 
@@ -116,6 +118,12 @@ reg dma_rd_en_d1;
 // Read and write done
 reg dma_rd_done_nxt, dma_wr_done_nxt;
 
+reg next_dma_rd_done_nxt;
+reg next_dma_rd_done;
+
+reg next_dma_wr_done_nxt;
+reg next_dma_wr_done;
+
 // Transfer direction
 reg xfer_is_rd_nxt;
 
@@ -130,11 +138,23 @@ reg dma_wr_addr_err_nxt;
 reg dma_rd_mac_err_nxt;
 reg dma_wr_mac_err_nxt;
 
+reg next_dma_rd_size_err;
+reg next_dma_rd_size_err_nxt;
+reg next_dma_wr_size_err;
+reg next_dma_wr_size_err_nxt;
+reg next_dma_wr_mac_err;
+reg next_dma_wr_mac_err_nxt;
+
 // Transfer timer
 reg reset_xfer_timer_nxt;
 
 // DMA interrupt signal
 reg dma_rd_intr_nxt, dma_wr_intr_nxt;
+
+reg next_dma_rd_intr;
+reg next_dma_rd_intr_nxt;
+reg next_dma_wr_intr;
+reg next_dma_wr_intr_nxt;
 
 // State variables
 reg read_start_nxt;
@@ -164,7 +184,8 @@ reg [3:0] curr_state, curr_state_nxt;
 `define DMAC_Write         4'h5
 `define DMAC_Wait          4'h8
 `define DMAC_Done          4'h9
-`define DMAC_Wait_Tx       4'ha
+`define DMAC_Pre_Idle      4'ha
+`define DMAC_Wait_Tx       4'hb
 `define DMAC_Error         4'hf
 
 always @(posedge clk)
@@ -183,14 +204,21 @@ begin
    dma_rd_mac <= dma_rd_mac_nxt;
    dma_rd_done <= dma_rd_done_nxt;
    dma_wr_done <= dma_wr_done_nxt;
+   next_dma_rd_done <= next_dma_rd_done_nxt;
+   next_dma_wr_done <= next_dma_wr_done_nxt;
    dma_rd_size_err <= dma_rd_size_err_nxt;
    dma_wr_size_err <= dma_wr_size_err_nxt;
    dma_rd_addr_err <= dma_rd_addr_err_nxt;
    dma_wr_addr_err <= dma_wr_addr_err_nxt;
    dma_rd_mac_err <= dma_rd_mac_err_nxt;
    dma_wr_mac_err <= dma_wr_mac_err_nxt;
+   next_dma_rd_size_err <= next_dma_rd_size_err_nxt;
+   next_dma_wr_size_err <= next_dma_wr_size_err_nxt;
+   next_dma_wr_mac_err <= next_dma_wr_mac_err_nxt;
    dma_rd_intr <= dma_rd_intr_nxt;
    dma_wr_intr <= dma_wr_intr_nxt;
+   next_dma_rd_intr <= next_dma_rd_intr_nxt;
+   next_dma_wr_intr <= next_dma_wr_intr_nxt;
    read_get_len <= read_get_len_nxt;
    write_start <= write_start_nxt;
 end
@@ -211,14 +239,21 @@ begin
    dma_rd_mac_nxt = dma_rd_mac;
    dma_rd_done_nxt = 1'b0;
    dma_wr_done_nxt = 1'b0;
+   next_dma_rd_done_nxt = next_dma_rd_done;
+   next_dma_wr_done_nxt = next_dma_wr_done;
    dma_rd_size_err_nxt = 1'b0;
    dma_wr_size_err_nxt = 1'b0;
    dma_rd_addr_err_nxt = 1'b0;
    dma_wr_addr_err_nxt = 1'b0;
    dma_rd_mac_err_nxt = 1'b0;
    dma_wr_mac_err_nxt = 1'b0;
+   next_dma_rd_size_err_nxt = next_dma_rd_size_err;
+   next_dma_wr_size_err_nxt = next_dma_wr_size_err;
+   next_dma_wr_mac_err_nxt = next_dma_wr_mac_err;
    dma_rd_intr_nxt = 1'b0;
    dma_wr_intr_nxt = 1'b0;
+   next_dma_rd_intr_nxt = next_dma_rd_intr;
+   next_dma_wr_intr_nxt = next_dma_wr_intr;
    read_get_len_nxt = read_get_len;
    write_start_nxt = write_start;
 
@@ -231,6 +266,13 @@ begin
       start_nxt = 1'b0;
       xfer_is_rd_nxt = 1'b0;
       dma_rd_mac_nxt = 4'h0;
+      next_dma_rd_done_nxt = 1'b0;
+      next_dma_wr_done_nxt = 1'b0;
+      next_dma_rd_intr_nxt = 1'b0;
+      next_dma_wr_intr_nxt = 1'b0;
+      next_dma_rd_size_err_nxt = 1'b0;
+      next_dma_wr_size_err_nxt = 1'b0;
+      next_dma_wr_mac_err_nxt = 1'b0;
    end
    else
       case (curr_state)
@@ -273,15 +315,15 @@ begin
 
             if (abort_xfer) begin
                curr_state_nxt = fatal ? `DMAC_Error : `DMAC_Done;
-               dma_rd_done_nxt = !fatal;
+               next_dma_rd_done_nxt = !fatal;
             end
             // Capture the first word that is transferred as the length
             else if (dma_rd_en_d1) begin
                // Make sure the size is < 2048
                if (dma_xfer_size[15:11] != 'h0) begin
                   curr_state_nxt = `DMAC_Done;
-                  dma_rd_done_nxt = 1'b1;
-                  dma_rd_size_err_nxt = 1'b1;
+                  next_dma_rd_done_nxt = 1'b1;
+                  next_dma_rd_size_err_nxt = 1'b1;
                end
                else begin
                   curr_state_nxt = `DMAC_Wait;
@@ -306,8 +348,8 @@ begin
             // Return to the idle state when done
             if (done || abort_xfer) begin
                curr_state_nxt = fatal ? `DMAC_Error : `DMAC_Done;
-               dma_rd_done_nxt = !fatal;
-               dma_rd_intr_nxt = !abort_xfer;
+               next_dma_rd_done_nxt = !fatal;
+               next_dma_rd_intr_nxt = !abort_xfer;
             end
          end
 
@@ -321,8 +363,8 @@ begin
             // Make sure the size is < 2048
             else if (dma_wr_size[31:11] != 'h0) begin
                curr_state_nxt = `DMAC_Done;
-               dma_wr_done_nxt = 1'b1;
-               dma_wr_size_err_nxt = 1'b1;
+               next_dma_wr_done_nxt = 1'b1;
+               next_dma_wr_size_err_nxt = 1'b1;
             end
             else begin
                curr_state_nxt = `DMAC_Wait;
@@ -351,8 +393,8 @@ begin
             // the CNET
             if (to_cnet_done || abort_xfer) begin
                curr_state_nxt = fatal ? `DMAC_Error : `DMAC_Done;
-               dma_wr_done_nxt = !fatal;
-               dma_wr_intr_nxt = !abort_xfer;
+               next_dma_wr_done_nxt = !fatal;
+               next_dma_wr_intr_nxt = !abort_xfer;
             end
          end
 
@@ -362,6 +404,32 @@ begin
          end
 
          `DMAC_Done : begin
+            if (dma_queue_info_avail) begin
+               curr_state_nxt = `DMAC_Pre_Idle;
+
+               // Copy the appropriate *next* signals into the outputs
+               dma_rd_done_nxt = next_dma_rd_done;
+               dma_rd_intr_nxt = next_dma_rd_intr;
+
+               dma_wr_done_nxt = next_dma_wr_done;
+               dma_wr_intr_nxt = next_dma_wr_intr;
+
+               dma_rd_size_err_nxt = next_dma_rd_size_err;
+               dma_wr_size_err_nxt = next_dma_wr_size_err;
+               dma_wr_mac_err_nxt = next_dma_wr_mac_err;
+
+               // Clear the *next* signals
+               next_dma_rd_done_nxt = 1'b0;
+               next_dma_wr_done_nxt = 1'b0;
+               next_dma_rd_intr_nxt = 1'b0;
+               next_dma_wr_intr_nxt = 1'b0;
+               next_dma_rd_size_err_nxt = 1'b0;
+               next_dma_wr_size_err_nxt = 1'b0;
+               next_dma_wr_mac_err_nxt = 1'b0;
+            end
+         end
+
+         `DMAC_Pre_Idle : begin
             // Wait here for one cycle for the read/write flags to be reset
             curr_state_nxt = `DMAC_Idle;
          end
@@ -374,8 +442,8 @@ begin
 	    if (tx_wait_done) begin
 	       if ((dma_wr_mac_one_hot & dma_can_wr_pkt) == 'h0) begin
 		  curr_state_nxt = `DMAC_Done;
-		  dma_wr_done_nxt = 1'b1;
-		  dma_wr_mac_err_nxt = 1'b1;
+		  next_dma_wr_done_nxt = 1'b1;
+		  next_dma_wr_mac_err_nxt = 1'b1;
 	       end
 	       else // go back and try again
 		 curr_state_nxt = `DMAC_Write_Start;
