@@ -51,7 +51,7 @@ module dma_engine_ctrl (
             input [15:0]   dma_xfer_size, // Transfer size of DMA read
             input          dma_rd_en,     // Read a word from the buffer
 
-            input [15:0]   dma_tx_full,   // Buffer full in the CNET
+            input [15:0]   dma_can_wr_pkt, // Space in Virtex for full pkt
 
             input          dma_nearly_empty, // Three words or less left in the buffer
             input          dma_all_in_buf, // All data for the packet is in the buffer
@@ -312,7 +312,7 @@ begin
          end
 
          `DMAC_Write_Start : begin
-            if (|(dma_wr_mac_one_hot & dma_tx_full)) begin
+            if ((dma_wr_mac_one_hot & dma_can_wr_pkt) == 'h0) begin
 	       // wait a while to see if current pkt gets transmitted
 	       // before we indicate an error.
                curr_state_nxt = `DMAC_Wait_Tx;
@@ -372,7 +372,7 @@ begin
 
          `DMAC_Wait_Tx : begin
 	    if (tx_wait_done) begin
-	       if (|(dma_wr_mac_one_hot & dma_tx_full)) begin
+	       if ((dma_wr_mac_one_hot & dma_can_wr_pkt) == 'h0) begin
 		  curr_state_nxt = `DMAC_Done;
 		  dma_wr_done_nxt = 1'b1;
 		  dma_wr_mac_err_nxt = 1'b1;

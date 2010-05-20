@@ -113,7 +113,7 @@ wire [`PCI_DATA_WIDTH - 1:0]  prog_data;
 wire [15:0] dma_pkt_avail;
 wire dma_rd_request;
 wire [3:0] dma_rd_request_q;
-wire [15:0] dma_tx_full;
+wire [15:0] dma_can_wr_pkt;
 
 wire [`PCI_ADDR_WIDTH - 1:0] dma_data_frm_cnet;
 wire [`PCI_ADDR_WIDTH - 1:0] dma_data_to_cnet;
@@ -446,7 +446,7 @@ wire prog_error;
       .dma_rd_request_q (dma_rd_request_q),
       .dma_rd_data (dma_data_frm_cnet),
       .dma_rd_en (dma_rd_en),
-      .dma_tx_full (dma_tx_full),
+      .dma_can_wr_pkt (dma_can_wr_pkt),
       .dma_nearly_empty (dma_nearly_empty),
       .dma_empty (dma_empty),
       .dma_all_in_buf (dma_all_in_buf),
@@ -554,7 +554,7 @@ dma_engine dma_engine(
             .dma_data_to_cnet (dma_data_to_cnet),
             .dma_wr_en (dma_wr_en),
             .dma_wr_rdy (dma_wr_rdy),
-            .dma_tx_full (dma_tx_full),
+            .dma_can_wr_pkt (dma_can_wr_pkt),
             .dma_nearly_empty (dma_nearly_empty),
             .dma_empty (dma_empty),
             .dma_all_in_buf (dma_all_in_buf),

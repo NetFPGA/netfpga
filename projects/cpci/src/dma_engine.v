@@ -111,7 +111,7 @@ module dma_engine(
             output         dma_wr_en, // Data on dma_data_to_cnet is valid
             input          dma_wr_rdy,       // We can write data out towards the CNET
 
-            input [15:0]   dma_tx_full,   // Buffer full in the CNET
+            input [15:0]   dma_can_wr_pkt, // Space in Virtex for a full pkt
 
             input          dma_nearly_empty, // Three words or less left in the buffer
             input          dma_empty,     // Is the buffer empty?
@@ -252,7 +252,7 @@ dma_engine_ctrl dma_engine_ctrl (
             .dma_rd_request (dma_rd_request),
             .dma_xfer_size (dma_data_frm_cnet[15:0]),
             .dma_rd_en (dma_rd_en),
-            .dma_tx_full (dma_tx_full),
+            .dma_can_wr_pkt (dma_can_wr_pkt),
             .dma_nearly_empty (dma_nearly_empty),
             .dma_all_in_buf (dma_all_in_buf),
             .tx_wait_done (tx_wait_done),

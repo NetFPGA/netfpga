@@ -213,7 +213,7 @@ module nf2_dma_bus_fsm
                                   {12 {1'b 0}},
                                   cpu_q_dma_pkt_avail, //[NUM_CPU_QUEUES-1:0]
                                   {12 {1'b 0}},
-                                  ~cpu_q_dma_can_wr_pkt //[NUM_CPU_QUEUES-1:0]
+                                  cpu_q_dma_can_wr_pkt //[NUM_CPU_QUEUES-1:0]
                                   };
 	      if (dma_op_code_req_d == OP_CODE_TRANSF_C2N) begin
 	         state_nxt = TRANSF_C2N_QID_STATE;
