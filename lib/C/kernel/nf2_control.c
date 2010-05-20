@@ -919,7 +919,7 @@ static void nf2c_tx_timeout(struct net_device *dev)
 			/* Check the programming status */
 			prog_status = ioread32(card->ioaddr + \
 					CPCI_REG_PROG_STATUS);
-			if (prog_status & ~PROG_DONE) {
+			if (!(prog_status & PROG_DONE)) {
 				printk(KERN_ERR "\t Note: Virtex is not "
 						"currently"
 						" programmed.\n");
