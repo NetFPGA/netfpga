@@ -225,9 +225,6 @@ module cnet_dma_bus_master
 	   if (cpci_dma_rx_req) begin
 	      cpci_dma_op_queue_id_nxt = dma_rd_request_q_held;
 
-	      // mask out avail vector
-	      cpci_dma_pkt_avail_nxt = 'h 0;
-
 	      cpci_state_nxt = TRANSF_NETFPGA_2_CPCI_REQ_STATE;
 	   end
 
