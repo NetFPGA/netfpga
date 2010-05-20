@@ -321,6 +321,7 @@ wire prog_error;
                .dma_wr_intr (dma_wr_intr),
                .phy_intr (phy_int_sync),
                .dma_pkt_avail (dma_pkt_avail),
+               .dma_can_wr_pkt (dma_can_wr_pkt),
                .cnet_clk_sel (cnet_clk_sel),
                .cpci_led (cpci_led_reg),
 	       .n_clk_count(n_clk_count),

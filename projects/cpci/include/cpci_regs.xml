@@ -84,7 +84,8 @@
                                             dma_rd_intr,
                                             dma_wr_intr,
                                             phy_intr &amp; prog_done,
-                                            20'b0,
+                                            19'b0,
+                                            dma_queue_status_change,
                                             pkt_avail_intr_req &amp; prog_done,
                                             2'b0,
                                             cnet_err &amp; prog_done,
@@ -157,6 +158,11 @@
                         <nf:name>DMA_Ctrl_E</nf:name>
                         <nf:description>DMA egress control (relative to driver: host-&gt;NetFPGA) Owner = bit 0 (1 = NetFPGA, 0 = host), MAC = bits 9:8</nf:description>
                         <nf:type>cpci_dma_ctrl</nf:type>
+                </nf:register>
+                <nf:register>
+                        <nf:name>DMA_Queue_Status</nf:name>
+                        <nf:description>DMA queue status: bits 31:16 = ingress queue 15:0 packet available, bits 15:0 = can write pkt to queue 15:0</nf:description>
+                        <nf:type>cpci_dma_queue_status</nf:type>
                 </nf:register>
 
                 <nf:register>
@@ -452,6 +458,11 @@
 
 			<!-- 15:8 -->
 			<nf:bitmask>
+				<nf:name>dma_queue_status_change</nf:name>
+				<nf:description>DMA queue status changed</nf:description>
+				<nf:pos>9</nf:pos>
+			</nf:bitmask>
+			<nf:bitmask>
 				<nf:name>pkt_avail</nf:name>
 				<nf:description>Packet available for DMA transfer</nf:description>
 				<nf:pos>8</nf:pos>
@@ -548,6 +559,23 @@
                                 <nf:description>Port to perform DMA transfer on</nf:description>
 				<nf:pos_lo>8</nf:pos_lo>
 				<nf:pos_hi>9</nf:pos_hi>
+			</nf:bitmask>
+		</nf:type>
+		<nf:type xsi:type="nf:SimpleType">
+			<nf:name>cpci_dma_queue_status</nf:name>
+			<nf:description>DMA queue status</nf:description>
+			<nf:width>32</nf:width>
+			<nf:bitmask>
+				<nf:name>pkt_avail</nf:name>
+                                <nf:description>Packets available in ingress queues 15:0</nf:description>
+				<nf:pos_hi>31</nf:pos_hi>
+				<nf:pos_lo>16</nf:pos_lo>
+			</nf:bitmask>
+			<nf:bitmask>
+				<nf:name>can_wr_pkt</nf:name>
+                                <nf:description>Can write a packet to queues 15:0</nf:description>
+				<nf:pos_hi>15</nf:pos_hi>
+				<nf:pos_lo>0</nf:pos_lo>
 			</nf:bitmask>
 		</nf:type>
 	</nf:types>

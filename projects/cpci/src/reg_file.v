@@ -97,6 +97,8 @@ module reg_file(
             // Are any packets available for DMA transfer
             input [15:0]   dma_pkt_avail,
 
+            // Is there space in the Virtex for a full packet?
+            input [15:0]   dma_can_wr_pkt,
 
             // CNET Clock Select
             output reg     cnet_clk_sel,
@@ -133,6 +135,8 @@ reg cnet_hit_d1;
 reg cnet_we_d1;
 
 reg [`PCI_ADDR_WIDTH-1:0] pci_addr_d1;
+
+reg [`PCI_DATA_WIDTH - 1 : 0] dma_queue_status;
 
 // ==================================================================
 // Implement id word
@@ -304,6 +308,7 @@ reg [`PCI_DATA_WIDTH - 1:0] interrupt_flags;
 wire [`PCI_DATA_WIDTH - 1:0] new_interrupt_flags;
 wire pkt_avail;
 reg pkt_avail_d1;
+wire dma_queue_status_change;
 wire pkt_avail_intr_req;
 reg dma_in_progress_d1;
 
@@ -345,7 +350,8 @@ assign new_interrupt_flags = {
             dma_rd_intr,
             dma_wr_intr,
             phy_intr & prog_done,
-            20'b0,
+            19'b0,
+            dma_queue_status_change,
             pkt_avail_intr_req & prog_done,
             2'b0,
             cnet_err & prog_done,
@@ -380,6 +386,11 @@ assign pkt_avail = |(dma_pkt_avail);
 
 assign pkt_avail_intr_req = pkt_avail & ~dma_in_progress &
             (~pkt_avail_d1 | dma_in_progress_d1);
+
+// Identify if the DMA queue status has changed
+assign dma_queue_status_change =
+   dma_queue_status != {dma_pkt_avail, dma_can_wr_pkt} &&
+   prog_done;
 
 
 // ==================================================================
@@ -541,6 +552,21 @@ begin
 end
 
 assign dma_wr_ctrl = {20'b0, dma_wr_mac, 7'b0, dma_wr_owner};
+
+
+// ==================================================================
+// Implement DMA Queue Status
+// ==================================================================
+
+always @(posedge clk)
+begin
+   if (reset) begin
+      dma_queue_status <= 'h0;
+   end
+   else begin
+      dma_queue_status <= {dma_pkt_avail, dma_can_wr_pkt};
+   end
+end
 
 
 // ==================================================================
@@ -777,6 +803,7 @@ begin : outputmux
       `CPCI_DMA_SIZE_E : reg_data = dma_wr_size;
       `CPCI_DMA_CTRL_I : reg_data = dma_rd_ctrl;
       `CPCI_DMA_CTRL_E : reg_data = dma_wr_ctrl;
+      `CPCI_DMA_QUEUE_STATUS : reg_data = dma_queue_status;
 
       `CPCI_DMA_XFER_TIME    : reg_data = dma_time;
       `CPCI_DMA_RETRIES      : reg_data = dma_retries;
