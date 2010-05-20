@@ -28,9 +28,16 @@
   //          immediately after CPCI reprogramming.
   //   Rev 4: Uses the new register system (Revs 3 and 4 should
   //          be indistinguishable externally).
+  //
+  // Version 4: DMA changes:
+  //              - query status returns pkt avail and "can wr pkt" instead of
+  //                tx q full
+  //              - CPCI now reports queue status (pkt avail/can wr pkt)
+  //              - interrupt generated when queue status changes
+  //   Rev 1: Initial version
   -->
-  <nf:version_major>3</nf:version_major>
-  <nf:version_minor>4</nf:version_minor>
+  <nf:version_major>4</nf:version_major>
+  <nf:version_minor>1</nf:version_minor>
   <nf:version_revision>0</nf:version_revision>
   <nf:use_modules>
   </nf:use_modules>-
