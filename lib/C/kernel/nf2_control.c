@@ -712,6 +712,7 @@ static void nf2c_tx_timeout(struct net_device *dev)
 	u32 err;
 	u32 ctrl;
 	u32 status;
+	u32 status_orig;
 	u32 prog_status;
 	u32 int_mask;
 	u32 cnet_err;
@@ -721,15 +722,18 @@ static void nf2c_tx_timeout(struct net_device *dev)
 
 	/* get the interrupt mask */
 	int_mask = ioread32(card->ioaddr + CPCI_REG_INTERRUPT_MASK);
-	PDEBUG(KERN_DFLT_DEBUG "nf2: intr mask vector: 0x%08x\n", int_mask);
 
 	/* disable interrupts so we don't get race conditions */
 	nf2_disable_irq(card);
 	smp_mb();
 
 	/* Grab the interrupt status */
-	status = ioread32(card->ioaddr + CPCI_REG_INTERRUPT_STATUS);
-	PDEBUG(KERN_DFLT_DEBUG "nf2: intr status vector: 0x%08x\n", status);
+	status_orig = status = ioread32(card->ioaddr + CPCI_REG_INTERRUPT_STATUS);
+
+	if (status) {
+		PDEBUG(KERN_DFLT_DEBUG "nf2: intr mask vector: 0x%08x\n", int_mask);
+		PDEBUG(KERN_DFLT_DEBUG "nf2: intr status vector: 0x%08x\n", status);
+	}
 
 	/* only consider bits that are not masked plus INT_PKT_AVAIL*/
 	status &= ~(int_mask & ~INT_PKT_AVAIL);
@@ -997,8 +1001,10 @@ static void nf2c_tx_timeout(struct net_device *dev)
 
 	}
 
-	PDEBUG(KERN_DFLT_DEBUG "nf2: Reenabling interrupts: mask is 0x%08x\n",
-			int_mask);
+	if (status_orig)
+		PDEBUG(KERN_DFLT_DEBUG "nf2: Reenabling interrupts: mask is 0x%08x\n",
+				int_mask);
+
 	/* Rewrite the interrupt mask including any changes */
 	iowrite32(int_mask, card->ioaddr + CPCI_REG_INTERRUPT_MASK);
 
