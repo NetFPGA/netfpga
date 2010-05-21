@@ -18,7 +18,7 @@ SET formalverification = False
 SET removerpms = False
 # END Project Options
 # BEGIN Select
-SELECT Fifo_Generator family Xilinx,_Inc. 3.3
+SELECT Fifo_Generator family Xilinx,_Inc. 4.2
 # END Select
 # BEGIN Parameters
 CSET almost_empty_flag=false

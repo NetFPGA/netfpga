@@ -18,12 +18,12 @@ SET formalverification = False
 SET removerpms = False
 # END Project Options
 # BEGIN Select
-SELECT Fifo_Generator family Xilinx,_Inc. 3.3
+SELECT Fifo_Generator family Xilinx,_Inc. 4.2
 # END Select
 # BEGIN Parameters
 CSET write_data_count=false
 CSET almost_empty_flag=false
-CSET full_threshold_negate_value=13
+CSET full_threshold_negate_value=12
 CSET empty_threshold_negate_value=3
 CSET output_data_width=152
 CSET input_depth=16
@@ -49,7 +49,7 @@ CSET programmable_full_type=No_Programmable_Full_Threshold
 CSET read_data_count_width=4
 CSET reset_type=Asynchronous_Reset
 CSET performance_options=Standard_FIFO
-CSET full_threshold_assert_value=14
+CSET full_threshold_assert_value=13
 CSET almost_full_flag=false
 CSET write_acknowledge_sense=Active_High
 CSET read_clock_frequency=125

@@ -32,7 +32,7 @@ SET verilogsim = True
 SET vhdlsim = False
 # END Project Options
 # BEGIN Select
-SELECT Fifo_Generator family Xilinx,_Inc. 3.3
+SELECT Fifo_Generator family Xilinx,_Inc. 4.2
 # END Select
 # BEGIN Parameters
 CSET almost_empty_flag=true
@@ -41,12 +41,12 @@ CSET component_name=async_fifo_in_144b_out_72b
 CSET data_count=false
 CSET data_count_width=4
 CSET dout_reset_value=0
-CSET empty_threshold_assert_value=3
-CSET empty_threshold_negate_value=4
+CSET empty_threshold_assert_value=4
+CSET empty_threshold_negate_value=5
 CSET enable_ecc=false
 CSET fifo_implementation=Independent_Clocks_Block_RAM
-CSET full_threshold_assert_value=14
-CSET full_threshold_negate_value=13
+CSET full_threshold_assert_value=13
+CSET full_threshold_negate_value=12
 CSET input_data_width=144
 CSET input_depth=16
 CSET output_data_width=72

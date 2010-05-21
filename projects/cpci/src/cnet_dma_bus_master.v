@@ -443,7 +443,7 @@ assign n_nearly_all_in_buf = (count == expect - 'h1);
 //
 // Programmable full threshold set to allow PCI DMA transactions to be
 // aborted before the FIFO fills up
-pci2net_dma_16x32 pci2net_dma_fifo (
+pci2net_dma_32x32 pci2net_dma_fifo (
          .din (dma_wr_data),
 	 .rd_clk (nclk),
 	 .rd_en (fifo_rd_en),
