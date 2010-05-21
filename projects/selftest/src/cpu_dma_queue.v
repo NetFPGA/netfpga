@@ -48,6 +48,7 @@ module cpu_dma_queue
    // ------------- Wires/reg ------------------
 
    wire                                rx_fifo_rd_en;
+   wire                                rx_fifo_wr_en;
 
    // wires from rx_fifo
    wire                                rx_fifo_full;
