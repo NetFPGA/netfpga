@@ -344,14 +344,6 @@ module nf2_dma_que_intfc
 
    end // always @ (*)
 
-   reg [3:0] dma_que_wr_align_cnt, dma_que_wr_align_cnt_nxt;
-   reg [3:0] dma_que_wr_queue_id, dma_que_wr_queue_id_nxt;
-
-   wire [3:0] dma_que_wr_align_cnt_plus_1 =
-              ((dma_que_wr_align_cnt+'h 1)==(USER_DATA_PATH_WIDTH/DMA_DATA_WIDTH)) ?
-              'h 0 : dma_que_wr_align_cnt + 'h 1;
-
-
    always @(posedge clk) begin
      if (reset) begin
         state <= IDLE_STATE;
@@ -360,8 +352,6 @@ module nf2_dma_que_intfc
         queue_sel <= 'h 0;
         dma_rd_vld <= 'h 0;
 
-        dma_que_wr_align_cnt <= 'h 0;
-        dma_que_wr_queue_id <= 'h 0;
 
         cpu_q_dma_wr_0 <= 1'b 0;
         cpu_q_dma_wr_data_0 <= 'h 0;
@@ -392,8 +382,6 @@ module nf2_dma_que_intfc
         queue_sel <= queue_sel_nxt;
         dma_rd_vld <= dma_rd_vld_nxt;
 
-        dma_que_wr_align_cnt <= dma_que_wr_align_cnt_nxt;
-        dma_que_wr_queue_id <= dma_que_wr_queue_id_nxt;
 
         cpu_q_dma_wr_0 <= cpu_q_dma_wr_nxt[0];
         cpu_q_dma_wr_pkt_vld_0 <= cpu_q_dma_wr_pkt_vld_nxt[0];
