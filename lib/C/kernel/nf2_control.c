@@ -335,6 +335,16 @@ static int nf2c_send(struct net_device *dev)
 		goto err_unlock;
 	}
 
+	/* Get the interface number of the skb we are sending. */
+	rd_iface = card->txbuff[card->rd_txbuff].iface;
+
+	/* Verify that the TX queue can accept a packet */
+	if ((card->dma_can_wr_pkt & (1 << rd_iface)) == 0) {
+		atomic_dec(&card->dma_tx_in_progress);
+		err = 1;
+		goto err_unlock;
+	}
+
 	/* Grab the skb */
 	skb = card->txbuff[card->rd_txbuff].skb;
 
@@ -356,9 +366,6 @@ static int nf2c_send(struct net_device *dev)
 	}
 	iowrite32(dma_len,
 			card->ioaddr + CPCI_REG_DMA_E_SIZE);
-
-	/* Get the interface number of the skb we are sending. */
-	rd_iface = card->txbuff[card->rd_txbuff].iface;
 
 	iowrite32(NF2_SET_DMA_CTRL_MAC(rd_iface) | DMA_CTRL_OWNER,
 			card->ioaddr + CPCI_REG_DMA_E_CTRL);
@@ -742,6 +749,26 @@ static void nf2c_tx_timeout(struct net_device *dev)
 	if (status) {
 		PDEBUG(KERN_DFLT_DEBUG "nf2: intr to be handled: 0x%08x\n",
 				status);
+
+		/* Handle queue status change */
+		if (status & INT_DMA_QUEUE_STATUS_CHANGE) {
+			PDEBUG(KERN_DFLT_DEBUG "nf2: intr: "
+					"INT_DMA_QUEUE_STATUS_CHANGE\n");
+
+			card->dma_can_wr_pkt =
+				ioread32(card->ioaddr +
+					CPCI_REG_DMA_QUEUE_STATUS) & 0xffff;
+			PDEBUG(KERN_DFLT_DEBUG "nf2: can_wr_pkt status: 0x%04x\n",
+					card->dma_can_wr_pkt);
+
+			/* Call the send function if there are other
+			 * packets to send */
+			if (atomic_add_return(1, &card->dma_rx_in_progress) == 1) {
+				if (card->free_txbuffs != tx_pool_size)
+					nf2c_send(netdev);
+			}
+			atomic_dec(&card->dma_rx_in_progress);
+		}
 
 		/* Handle packet RX complete
 		 * Note: don't care about the rx pool here as the packet is

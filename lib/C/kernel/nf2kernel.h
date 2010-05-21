@@ -197,6 +197,8 @@ struct nf2_card_priv {
 	/* Packet pool for incomming packets */
 	struct nf2_packet *ppool;
 
+	/* Interfaces that can currently transmit packets */
+	int dma_can_wr_pkt;
 
 	/* === Control Card Variables === */
 	/* Network devices */
