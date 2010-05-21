@@ -64,7 +64,7 @@ static int nf2c_send(struct net_device *dev);
 static void nf2c_rx(struct net_device *dev, struct nf2_packet *pkt);
 static int nf2c_create_pool(struct nf2_card_priv *card);
 static void nf2c_destroy_pool(struct nf2_card_priv *card);
-	static irqreturn_t nf2c_intr(int irq, void *dev_id
+static irqreturn_t nf2c_intr(int irq, void *dev_id
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
 			, struct pt_regs *regs
 #endif
@@ -706,7 +706,7 @@ static void nf2c_tx_timeout(struct net_device *dev)
  *
  * Note: Keep this as short as possible!
  */
-	static irqreturn_t nf2c_intr(int irq, void *dev_id
+static irqreturn_t nf2c_intr(int irq, void *dev_id
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
 			, struct pt_regs *regs
 #endif
