@@ -370,6 +370,9 @@ static int nf2c_send(struct net_device *dev)
 	iowrite32(NF2_SET_DMA_CTRL_MAC(rd_iface) | DMA_CTRL_OWNER,
 			card->ioaddr + CPCI_REG_DMA_E_CTRL);
 
+	PDEBUG(KERN_DFLT_DEBUG "nf2: sending DMA pkt to iface: %d\n",
+			rd_iface);
+
 err_unlock:
 	/*spin_unlock_irqrestore(&priv->card->dma_tx_lock, flags);*/
 
