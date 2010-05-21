@@ -36,7 +36,7 @@ module nf2_dma_bus_fsm
       parameter DMA_DATA_WIDTH      = 32,
       parameter NUM_CPU_QUEUES      = 4,
       parameter PKT_LEN_CNT_WIDTH   = 11,
-      parameter WATCHDOG_TIMEOUT    = 62500
+      parameter WATCHDOG_TIMEOUT    = 625000
    )
     (
      // -- signals to cpci pins
