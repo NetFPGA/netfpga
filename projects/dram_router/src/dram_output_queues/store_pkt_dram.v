@@ -14,7 +14,8 @@
       parameter DRAM_DATA_WIDTH = 2 * (DATA_WIDTH + CTRL_WIDTH),
       parameter DRAM_BLOCK_RDWR_ADDR_WIDTH = 3,
       parameter DRAM_BLOCK_SIZE	      = 128,//in 64bit words
-      parameter DRAM_BASE_ADDR	      = 0
+      parameter DRAM_BASE_ADDR	      = 0,
+      parameter DEFAULT_ADDR          = 0
    )
    (
      // --- Interface to the other cache
@@ -241,7 +242,7 @@
       if(reset) begin
          store_state                      	<= ST_WAIT_FOR_DATA;
          eop_state                      	<= ST_IDLE;
-	 oq_wr_addr				<= 0;
+	     oq_wr_addr				<= DEFAULT_ADDR;
       end
       else begin
          hi_addr <= block_addr_hi;

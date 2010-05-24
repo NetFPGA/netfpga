@@ -12,7 +12,8 @@
       parameter DRAM_ADDR_WIDTH = 22,
       parameter DRAM_DATA_WIDTH = 2 * (DATA_WIDTH + CTRL_WIDTH),
       parameter DRAM_BLOCK_RDWR_ADDR_WIDTH = `DRAM_BLOCK_RDWR_ADDR_WIDTH,
-      parameter DRAM_BLOCK_SIZE = 150
+      parameter DRAM_BLOCK_SIZE = 150,
+      parameter DEFAULT_ADDR          = 0
 )
    (// --- data path interface
     output     [DATA_WIDTH-1:0]        out_data,
@@ -100,7 +101,8 @@
        .DRAM_ADDR_WIDTH(DRAM_ADDR_WIDTH),
        .DRAM_DATA_WIDTH(DRAM_DATA_WIDTH),
        .DRAM_BLOCK_SIZE(DRAM_BLOCK_SIZE),
-       .DRAM_BLOCK_RDWR_ADDR_WIDTH(DRAM_BLOCK_RDWR_ADDR_WIDTH)
+       .DRAM_BLOCK_RDWR_ADDR_WIDTH(DRAM_BLOCK_RDWR_ADDR_WIDTH),
+       .DEFAULT_ADDR(DEFAULT_ADDR)
    )
    store_pkt_dram
      (
@@ -154,7 +156,8 @@
        .DRAM_ADDR_WIDTH(DRAM_ADDR_WIDTH),
        .DRAM_DATA_WIDTH(DRAM_DATA_WIDTH),
        .DRAM_BLOCK_SIZE(DRAM_BLOCK_SIZE),
-       .DRAM_BLOCK_RDWR_ADDR_WIDTH(DRAM_BLOCK_RDWR_ADDR_WIDTH)
+       .DRAM_BLOCK_RDWR_ADDR_WIDTH(DRAM_BLOCK_RDWR_ADDR_WIDTH),
+       .DEFAULT_ADDR(DEFAULT_ADDR)
    )
    remove_pkt_dram
      (// --- Interface to DRAM
