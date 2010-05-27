@@ -275,6 +275,7 @@ sub validateOutput {
 		my $iDMADoneInt = `grep -c 'Info: DMA ingress transfer complete.' $config{'log'}`;
 		my $eDMADoneInt = `grep -c 'Info: DMA egress transfer complete.' $config{'log'}`;
 		my $phyInt = `grep -c 'Seen Phy Interrupt.' $config{'log'}`;
+		my $dmaQStatusInt = `grep -c 'service_interrupt: DMA queue status change' $config{'log'}`;
 		my $pktAvailInt = `grep -c 'Packet available. Starting' $config{'log'}`;
 		my $cnetRdTimeoutInt = `grep -c 'Seen CNET Read' $config{'log'}`;
 		my $dmaStarts = `grep -c 'Info: Starting DMA transfer' $config{'log'}`;
@@ -283,6 +284,7 @@ sub validateOutput {
 			$iDMADoneInt * 3 +
 			$eDMADoneInt * 1 +
 			$phyInt * 1 +
+			$dmaQStatusInt * 1 +
 			$pktAvailInt * 1 +
 			$cnetRdTimeoutInt * 0 +
 			$dmaStarts * 1;
