@@ -1,9 +1,13 @@
-HEAD -- Version X.X.X beta
+HEAD -- Version X.X.X
 
 Version 2.1.1
 (11 Jun, 2010)
   Improvements:
     * Increase DMA performance (bigger buffers to prevent stalls)
+    * SCONE builds correctly on more systems (removed dependence
+      on /usr/lib/libnet.a)
+    * Allow rkd to build under Ubuntu 10.04 (issue reported by gcarvajalb on
+      the forums)
 
   Bug fixes:
     * Some register writes were missed when doing back-to-back writes
