@@ -1,5 +1,14 @@
 HEAD -- Version X.X.X beta
 
+Version 2.1.1
+(11 Jun, 2010)
+  Improvements:
+    * Increase DMA performance (bigger buffers to prevent stalls)
+
+  Bug fixes:
+    * Some register writes were missed when doing back-to-back writes
+      (a buffer full signal was asserted too late)
+
 Version 2.1.0
 (28 May, 2010)
 
