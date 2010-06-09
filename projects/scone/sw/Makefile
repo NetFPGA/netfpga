@@ -83,11 +83,11 @@ SR_OBJS = $(patsubst %.c,%.o,$(SR_SRCS))
 
 scone : $(SR_OBJS) libsr_base.a liblwtcp.a
 	$(CC) $(CFLAGS) -o $@ $(SR_OBJS) $(LIBS) libsr_base.a liblwtcp.a\
-    libsr_base.a /usr/lib/libnet.a
+    libsr_base.a
 
 purify : $(SR_OBJS) libsr_base.a liblwtcp.a
 	purify $(CC) $(CFLAGS) -o $@.purify $(SR_OBJS) $(LIBS) libsr_base.a liblwtcp.a\
-    libsr_base.a /usr/lib/libnet.a
+    libsr_base.a
 #------------------------------------------------------------------------------
 
 DIJKSTRA_SRCS = or_dijkstra_test.c
@@ -96,14 +96,14 @@ DIJKSTRA_OBJS = $(patsubst %.c,%.o,$(DIJKSTRA_SRCS))
 
 dijkstra-test : $(DIJKSTRA_OBJS) libsr_base.a liblwtcp.a
 	$(CC) $(CFLAGS) -o dijkstra-test $(DIJKSTRA_OBJS) $(LIBS) libsr_base.a liblwtcp.a\
-    libsr_base.a /usr/lib/libnet.a
+    libsr_base.a
 
 RAWSOCK_SRCS = rawsock.c
 
 RAWSOCK_OBJS = $(patsubst %.c,%.o,$(RAWSOCK_SRCS)) nf2/nf2util.o
 
 rawsock : $(RAWSOCK_OBJS) libsr_base.a liblwtcp.a
-	$(CC) $(CFLAGS) -o rawsock $(RAWSOCK_OBJS) $(LIBS) libsr_base.a liblwtcp.a /usr/lib/libnet.a
+	$(CC) $(CFLAGS) -o rawsock $(RAWSOCK_OBJS) $(LIBS) libsr_base.a liblwtcp.a
 
 #------------------------------------------------------------------------------
 ALL_SRCS   = $(sort $(SR_SRCS) $(SR_BASE_SRCS) $(LWTCP_SRCS))
