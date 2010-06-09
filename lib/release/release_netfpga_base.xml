@@ -14,7 +14,7 @@
 	<base name="lib/java" />
 	<base name="lib/python" />
 
-	<release name="full" version="2.1.0">
+	<release name="full" version="2.1.1">
 		<bitfile name="cpci" />
 		<bitfile name="cpci_reprogrammer" />
 		<bitfile name="selftest" />
