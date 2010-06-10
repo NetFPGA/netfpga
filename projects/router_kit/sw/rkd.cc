@@ -25,6 +25,7 @@ extern "C" {
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <limits.h>
 }
 
 
