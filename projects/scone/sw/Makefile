@@ -43,7 +43,7 @@ registers:
 #Define _NOLWIP_ to bind to use linux sockets and bind to localhost
 CFLAGS = -g -Wall -D_DEBUG_ $(ARCH) -I lwtcp -I ../../../lib/C/common -D_GNU_SOURCE -D_CPUMODE_
 
-LIBS= $(SOCK) -lm -lresolv -lpthread -lpcap -lnet
+LIBS= $(SOCK) -lm -lresolv -lpthread -lpcap
 PFLAGS= -follow-child-processes=yes -cache-dir=/tmp/${USER}
 PURIFY= purify ${PFLAGS}
 
@@ -81,29 +81,27 @@ SR_SRCS =  sr_main.c
 
 SR_OBJS = $(patsubst %.c,%.o,$(SR_SRCS))
 
-scone : $(SR_OBJS) libsr_base.a liblwtcp.a
-	$(CC) $(CFLAGS) -o $@ $(SR_OBJS) $(LIBS) libsr_base.a liblwtcp.a\
-    libsr_base.a
+scone : $(SR_OBJS) libsr_base.a liblwtcp.a -lnet
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
-purify : $(SR_OBJS) libsr_base.a liblwtcp.a
-	purify $(CC) $(CFLAGS) -o $@.purify $(SR_OBJS) $(LIBS) libsr_base.a liblwtcp.a\
-    libsr_base.a
+purify : $(SR_OBJS) libsr_base.a liblwtcp.a -lnet
+	purify $(CC) $(CFLAGS) -o $@.purify $^ $(LIBS)
+
 #------------------------------------------------------------------------------
 
 DIJKSTRA_SRCS = or_dijkstra_test.c
 
 DIJKSTRA_OBJS = $(patsubst %.c,%.o,$(DIJKSTRA_SRCS))
 
-dijkstra-test : $(DIJKSTRA_OBJS) libsr_base.a liblwtcp.a
-	$(CC) $(CFLAGS) -o dijkstra-test $(DIJKSTRA_OBJS) $(LIBS) libsr_base.a liblwtcp.a\
-    libsr_base.a
+dijkstra-test : $(DIJKSTRA_OBJS) libsr_base.a liblwtcp.a -lnet
+	$(CC) $(CFLAGS) -o dijkstra-test $^ $(LIBS)
 
 RAWSOCK_SRCS = rawsock.c
 
 RAWSOCK_OBJS = $(patsubst %.c,%.o,$(RAWSOCK_SRCS)) nf2/nf2util.o
 
-rawsock : $(RAWSOCK_OBJS) libsr_base.a liblwtcp.a
-	$(CC) $(CFLAGS) -o rawsock $(RAWSOCK_OBJS) $(LIBS) libsr_base.a liblwtcp.a
+rawsock : $(RAWSOCK_OBJS) libsr_base.a liblwtcp.a -lnet
+	$(CC) $(CFLAGS) -o rawsock $^ $(LIBS)
 
 #------------------------------------------------------------------------------
 ALL_SRCS   = $(sort $(SR_SRCS) $(SR_BASE_SRCS) $(LWTCP_SRCS))
