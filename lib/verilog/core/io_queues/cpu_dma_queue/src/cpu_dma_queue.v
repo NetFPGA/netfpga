@@ -15,7 +15,8 @@
       parameter DMA_DATA_WIDTH = `CPCI_NF2_DATA_WIDTH,
       parameter DMA_CTRL_WIDTH = DMA_DATA_WIDTH/8,
       parameter ENABLE_HEADER = 1,
-      parameter PORT_NUMBER = 0
+      parameter PORT_NUMBER = 0,
+      parameter USE_REGS = `CPU_QUEUE_REGS_ENABLE
       )
    (output [DATA_WIDTH-1:0]              out_data,
     output [CTRL_WIDTH-1:0]              out_ctrl,
@@ -158,7 +159,9 @@ cpu_dma_tx_queue
    );
 
 
-cpu_dma_queue_regs cpu_dma_queue_regs (
+generate
+if(USE_REGS == `CPU_QUEUE_REGS_ENABLE) begin
+   cpu_dma_queue_regs cpu_dma_queue_regs (
       // Register interface
       .reg_req                               (reg_req),
       .reg_rd_wr_L                           (reg_rd_wr_L),
@@ -194,6 +197,47 @@ cpu_dma_queue_regs cpu_dma_queue_regs (
       .reset                                 (reset),
       .clk                                   (clk)
    );
+end // block:cpu_dma_queue_regs with full registers support
+else begin
+   cpu_dma_queue_no_regs cpu_dma_queue_regs (
+      // Register interface
+      .reg_req                               (reg_req),
+      .reg_rd_wr_L                           (reg_rd_wr_L),
+      .reg_addr                              (reg_addr),
+      .reg_wr_data                           (reg_wr_data),
+
+      .reg_rd_data                           (reg_rd_data),
+      .reg_ack                               (reg_ack),
+
+      // interface to rx queue
+      .rx_queue_en                           (rx_queue_en),
+
+      .rx_pkt_stored                         (rx_pkt_stored),
+      .rx_pkt_dropped                        (rx_pkt_dropped),
+      .rx_pkt_removed                        (rx_pkt_removed),
+      .rx_q_underrun                         (rx_q_underrun),
+      .rx_q_overrun                          (rx_q_overrun),
+      .rx_pkt_byte_cnt                       (rx_pkt_byte_cnt),
+      .rx_pkt_word_cnt                       (rx_pkt_word_cnt),
+
+
+      // interface to tx queue
+      .tx_queue_en                           (tx_queue_en),
+
+      .tx_pkt_stored                         (tx_pkt_stored),
+      .tx_pkt_removed                        (tx_pkt_removed),
+      .tx_q_underrun                         (tx_q_underrun),
+      .tx_q_overrun                          (tx_q_overrun),
+      .tx_pkt_byte_cnt                       (tx_pkt_byte_cnt),
+      .tx_pkt_word_cnt                       (tx_pkt_word_cnt),
+
+      // --- Misc
+      .reset                                 (reset),
+      .clk                                   (clk)
+   );
+end // block:cpu_dma_queue_regs with only queue_en registers support
+endgenerate
+
    // -------------- Logic --------------------
 
 endmodule // cpu_dma_queue

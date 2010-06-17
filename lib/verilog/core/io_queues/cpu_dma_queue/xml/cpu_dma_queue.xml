@@ -100,6 +100,16 @@
 			<nf:type>counter32</nf:type>
 		</nf:register>
 	</nf:registers>
+	<nf:constants>
+		<nf:constant>
+			<nf:name>REGS_ENABLE</nf:name>
+			<nf:value>0x0</nf:value>
+		</nf:constant>
+		<nf:constant>
+			<nf:name>REGS_DISABLE</nf:name>
+			<nf:value>0x1</nf:value>
+		</nf:constant>
+	</nf:constants>
 	<nf:types>
 		<nf:type xsi:type="nf:SimpleType">
 			<nf:name>cpu_queue_control</nf:name>
