@@ -10,7 +10,7 @@
 #---------------------------------------------------
 reg_fileName="reg_test.txt"
 jar_file="$NF_ROOT/lib/java/gui/router_gui.jar"
-regdump_dir="$NF_ROOT/lib/C/router"
+regdump_dir="$NF_ROOT/projects/reference_router/sw"
 libdir="$NF_ROOT/lib/java/gui/lib"
 
 if [ ! -x $regdump_dir/regdump ]; then

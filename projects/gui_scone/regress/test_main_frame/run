@@ -9,7 +9,7 @@
 # File Names
 #---------------------------------------------------
 my $jar_file=$ENV{'NF_ROOT'} . "/lib/java/gui/router_gui.jar";
-my $regdump_dir=$ENV{'NF_ROOT'} . "/lib/C/router";
+my $regdump_dir=$ENV{'NF_ROOT'} . "/projects/reference_router/sw";
 my $libdir=$ENV{'NF_ROOT'} . "/lib/java/gui/lib";
 
 system("java -Djna.library.path=$libdir -classpath $jar_file:$libdir/*:. MainFrameTest") == 0

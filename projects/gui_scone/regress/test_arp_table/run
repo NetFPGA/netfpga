@@ -13,7 +13,7 @@ mac_fileName="arp_mac_address.txt"
 ip_fileName="arp_ip_address.txt"
 jar_file="$NF_ROOT/lib/java/gui/router_gui.jar"
 libdir="$NF_ROOT/lib/java/gui/lib"
-regdump_dir="$NF_ROOT/lib/C/router"
+regdump_dir="$NF_ROOT/projects/reference_router/sw"
 #----------------------------------------------------
 
 if [ ! -x $regdump_dir/regdump ]; then

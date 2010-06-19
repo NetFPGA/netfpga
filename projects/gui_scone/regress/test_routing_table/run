@@ -12,7 +12,7 @@ reg_fileName1="reg_test1.txt"
 reg_fileName2="reg_test2.txt"
 jar_file="$NF_ROOT/lib/java/gui/router_gui.jar"
 libdir="$NF_ROOT/lib/java/gui/lib"
-regdump_dir="$NF_ROOT/lib/C/router"
+regdump_dir="$NF_ROOT/projects/reference_router/sw"
 
 if [ ! -x $regdump_dir/regdump ]; then
         echo " Error! file $regdump_dir/regdump does not exit..."
