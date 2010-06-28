@@ -82,6 +82,11 @@ int dmaTst() {
   struct ifreq ifr[4];
   struct sockaddr_ll saddr[4];
 
+  // Variables used in select
+  fd_set read_set, write_set;
+  struct timeval timeout;
+  int max_sd;
+
   int portBaseNum = 0;
   sscanf(nf2.device_name, "nf2c%d", &portBaseNum);
 
@@ -164,7 +169,6 @@ int dmaTst() {
       }
 
       /* setup select */
-      fd_set read_set, write_set;
       FD_ZERO(&read_set);
       FD_ZERO(&write_set);
 
@@ -199,9 +203,17 @@ int dmaTst() {
 
       char readBuf[DMA_READ_BUF_SIZE];
       bzero(readBuf, DMA_READ_BUF_SIZE);
-      int read_bytes = read(s[i], readBuf, DMA_READ_BUF_SIZE);
+      timeout.tv_sec = 0;
+      timeout.tv_usec = 1000;
+      FD_ZERO(&read_set);
+      max_sd = s[i] + 1;
+      FD_SET(s[i], &read_set);
+      int read_bytes = 0;
+      if (select(max_sd, &read_set, NULL, NULL, &timeout) == 1) {
+        read_bytes = read(s[i], readBuf, DMA_READ_BUF_SIZE);
+      }
 
-      if (read_bytes < 0) {
+      if (read_bytes <= 0) {
 	printf("read error at intfc=%d\n", portBaseNum + i);
 	dmaBad++;
 	goto error_found;
