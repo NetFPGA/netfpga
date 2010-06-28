@@ -105,7 +105,7 @@ int dmaTst() {
     strncpy(ifr[i].ifr_ifrn.ifrn_name, nfIfcName, IFNAMSIZ);
 
     if (ioctl(s[i], SIOCGIFINDEX, &(ifr[i])) < 0) {
-      printf("ioctl SIOCGIFINDEX at intfc=%d", portBaseNum + i);
+      //printf("ioctl SIOCGIFINDEX at intfc=%d", portBaseNum + i);
       dmaBad++;
       goto error_found;
     }
@@ -115,7 +115,7 @@ int dmaTst() {
     saddr[i].sll_ifindex = ifr[i].ifr_ifru.ifru_ivalue;
 
     if (bind(s[i], (struct sockaddr*)(&(saddr[i])), sizeof(saddr[i])) < 0) {
-      printf("bind error at intfc=%d", portBaseNum + i);
+      //printf("bind error at intfc=%d", portBaseNum + i);
       dmaBad++;
       goto error_found;
     }
@@ -176,7 +176,7 @@ int dmaTst() {
       FD_SET(s[i], &write_set);
 
       if (select(maxS+1, &read_set, &write_set, NULL, NULL) < 0) {
-	printf("select at intfc=%d", portBaseNum + i);
+	//printf("select at intfc=%d", portBaseNum + i);
 	dmaBad++;
 	goto error_found;
       }
@@ -186,14 +186,14 @@ int dmaTst() {
 	written_bytes = write(s[i], packet, DMA_PKT_LEN);
 
 	if (written_bytes < 0) {
-	  printf("at nf2c%d, write error\n", portBaseNum + i);
+	  //printf("at nf2c%d, write error\n", portBaseNum + i);
 	  dmaBad++;
 	  goto error_found;
 	}
 
 	if (written_bytes != DMA_PKT_LEN) {
-	  printf("at nf2c%d, request to write %d bytes, but written_bytes %d bytes\n",
-		 portBaseNum + i, DMA_PKT_LEN, written_bytes);
+	  //printf("at nf2c%d, request to write %d bytes, but written_bytes %d bytes\n",
+	  //  portBaseNum + i, DMA_PKT_LEN, written_bytes);
 	  dmaBad++;
 	  goto error_found;
 	}
@@ -214,7 +214,7 @@ int dmaTst() {
       }
 
       if (read_bytes <= 0) {
-	printf("read error at intfc=%d\n", portBaseNum + i);
+	//printf("read error at intfc=%d\n", portBaseNum + i);
 	dmaBad++;
 	goto error_found;
       }
@@ -222,16 +222,16 @@ int dmaTst() {
       //printf("Read: nf2c%d, %d bytes\n", portBaseNum + i, read_bytes);
 
       if (strcmp(packet, readBuf) != 0) {
-	printf("The wrote data do not match the read data.\n");
-	printf("wrote data(written bytes=%d):\n", written_bytes);
-	for (k=0; k<DMA_PKT_LEN; k++)
-	  printf("%02x ", (unsigned char) packet[k]);
-	printf("\n");
+        //printf("The wrote data do not match the read data.\n");
+	//printf("wrote data(written bytes=%d):\n", written_bytes);
+	//for (k=0; k<DMA_PKT_LEN; k++)
+	//  printf("%02x ", (unsigned char) packet[k]);
+	//printf("\n");
 
-	printf("read data(read bytes=%d):\n", read_bytes);
-	for (k=0; k<read_bytes; k++)
-	  printf("%02x ", (unsigned char) readBuf[k]);
-	printf("\n");
+	//printf("read data(read bytes=%d):\n", read_bytes);
+	//for (k=0; k<read_bytes; k++)
+	//  printf("%02x ", (unsigned char) readBuf[k]);
+	//printf("\n");
 
 	dmaBad++;
 	goto error_found;
