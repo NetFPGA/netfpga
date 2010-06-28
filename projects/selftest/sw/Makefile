@@ -2,7 +2,7 @@
 CFLAGS = -g
 CC = gcc
 LDFLAGS = -lncurses
-LIBS = -L/usr/lib -lnet -lpcap -lnsl -lm -lresolv
+LIBS = -L/usr/lib -lpcap -lnsl -lm -lresolv
 SRLIBS = -lpthread
 
 all : registers selftest bad_pkt_dump
@@ -20,7 +20,8 @@ selftest: selftest.o \
 	selftest_reg.o \
 	selftest_clk.o \
 	selftest_dma.o or_ip.o or_utils.o \
-	$(NF_ROOT)/lib/C/common/nf2util.o
+	$(NF_ROOT)/lib/C/common/nf2util.o \
+	-lnet
 
 bad_pkt_dump: bad_pkt_dump.o $(NF_ROOT)/lib/C/common/nf2util.o
 
@@ -28,3 +29,4 @@ clean :
 	rm -f selftest bad_pkt_dump *.o FAIL selftest.log
 
 install:
+
