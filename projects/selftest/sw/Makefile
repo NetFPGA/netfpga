@@ -19,7 +19,7 @@ selftest: selftest.o \
 	selftest_mdio.o \
 	selftest_reg.o \
 	selftest_clk.o \
-	selftest_dma.o or_ip.o or_utils.o /usr/lib/libnet.a \
+	selftest_dma.o or_ip.o or_utils.o \
 	$(NF_ROOT)/lib/C/common/nf2util.o
 
 bad_pkt_dump: bad_pkt_dump.o $(NF_ROOT)/lib/C/common/nf2util.o
