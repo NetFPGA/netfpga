@@ -46,12 +46,11 @@ ifeq (,$(findstring $(COREGEN_SRC_DIR)/pcim_lc.v, $(SRCS)))
 endif
 
 # Remove pci_top.ngc from the list of cores and replace it with pci_lc_i.ngo
-PCI_TOP_NGC := pci_top.ngc
-ALL_CORES := $(filter-out $(PCI_TOP_NGC),$(ALL_CORES)) pci_lc_i.ngo
-USER_CORES := $(filter-out $(PCI_TOP_NGC),$(USER_CORES)) pci_lc_i.ngo
+PCI_TOP_NGC := $(SYNTH_DIR)/pci_top.ngc
+ALL_CORES := $(filter-out $(PCI_TOP_NGC),$(ALL_CORES)) $(SYNTH_DIR)/pci_lc_i.ngo
+USER_CORES := $(filter-out $(PCI_TOP_NGC),$(USER_CORES)) $(SYNTH_DIR)/pci_lc_i.ngo
 
-CORE_NAMES := $(filter-out $(PCI_TOP_NGC),$(CORE_NAMES)) pci_lc_i.ngo
-
+CORE_NAMES := $(filter-out $(notdir $(PCI_TOP_NGC)),$(CORE_NAMES)) pci_lc_i.ngo
 
 ##################################################################
 # Rules
