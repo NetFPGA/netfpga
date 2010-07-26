@@ -28,3 +28,8 @@ DEALINGS IN THE SOFTWARE.
 The name and trademarks of copyright holder(s) may NOT be used in
 advertising or publicity pertaining to the Software or any derivatives
 without specific, written prior permission.
+
+---------------------------------------------------------------------
+
+Files located in lib/verilog/contrib may be licensed under other licenses.
+Please refer to the licenses in each directory.
