@@ -110,7 +110,8 @@ for (my $i = $start_val; $i <= $end_val; $i++) {
 	}
 
 	# Dump the registers
-	my $regs = `$sbindir/dumpregs.sh $device_id[$i] 2>/dev/null`;
+	my $regs = `$sbindir/dumpregs.sh $device_id[$i] 2>/dev/null`
+		or die "Error saving the NetFPGA PCI configuration registers";
 
 	# Download the CPCI image
 	print("Loading the CPCI on NetFPGA $i\n");
@@ -129,7 +130,8 @@ for (my $i = $start_val; $i <= $end_val; $i++) {
 	`sleep 1.5`;
 
 	# Restore the registers
-	$output = `echo "$regs" | $sbindir/loadregs.sh $device_id[$i]`;
+	$output = `echo "$regs" | $sbindir/loadregs.sh $device_id[$i]`
+		or die "Error loading the NetFPGA PCI configuration registers";
 
 	print("CPCI on NetFPGA $i has been successfully reprogrammed\n");
 
