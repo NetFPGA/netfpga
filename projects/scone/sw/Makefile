@@ -43,7 +43,7 @@ registers:
 #Define _NOLWIP_ to bind to use linux sockets and bind to localhost
 CFLAGS = -g -Wall -D_DEBUG_ $(ARCH) -I lwtcp -I ../../../lib/C/common -D_GNU_SOURCE -D_CPUMODE_
 
-LIBS= $(SOCK) -lm -lresolv -lpthread -lpcap
+LIBS= $(SOCK) -lm -lresolv -lpthread -lpcap -lnet
 PFLAGS= -follow-child-processes=yes -cache-dir=/tmp/${USER}
 PURIFY= purify ${PFLAGS}
 
@@ -81,10 +81,10 @@ SR_SRCS =  sr_main.c
 
 SR_OBJS = $(patsubst %.c,%.o,$(SR_SRCS))
 
-scone : $(SR_OBJS) libsr_base.a liblwtcp.a -lnet
+scone : $(SR_OBJS) libsr_base.a liblwtcp.a
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
-purify : $(SR_OBJS) libsr_base.a liblwtcp.a -lnet
+purify : $(SR_OBJS) libsr_base.a liblwtcp.a
 	purify $(CC) $(CFLAGS) -o $@.purify $^ $(LIBS)
 
 #------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 #CFLAGS = -g
 CFLAGS = -O2
 CC = gcc
-LIBS = -L/usr/lib -lnet -lpcap --static
+LIBS = -L/usr/lib -lnet -lpcap
 LIBNET_CONFIG_PRE = `libnet-config --defines --cflags`
 LIBNET_CONFIG_POST = `libnet-config --libs`
 

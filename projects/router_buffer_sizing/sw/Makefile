@@ -1,7 +1,7 @@
 CFLAGS = -g
 CC = gcc
 LDFLAGS = -lncurses
-LIBS = -L/usr/lib -lnet -lpcap --static
+LIBS = -L/usr/lib -lnet -lpcap
 
 all : monitor_ctrl rcv_evts
 
