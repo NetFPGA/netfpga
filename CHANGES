@@ -1,5 +1,29 @@
 HEAD -- Version X.X.X
 
+Version 2.1.2
+(30 Jul, 2010)
+  Improvements:
+   * Add parameter to disable registers on CPU DMA queues
+   * GUI SCONE:
+     - Makefiles to build class files
+   * Selftest:
+     - allow selftest to run when interfaces are down
+     - clean up output when DMA test fails
+   * Gigabit MAC:
+     - new MAC provided by Erik Rubow at UCSD
+     - located in lib/verilog/contrib/ucsd/gig_eth_mac
+     - Note: NOT used by default. Must manually use this instead of the
+       default MAC core
+
+  Bug fixes:
+   * Fix libnet dependency to allow building on Fedora Core systems
+     (reported by Jonathan Ellithorpe <jdellit at stanford.edu>)
+   * Fix core dependency identification to prevent occassional problems
+     synthesizing/simulating with a clean tree
+   * cpci_reprogram.pl: report failure if dumpregs.sh/loadregs.sh fails
+     (reported by Berywn Hoyt <berwyn at brush.co.nz>)
+   * Simulation: don't run simulation if make_pkts.pl fails
+
 Version 2.1.1
 (11 Jun, 2010)
   Improvements:
