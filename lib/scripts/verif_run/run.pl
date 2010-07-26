@@ -334,6 +334,8 @@ sub validateOutput {
 sub runSim {
 	my $good = shift;
 
+	return $good if !$good;
+
 	my $ok = 1;
 
 	print "--- Running the simulation (takes a while). Logging to $config{'log'}\n";
