@@ -61,6 +61,11 @@ module net
 	     INTER_PKT_GAP_1000 = 96-8; // -8 for overhead in packet sending
 
 
+   // Commands
+   parameter CMD_SEND      = 32'h00000001;
+   parameter CMD_BARRIER   = 32'h00000002;
+   parameter CMD_DELAY     = 32'h00000003;
+
    reg [3:0]   my_rgmii_rx_d;
 
    parameter PKT_MEM_SZ = 10000;
@@ -388,7 +393,15 @@ endtask // handle_tx_packet
 
 ////////////////////////////////////////////////////////////////
 // Check integrity of ingress file read
-//    Format of memory data is:
+//
+// Format of memory data is:
+//   Command (1 word)
+//   Command-specific data (n words)
+//
+// Command-specific formats:
+//   Packet send (0x01)
+//   ------------------
+//   00000001 // Send packet
 //   00000040 // len = 60 (not including CRC)
 //   00000000 // port= 0
 //   00000000 // earliest send time MSB (ns)
@@ -397,43 +410,83 @@ endtask // handle_tx_packet
 //   ...
 //   24252627 // end of data
 //   eeeeffff // token indicates end of packet
+//
+//   Barrier (0x02)
+//   --------------
+//   00000002 // Barrier
+//   0000000a // Number of packets to wait for
+//
+//   Delay (0x03)
+//   --------------
+//   00000002 // Delay
+//   00000000 // Time to wait MSB (ns)
+//   00000001 // Time to wait LSB
+//
 ////////////////////////////////////////////////////////////////
 task check_integrity;
 
-      integer pkt_count, i, words;
+      integer pkt_count;
+      integer barrier_count;
+      integer delay_count;
+      integer i;
+      integer words;
       reg [31:0] len, port;
       time time2send;
 
 begin
    #1 pkt_count = 0; // #1 is done so that time format is set.
+   barrier_count = 0;
+   delay_count = 0;
    i = 0;
    while ((ingress_file[i] !== 32'hxxxxxxxx) && (ingress_file[i] !== 32'h0))
-     begin
+   begin
+      case (ingress_file[i])
+         CMD_SEND: begin
+            pkt_count = pkt_count + 1;
 
-	pkt_count = pkt_count + 1;
+            len = ingress_file[i+1];
+            if (len <14) $display("%m Warning: packet length %0d is < 14", len);
+            if (len >1518) $display("%m Warning: packet length %0d is > 1518", len);
 
-	len = ingress_file[i];
-	if (len <14) $display("%m Warning: packet length %0d is < 14", len);
-	if (len >1518) $display("%m Warning: packet length %0d is > 1518", len);
+            port = ingress_file[i+2];
+            if (port != my_port_number)
+               $display("%m Warning: Packet Port %0d does not match my port %0d", port, my_port_number);
 
-	port = ingress_file[i+1];
-	if (port != my_port_number)
-	  $display("%m Warning: Packet Port %0d does not match my port %0d", port, my_port_number);
+            time2send ={ingress_file[i+3],ingress_file[i+4]};
 
-	time2send ={ingress_file[i+2],ingress_file[i+3]};
+            //$display("pkt %0d len:%0d  port: %0d  time %t %d",
+            //	 pkt_count, len, port, time2send, time2send);
+            words = (len-1)/4+1;
+            i=i+words+5;
+            if (ingress_file[i] !== `INGRESS_SEPARATOR) begin
+               $display("%m Error : expected to see %x at word %0d but saw %x",
+                  `INGRESS_SEPARATOR, i, ingress_file[i]);
+               $finish;
+            end
+            i=i+1;
+         end
 
-	//$display("pkt %0d len:%0d  port: %0d  time %t %d",
-	//	 pkt_count, len, port, time2send, time2send);
-	words = (len-1)/4+1;
-	i=i+words+4;
-	if (ingress_file[i] !== `INGRESS_SEPARATOR) begin
-	   $display("%m Error : expected to see %x at word %0d but saw %x",
-		    `INGRESS_SEPARATOR, i, ingress_file[i]);
-	end
-	i=i+1;
-     end
-   $display("%t %m Info: There will be %0d ingress packets.",
-	    $time, pkt_count);
+         CMD_BARRIER: begin
+            barrier_count = barrier_count + 1;
+            i = i + 2;
+         end
+
+         CMD_DELAY: begin
+            delay_count = delay_count + 1;
+            i = i + 3;
+         end
+
+         default: begin
+            $display("%m Error: Unknown command %08x at word %0d", ingress_file[i], i);
+            $finish;
+         end
+     endcase
+   end
+
+   $display("%t %m Info: Input file contains:", $time);
+   $display("%t %m Info:    %0d ingress packets", $time, pkt_count);
+   $display("%t %m Info:    %0d barriers", $time, barrier_count);
+   $display("%t %m Info:    %0d delays", $time, delay_count);
 end
 endtask // check_integrity
 
