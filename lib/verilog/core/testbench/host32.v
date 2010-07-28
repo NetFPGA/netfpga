@@ -79,6 +79,8 @@ module host32 (
 `define PCI_READ     1
 `define PCI_WRITE    2
 `define PCI_DMA      3
+`define PCI_BARRIER  4
+`define PCI_DELAY    5
 
    time  earliest_time;
    reg   time_elapsed;
@@ -144,84 +146,104 @@ module host32 (
 
 	    // tell user what we're doing
 
-	    if (pci_cmd == `PCI_READ)
-	      $display("%t %m: Info: Starting PCI Read of address 0x%08x expect result 0x%08x",
-		       $time, pci_addr, (pci_data & pci_mask));
-	    else if (pci_cmd == `PCI_WRITE)
-	      $display("%t %m: Info: Starting PCI Write data 0x%08x to address 0x%08x",
-		       $time, pci_data, pci_addr);
-	    else if (pci_cmd == `PCI_DMA)
-	      $display("%t %m: Info: Starting PCI DMA transfer of length %0d to DMA queue %0d",
-		       $time, pci_data, pci_addr);
-            else begin
-	      $display("%t %m: Error: Unknown PCI transaction: 0x%08x", $time, pci_cmd);
-            end
+            case (pci_cmd)
+               `PCI_READ: begin
+                  $display("%t %m: Info: Starting PCI Read of address 0x%08x expect result 0x%08x",
+                           $time, pci_addr, (pci_data & pci_mask));
+               end
+
+               `PCI_WRITE: begin
+	          $display("%t %m: Info: Starting PCI Write data 0x%08x to address 0x%08x",
+		           $time, pci_data, pci_addr);
+               end
+
+               `PCI_DMA: begin
+	          $display("%t %m: Info: Starting PCI DMA transfer of length %0d to DMA queue %0d",
+		           $time, pci_data, pci_addr);
+               end
+
+               `PCI_BARRIER: begin
+	          $display("%t %m: Info: PCI barrier", $time);
+               end
+
+               `PCI_DELAY: begin
+	          $display("%t %m: Info: PCI delay %t ns", $time, {pci_addr, pci_data});
+               end
+
+               default: begin
+	          $display("%t %m: Error: Unknown PCI transaction: 0x%08x", $time, pci_cmd);
+               end
+            endcase
 
 
 	    // do it.
+            case (pci_cmd)
+               `PCI_READ: begin
+                  PCI_DW_RD_RETRY( pci_addr[26:0],  4'h6, MAX_TRIES, rd_data, ok);
 
-	    if (pci_cmd == `PCI_READ) begin
-
-	       PCI_DW_RD_RETRY( pci_addr[26:0],  4'h6, MAX_TRIES, rd_data, ok);
-
-	       if (ok !== 1)
-		 $display("%t %m: Error: PCI Read of address 0x%08x failed.",
-			  $time, pci_addr);
-	       else begin
-		  // check expected value against actual
-		  if ((rd_data & pci_mask) !== (pci_data & pci_mask)) begin
-		     $display("%t %m: Error: PCI read of addr 0x%06x returned data 0x%08x but expected 0x%08x (mask is 0x%08x)",
-			      $time, pci_addr, (rd_data & pci_mask), (pci_data & pci_mask), pci_mask);
-		  end
-		  else
-		     $display("%t %m: Good: PCI read of addr 0x%06x returned data 0x%08x as expected.",
-			      $time, pci_addr, (rd_data & pci_mask));
-	       end
-
-	    end  // PCI READ
-
-	    else
-
-	    if (pci_cmd == `PCI_WRITE) begin
-
-	       PCI_DW_WR_RETRY( pci_addr[26:0],  4'h7, pci_data, MAX_TRIES, ok);
-
-	       if (ok !== 1)
-		 $display("%t %m: Error: PCI Write to address 0x%08x with data 0x%08x failed.",
-			  $time, pci_addr, pci_data);
-
-	    end  // PCI WRITE
-
-            else
-
-            if (pci_cmd == `PCI_DMA) begin
-
-               $display("%t %m: Info: Starting DMA transfer", $time);
-
-               dma_in_progress = 1;
-
-               // Prepare the DMA data in memory
-               testbench.target32.next_ingress;
-
-               // Mask off the packet available interrupts (don't start a new
-               // transfer while we're waiting for this transfer to begin)
-               PCI_DW_RD({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h6, interrupt_mask, success);
-               interrupt_mask = interrupt_mask | 32'h00000100;
-               PCI_DW_WR({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h7, interrupt_mask, success);
-
-               // Set up the write address and size
-               PCI_DW_WR({`CPCI_DMA_ADDR_E, 2'b0}, 4'h7, 32'hc0000000, ok);
-               PCI_DW_WR({`CPCI_DMA_SIZE_E, 2'b0}, 4'h7, pci_data, ok2);
-
-               // Start the DMA transfer
-               PCI_DW_WR({`CPCI_DMA_CTRL_E, 2'b0}, 4'h7,
-                  (32'h00000f00 & ((pci_addr-1) << 8)) | 32'h00000001, ok3);
-
-	       if (ok !== 1 || ok2 !== 1 || ok3 != 1)
-		 $display("%t %m: Error: Problem starting DMA transfer", $time);
-            end // PCI_DMA
+                  if (ok !== 1)
+                    $display("%t %m: Error: PCI Read of address 0x%08x failed.",
+                             $time, pci_addr);
+                  else begin
+                     // check expected value against actual
+                     if ((rd_data & pci_mask) !== (pci_data & pci_mask)) begin
+                        $display("%t %m: Error: PCI read of addr 0x%06x returned data 0x%08x but expected 0x%08x (mask is 0x%08x)",
+                                 $time, pci_addr, (rd_data & pci_mask), (pci_data & pci_mask), pci_mask);
+                     end
+                     else
+                        $display("%t %m: Good: PCI read of addr 0x%06x returned data 0x%08x as expected.",
+                                 $time, pci_addr, (rd_data & pci_mask));
+                  end
+               end  // PCI READ
 
 
+               `PCI_WRITE: begin
+                  PCI_DW_WR_RETRY( pci_addr[26:0],  4'h7, pci_data, MAX_TRIES, ok);
+
+                  if (ok !== 1)
+                    $display("%t %m: Error: PCI Write to address 0x%08x with data 0x%08x failed.",
+                             $time, pci_addr, pci_data);
+               end  // PCI WRITE
+
+
+               `PCI_DMA: begin
+                  $display("%t %m: Info: Starting DMA transfer", $time);
+
+                  dma_in_progress = 1;
+
+                  // Prepare the DMA data in memory
+                  testbench.target32.next_ingress;
+
+                  // Mask off the packet available interrupts (don't start a new
+                  // transfer while we're waiting for this transfer to begin)
+                  PCI_DW_RD({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h6, interrupt_mask, success);
+                  interrupt_mask = interrupt_mask | 32'h00000100;
+                  PCI_DW_WR({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h7, interrupt_mask, success);
+
+                  // Set up the write address and size
+                  PCI_DW_WR({`CPCI_DMA_ADDR_E, 2'b0}, 4'h7, 32'hc0000000, ok);
+                  PCI_DW_WR({`CPCI_DMA_SIZE_E, 2'b0}, 4'h7, pci_data, ok2);
+
+                  // Start the DMA transfer
+                  PCI_DW_WR({`CPCI_DMA_CTRL_E, 2'b0}, 4'h7,
+                     (32'h00000f00 & ((pci_addr-1) << 8)) | 32'h00000001, ok3);
+
+                  if (ok !== 1 || ok2 !== 1 || ok3 != 1)
+                    $display("%t %m: Error: Problem starting DMA transfer", $time);
+               end // PCI_DMA
+
+               `PCI_BARRIER: begin
+	          $display("%t %m: Warning: unimplemented PCI barrier", $time);
+               end
+
+               `PCI_DELAY: begin
+	          $display("%t %m: Warning: unimplemented PCI delay", $time);
+               end
+
+               default: begin
+	          $finish;
+               end
+            endcase
 
 	 end // while ((pci_ptr < `PCI_SZ) && (pci_cmds[pci_ptr] != 0))
 
