@@ -142,6 +142,13 @@ module net
 
      end
 
+
+/////////////////////////////////////////////////////////////
+// Perform the "ingress" functionality
+// Note that ingress includes sending packets, barriers, and delays
+//
+// See the "check_integrity" function for a description of the file format
+//
 /////////////////////////////////////////////////////////////
 
 task handle_ingress;
@@ -150,6 +157,8 @@ task handle_ingress;
   integer words, i;
   reg [31:0] len, tmp, crc;
   time time2send;
+  time delay;
+  integer exp_pkts;
 
 begin
 
@@ -157,70 +166,88 @@ begin
 
    // send while there are any packets left to send!
    while ((packet_index < `INGRESS_MAX_WORD) && (ingress_file[packet_index] !== 32'hxxxxxxxx))
-     begin
-	// get next packet and put in rx_packet_buffer
-	len = ingress_file[packet_index];
+   begin
+      // Identify the command
+      case (ingress_file[packet_index])
+         CMD_SEND: begin
+            // get next packet and put in rx_packet_buffer
+            len = ingress_file[packet_index+1];
 
-	// time2send is EARLIEST we can send this packet.
-	time2send = {ingress_file[packet_index+2],ingress_file[packet_index+3]};
+            // time2send is EARLIEST we can send this packet.
+            time2send = {ingress_file[packet_index+3],ingress_file[packet_index+4]};
 
-	if (time2send > $time) begin
-	   $display("%t %m Info: Waiting until time %t to send packet (length %0d)",
-		    $time, time2send, len);
+            if (time2send > $time) begin
+               $display("%t %m Info: Waiting until time %t to send packet (length %0d)",
+               $time, time2send, len);
 
-	   #(time2send - $time);
-	end
+               #(time2send - $time);
+            end
 
-	$display("%t %m Sending next ingress packet (len %0d) to NF2.", $time, len);
+            $display("%t %m Sending next ingress packet (len %0d) to NF2.", $time, len);
 
-	// Build the packet in rx_packet_buffer.
-	packet_index = packet_index + 4;	//now points at DA
-	words = ((len-1)>>2)+1;                 // number of 32 bit words in pkt
-	i = 0;                                  // index into rx_packet_buffer
-	while (words) begin
-	   tmp = ingress_file[packet_index];
-	   rx_packet_buffer[i]   = tmp[31:24];
-	   rx_packet_buffer[i+1] = tmp[23:16];
-	   rx_packet_buffer[i+2] = tmp[15:8];
-	   rx_packet_buffer[i+3] = tmp[7:0];
-	   words = words - 1;
-	   i = i + 4;
-	   packet_index = packet_index + 1;
-	end
+            // Build the packet in rx_packet_buffer.
+            packet_index = packet_index + 5;	// now points at DA
+            words = ((len-1)>>2)+1;             // number of 32 bit words in pkt
+            i = 0;                              // index into rx_packet_buffer
+            while (words) begin
+               tmp = ingress_file[packet_index];
+               rx_packet_buffer[i]   = tmp[31:24];
+               rx_packet_buffer[i+1] = tmp[23:16];
+               rx_packet_buffer[i+2] = tmp[15:8];
+               rx_packet_buffer[i+3] = tmp[7:0];
+               words = words - 1;
+               i = i + 4;
+               packet_index = packet_index + 1;
+            end
 
-	// might have gone too far so set byte index to correct position,
-	i = len;
+            // might have gone too far so set byte index to correct position,
+            i = len;
 
-	// clear out buffer ready for CRC
-	rx_packet_buffer[i]   = 8'h0;
-	rx_packet_buffer[i+1] = 8'h0;
-	rx_packet_buffer[i+2] = 8'h0;
-	rx_packet_buffer[i+3] = 8'h0;
+            // clear out buffer ready for CRC
+            rx_packet_buffer[i]   = 8'h0;
+            rx_packet_buffer[i+1] = 8'h0;
+            rx_packet_buffer[i+2] = 8'h0;
+            rx_packet_buffer[i+3] = 8'h0;
 
-	crc = update_crc(32'hffffffff,len)^32'hffffffff;
+            crc = update_crc(32'hffffffff,len)^32'hffffffff;
 
-	//$display("%t %m Info: CRC is %x", $time, crc);
+            //$display("%t %m Info: CRC is %x", $time, crc);
 
-	rx_packet_buffer[i+3] = crc[31:24];
-	rx_packet_buffer[i+2] = crc[23:16];
-	rx_packet_buffer[i+1] = crc[15:8];
-	rx_packet_buffer[i]   = crc[7:0];
+            rx_packet_buffer[i+3] = crc[31:24];
+            rx_packet_buffer[i+2] = crc[23:16];
+            rx_packet_buffer[i+1] = crc[15:8];
+            rx_packet_buffer[i]   = crc[7:0];
 
-	send_rgmii_rx_pkt(len+4);  // data + CRC
+            send_rgmii_rx_pkt(len+4);  // data + CRC
 
-	last_activity = $time;
+            last_activity = $time;
 
-	#inter_packet_gap;
+            #inter_packet_gap;
 
-	if (ingress_file[packet_index] !== `INGRESS_SEPARATOR) begin
-	   $display($time," %m Error: expected to point at packet separator %x but saw %x",
-		    `INGRESS_SEPARATOR, ingress_file[packet_index]);
-	   $fflush; $finish;
-	end
+            if (ingress_file[packet_index] !== `INGRESS_SEPARATOR) begin
+               $display($time," %m Error: expected to point at packet separator %x but saw %x",
+                     `INGRESS_SEPARATOR, ingress_file[packet_index]);
+                     $fflush; $finish;
+            end
 
-	packet_index = packet_index + 1;
+            packet_index = packet_index + 1;
+         end
 
-     end
+         CMD_BARRIER: begin
+            exp_pkts = ingress_file[packet_index + 1];
+            $display($time," %m Warning: saw barrier (not implemented) -- expecting %0d pkts",
+               exp_pkts);
+            packet_index = packet_index + 2;
+         end
+
+         CMD_DELAY: begin
+            delay = {ingress_file[packet_index+1],ingress_file[packet_index+2]};
+            $display($time," %m Warning: saw delay (not implemented) -- delay: %0d ns",
+               delay);
+            packet_index = packet_index + 3;
+         end
+      endcase
+   end
 end
 endtask // handle_ingress
 
