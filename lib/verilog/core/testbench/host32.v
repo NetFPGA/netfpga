@@ -44,6 +44,8 @@ module host32 (
 
 `define PCI_FILE_NAME "packet_data/pci_sim_data"
 
+`define NUM_DMA_PORTS   4
+
    reg dma_in_progress;
    reg [`PCI_DATA_WIDTH - 1:0] dma_q_status;
    wire [`PCI_DATA_WIDTH/2 - 1:0] dma_pkt_avail;
@@ -53,6 +55,14 @@ module host32 (
    assign dma_pkt_avail = dma_q_status[`PCI_DATA_WIDTH/2 +: `PCI_DATA_WIDTH/2];
    assign dma_can_wr_pkt = dma_q_status[`PCI_DATA_WIDTH/2 - 1:0];
 
+   integer dma_rx_pkts[0 : `NUM_DMA_PORTS - 1];
+   integer dma_rx_pkts_i;
+
+   reg exp_pkts [0: `NUM_DMA_PORTS - 1];
+   reg all_exp_pkts_seen;
+
+
+
 // Begin the actual simulation sequence
    initial
    begin
@@ -61,6 +71,12 @@ module host32 (
       dma_in_progress = 0;
       dma_q_status = 'h0;
       barrier_req = 0;
+      for (dma_rx_pkts_i = 0; dma_rx_pkts_i < `NUM_DMA_PORTS;
+         dma_rx_pkts_i = dma_rx_pkts_i + 1) begin
+            dma_rx_pkts[dma_rx_pkts_i] = 0;
+            exp_pkts[dma_rx_pkts_i] = 0;
+         end
+      all_exp_pkts_seen = 0;
 
       // wait for the system to reset
       RESET_WAIT;
@@ -86,6 +102,19 @@ module host32 (
 `define PCI_BARRIER  4
 `define PCI_DELAY    5
 
+   reg pkts_good;
+
+   always @(posedge CLK)
+   begin
+      pkts_good = 1;
+      for (dma_rx_pkts_i = 0; dma_rx_pkts_i < `NUM_DMA_PORTS;
+         dma_rx_pkts_i = dma_rx_pkts_i + 1) begin
+            pkts_good = pkts_good &
+               (dma_rx_pkts[dma_rx_pkts_i] >= exp_pkts[dma_rx_pkts_i]);
+         end
+      all_exp_pkts_seen = pkts_good;
+   end
+
    task process_PCI_requests;
 
       reg [31:0] pci_cmds [0:`PCI_SZ];
@@ -98,7 +127,7 @@ module host32 (
       reg ok2, ok3;
 
       reg [`PCI_DATA_WIDTH - 1:0]   interrupt_mask;
-
+      reg rx_good;
 
       begin
 	 for (i=0;i <= `PCI_SZ; i=i+1) pci_cmds[i] = 'h0;
@@ -114,7 +143,9 @@ module host32 (
 	    pci_addr = pci_cmds[pci_ptr+1];
 	    pci_data = pci_cmds[pci_ptr+2];
 	    pci_mask = pci_cmds[pci_ptr+3];
-	    pci_ptr = pci_ptr + 4;
+            if (pci_cmd == `PCI_BARRIER)
+               for (i = 0; i < `NUM_DMA_PORTS; i = i + 1)
+                  exp_pkts[i] = pci_cmds[pci_ptr + 1 + i];
 
 	    // tell user what we're doing
 
@@ -136,6 +167,9 @@ module host32 (
 
                `PCI_BARRIER: begin
 	          $display("%t %m: Info: PCI barrier", $time);
+                  for (i = 0; i < `NUM_DMA_PORTS; i = i + 1)
+	             $display("%t %m: Info:   DMA port %d: expecting %d pkts, seen %d pkts",
+                        $time, i, exp_pkts[i], dma_rx_pkts[i]);
                end
 
                `PCI_DELAY: begin
@@ -166,6 +200,8 @@ module host32 (
                         $display("%t %m: Good: PCI read of addr 0x%06x returned data 0x%08x as expected.",
                                  $time, pci_addr, (rd_data & pci_mask));
                   end
+
+	          pci_ptr = pci_ptr + 4;
                end  // PCI READ
 
 
@@ -175,6 +211,8 @@ module host32 (
                   if (ok !== 1)
                     $display("%t %m: Error: PCI Write to address 0x%08x with data 0x%08x failed.",
                              $time, pci_addr, pci_data);
+
+	          pci_ptr = pci_ptr + 4;
                end  // PCI WRITE
 
 
@@ -202,10 +240,24 @@ module host32 (
 
                   if (ok !== 1 || ok2 !== 1 || ok3 != 1)
                     $display("%t %m: Error: Problem starting DMA transfer", $time);
+
+	          pci_ptr = pci_ptr + 4;
                end // PCI_DMA
 
                `PCI_BARRIER: begin
                   $display($time," %m Info: barrier request");
+
+                  // Wait to ensure that all expected packets have been seen
+                  // (ensure that interrupts are serviced)
+                  @(posedge CLK);
+                  #1; //all_exp_pkts_seen = 0;
+                  while (!all_exp_pkts_seen) begin
+                     wait (all_exp_pkts_seen || ~INTR_A);
+
+                     // Service any interrupts
+                     if (~INTR_A)
+                        service_interrupt;
+                  end
                   barrier_req = 1;
 
                   // Wait for the barrier proceed signals, but ensure that
@@ -222,10 +274,13 @@ module host32 (
                   barrier_req = 0;
                   wait (!barrier_proceed);
                   $display($time," %m Info: barrier complete");
+
+	          pci_ptr = pci_ptr + 1 + `NUM_DMA_PORTS;
                end
 
                `PCI_DELAY: begin
 	          $display("%t %m: Warning: unimplemented PCI delay", $time);
+	          pci_ptr = pci_ptr + 4;
                end
 
                default: begin
@@ -345,6 +400,9 @@ module host32 (
 
             testbench.target32.handle_egress_packet(dma_src, dma_size);
             dma_in_progress = 0;
+
+            if (dma_src < `NUM_DMA_PORTS)
+               dma_rx_pkts[dma_src] = dma_rx_pkts[dma_src] + 1;
 
             // Re-enable the pkt avail interrupt
             PCI_DW_RD({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h6, interrupt_mask, success);
