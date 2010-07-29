@@ -160,7 +160,6 @@ task handle_ingress;
   integer packet_index;       // pointer to next word in ingress memory
   integer words, i;
   reg [31:0] len, tmp, crc;
-  time time2send;
   time delay;
   integer exp_pkts;
 
@@ -177,20 +176,10 @@ begin
             // get next packet and put in rx_packet_buffer
             len = ingress_file[packet_index+1];
 
-            // time2send is EARLIEST we can send this packet.
-            time2send = {ingress_file[packet_index+3],ingress_file[packet_index+4]};
-
-            if (time2send > $time) begin
-               $display("%t %m Info: Waiting until time %t to send packet (length %0d)",
-               $time, time2send, len);
-
-               #(time2send - $time);
-            end
-
             $display("%t %m Sending next ingress packet (len %0d) to NF2.", $time, len);
 
             // Build the packet in rx_packet_buffer.
-            packet_index = packet_index + 5;	// now points at DA
+            packet_index = packet_index + 3;	// now points at DA
             words = ((len-1)>>2)+1;             // number of 32 bit words in pkt
             i = 0;                              // index into rx_packet_buffer
             while (words) begin
@@ -475,7 +464,6 @@ task check_integrity;
       integer i;
       integer words;
       reg [31:0] len, port;
-      time time2send;
 
 begin
    #1 pkt_count = 0; // #1 is done so that time format is set.
@@ -496,12 +484,8 @@ begin
             if (port != my_port_number)
                $display("%m Warning: Packet Port %0d does not match my port %0d", port, my_port_number);
 
-            time2send ={ingress_file[i+3],ingress_file[i+4]};
-
-            //$display("pkt %0d len:%0d  port: %0d  time %t %d",
-            //	 pkt_count, len, port, time2send, time2send);
             words = (len-1)/4+1;
-            i=i+words+5;
+            i=i+words+3;
             if (ingress_file[i] !== `INGRESS_SEPARATOR) begin
                $display("%m Error : expected to see %x at word %0d but saw %x",
                   `INGRESS_SEPARATOR, i, ingress_file[i]);
