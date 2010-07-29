@@ -238,8 +238,18 @@ module host32 (
 
                `PCI_BARRIER: begin
                   $display($time," %m Info: barrier request");
-                  #100 barrier_req = 1;
-                  wait (barrier_proceed);
+                  barrier_req = 1;
+
+                  // Wait for the barrier proceed signals, but ensure that
+                  // interrupts are serviced
+                  while (!barrier_proceed) begin
+                     wait (barrier_proceed || ~INTR_A);
+
+                     // Service any interrupts
+                     if (~INTR_A)
+                        service_interrupt;
+                  end
+
                   #1;
                   barrier_req = 0;
                   wait (!barrier_proceed);
