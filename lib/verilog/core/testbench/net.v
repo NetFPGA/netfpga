@@ -240,8 +240,13 @@ begin
          CMD_BARRIER: begin
             exp_pkts = ingress_file[packet_index + 1];
 
-            $display($time," %m Info: barrier request -- expecting %0d pkts",
-               exp_pkts);
+            $display($time," %m Info: barrier request: expecting %0d pkts, seen %0d pkts",
+               exp_pkts, tx_count);
+
+            // Wait until we've seen the requested number of packets
+            wait (tx_count >= exp_pkts)
+
+            // Assert barrier request and wait for barrier proceed
             barrier_req = 1;
             wait (barrier_proceed);
             #1;
