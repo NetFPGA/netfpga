@@ -49,7 +49,10 @@ module net
     input       rgmii_tx_clk,
 
     input [1:0] link_speed,        // 0=10 1=100 2=1000 3=10000
-    input       host32_is_active   // reset and PCI config are complete.
+    input       host32_is_active,  // reset and PCI config are complete.
+
+    output reg       barrier_req,
+    input            barrier_proceed
 
     );
 
@@ -119,6 +122,7 @@ module net
 	last_activity = 0;
 	tx_count = 0;
 	rx_count = 0;
+        barrier_req = 0;
 
 	// get info such as finish time from the config.txt file
 	read_configuration;
@@ -235,8 +239,16 @@ begin
 
          CMD_BARRIER: begin
             exp_pkts = ingress_file[packet_index + 1];
-            $display($time," %m Warning: saw barrier (not implemented) -- expecting %0d pkts",
+
+            $display($time," %m Info: barrier request -- expecting %0d pkts",
                exp_pkts);
+            barrier_req = 1;
+            wait (barrier_proceed);
+            #1;
+            barrier_req = 0;
+            wait (!barrier_proceed);
+            $display($time," %m Info: barrier complete");
+
             packet_index = packet_index + 2;
          end
 

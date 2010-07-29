@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// $Id: host32.v 5550 2009-05-11 20:09:59Z grg $
+// vim:set shiftwidth=3 softtabstop=3 expandtab:
 //
 // Module: host32.v
 // Project: CPCI (PCI Control FPGA)
@@ -32,7 +32,10 @@ module host32 (
 	       // testbench side signals
                output reg req,
                input      grant,
-	       output reg host32_is_active  // tell TB when we are ready for requests
+	       output reg host32_is_active,  // tell TB when we are ready for requests
+
+               output reg barrier_req,
+               input      barrier_proceed
                );
 
 // Include all of the base code that defines how do do various
@@ -57,6 +60,7 @@ module host32 (
       host32_is_active = 0;
       dma_in_progress = 0;
       dma_q_status = 'h0;
+      barrier_req = 0;
 
       // wait for the system to reset
       RESET_WAIT;
@@ -233,7 +237,13 @@ module host32 (
                end // PCI_DMA
 
                `PCI_BARRIER: begin
-	          $display("%t %m: Warning: unimplemented PCI barrier", $time);
+                  $display($time," %m Info: barrier request");
+                  #100 barrier_req = 1;
+                  wait (barrier_proceed);
+                  #1;
+                  barrier_req = 0;
+                  wait (!barrier_proceed);
+                  $display($time," %m Info: barrier complete");
                end
 
                `PCI_DELAY: begin

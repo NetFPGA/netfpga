@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
-// $Id: testbench.v 6061 2010-04-01 20:53:23Z grg $
+// vim:set shiftwidth=3 softtabstop=3 expandtab:
 //
 // Module: testbench.v
 // Project: NetFPGA-1G board testbench
@@ -38,6 +38,16 @@ module testbench;
    wire        rgmii_3_rx_er;
 
 
+   wire        net1_barrier_req;
+   wire        net2_barrier_req;
+   wire        net3_barrier_req;
+   wire        net4_barrier_req;
+
+   wire        pci_barrier_req;
+
+   wire        barrier_proceed;
+
+
    wire        host32_is_active;  // tells us when config is done and we
    // can start to do things.
 
@@ -51,53 +61,73 @@ module testbench;
    // The sinks (egress) capture all egress packets and write them to files.
 
    net net1 (
-             .portID          (32'd1),   // which port instance are we
-             .rgmii_rx_d       (rgmii_0_rx_d),
-             .rgmii_rx_ctl      (rgmii_0_rx_ctl),
-             .rgmii_rx_clk     (rgmii_0_rx_clk),
-             .rgmii_tx_d       (rgmii_0_tx_d),
-             .rgmii_tx_ctl      (rgmii_0_tx_ctl),
-             .rgmii_tx_clk     (rgmii_0_tx_clk),
-             .link_speed      (link_speed),
-             .host32_is_active(host32_is_active)
-             );
+            .portID           (32'd1),   // which port instance are we
+            .rgmii_rx_d       (rgmii_0_rx_d),
+            .rgmii_rx_ctl     (rgmii_0_rx_ctl),
+            .rgmii_rx_clk     (rgmii_0_rx_clk),
+            .rgmii_tx_d       (rgmii_0_tx_d),
+            .rgmii_tx_ctl     (rgmii_0_tx_ctl),
+            .rgmii_tx_clk     (rgmii_0_tx_clk),
+            .link_speed       (link_speed),
+            .host32_is_active (host32_is_active),
+            .barrier_req      (net1_barrier_req),
+            .barrier_proceed  (barrier_proceed)
+         );
 
    net net2 (
-             .portID          (32'd2),   // which port instance are we
-             .rgmii_rx_d       (rgmii_1_rx_d),
-             .rgmii_rx_ctl      (rgmii_1_rx_ctl),
-             .rgmii_rx_clk     (rgmii_1_rx_clk),
-             .rgmii_tx_d       (rgmii_1_tx_d),
-             .rgmii_tx_ctl      (rgmii_1_tx_ctl),
-             .rgmii_tx_clk     (rgmii_1_tx_clk),
-             .link_speed      (link_speed),
-             .host32_is_active(host32_is_active)
-             );
+            .portID           (32'd2),   // which port instance are we
+            .rgmii_rx_d       (rgmii_1_rx_d),
+            .rgmii_rx_ctl     (rgmii_1_rx_ctl),
+            .rgmii_rx_clk     (rgmii_1_rx_clk),
+            .rgmii_tx_d       (rgmii_1_tx_d),
+            .rgmii_tx_ctl     (rgmii_1_tx_ctl),
+            .rgmii_tx_clk     (rgmii_1_tx_clk),
+            .link_speed       (link_speed),
+            .host32_is_active (host32_is_active),
+            .barrier_req      (net2_barrier_req),
+            .barrier_proceed  (barrier_proceed)
+         );
 
    net net3 (
-             .portID          (32'd3),   // which port instance are we
-             .rgmii_rx_d       (rgmii_2_rx_d),
-             .rgmii_rx_ctl      (rgmii_2_rx_ctl),
-             .rgmii_rx_clk     (rgmii_2_rx_clk),
-             .rgmii_tx_d       (rgmii_2_tx_d),
-             .rgmii_tx_ctl      (rgmii_2_tx_ctl),
-             .rgmii_tx_clk     (rgmii_2_tx_clk),
-             .link_speed      (link_speed),
-             .host32_is_active(host32_is_active)
-             );
+            .portID           (32'd3),   // which port instance are we
+            .rgmii_rx_d       (rgmii_2_rx_d),
+            .rgmii_rx_ctl     (rgmii_2_rx_ctl),
+            .rgmii_rx_clk     (rgmii_2_rx_clk),
+            .rgmii_tx_d       (rgmii_2_tx_d),
+            .rgmii_tx_ctl     (rgmii_2_tx_ctl),
+            .rgmii_tx_clk     (rgmii_2_tx_clk),
+            .link_speed       (link_speed),
+            .host32_is_active (host32_is_active),
+            .barrier_req      (net3_barrier_req),
+            .barrier_proceed  (barrier_proceed)
+         );
 
    net net4 (
-             .portID          (32'd4),   // which port instance are we
-             .rgmii_rx_d       (rgmii_3_rx_d),
-             .rgmii_rx_ctl      (rgmii_3_rx_ctl),
-             .rgmii_rx_clk     (rgmii_3_rx_clk),
-             .rgmii_tx_d       (rgmii_3_tx_d),
-             .rgmii_tx_ctl      (rgmii_3_tx_ctl),
-             .rgmii_tx_clk     (rgmii_3_tx_clk),
-             .link_speed      (link_speed),
-             .host32_is_active(host32_is_active)
-             );
+            .portID           (32'd4),   // which port instance are we
+            .rgmii_rx_d       (rgmii_3_rx_d),
+            .rgmii_rx_ctl     (rgmii_3_rx_ctl),
+            .rgmii_rx_clk     (rgmii_3_rx_clk),
+            .rgmii_tx_d       (rgmii_3_tx_d),
+            .rgmii_tx_ctl     (rgmii_3_tx_ctl),
+            .rgmii_tx_clk     (rgmii_3_tx_clk),
+            .link_speed       (link_speed),
+            .host32_is_active (host32_is_active),
+            .barrier_req      (net4_barrier_req),
+            .barrier_proceed  (barrier_proceed)
+         );
 
+   // Barrier module for performing synchronization across modules
+   barrier_ctrl barrier_ctrl (
+      .if_good                ({
+                                 net1_barrier_req,
+                                 net2_barrier_req,
+                                 net3_barrier_req,
+                                 net4_barrier_req
+                               }),
+      .pci_good               (pci_barrier_req),
+
+      .barrier_proceed        (barrier_proceed)
+   );
 
    // ---------------------------------------
    // --- The main test routines ------------
