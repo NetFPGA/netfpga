@@ -86,17 +86,6 @@ module host32 (
 `define PCI_BARRIER  4
 `define PCI_DELAY    5
 
-   time  earliest_time;
-   reg   time_elapsed;
-
-   always @(posedge CLK)
-   begin
-      if ($time < earliest_time)
-         time_elapsed = 0;
-      else
-         time_elapsed = 1;
-   end
-
    task process_PCI_requests;
 
       reg [31:0] pci_cmds [0:`PCI_SZ];
@@ -122,31 +111,10 @@ module host32 (
 	 // Iterate through the command memory until we get to a null command or end of mem.
 	 while ((pci_ptr < `PCI_SZ) && (pci_cmds[pci_ptr] != 0)) begin
 	    pci_cmd = pci_cmds[pci_ptr];
-	    earliest_time = {pci_cmds[pci_ptr+1],pci_cmds[pci_ptr+2]};
-            time_elapsed = 0;
-	    pci_addr = pci_cmds[pci_ptr+3];
-	    pci_data = pci_cmds[pci_ptr+4];
-	    pci_mask = pci_cmds[pci_ptr+5];
-	    pci_ptr = pci_ptr + 6;
-
-	    // First, do nothing until it's time for this access.
-
-	    if ($time < earliest_time)
-	       $display("%t %m: Info: Waiting until time %t to execute next PCI access.",
-			$time, earliest_time);
-
-	    while (($time < earliest_time) || dma_in_progress ||
-               (pci_cmd == `PCI_DMA && !dma_can_wr_pkt[pci_addr - 1])) begin
-
-               // Wait until either an interrupt occurs
-               // or the time elapses without a DMA transfer in progress
-               wait (~INTR_A || (time_elapsed && !dma_in_progress) &&
-                  !(pci_cmd == `PCI_DMA && !dma_can_wr_pkt[pci_addr - 1]));
-
-               // Service any interrupts
-               if (~INTR_A)
-                  service_interrupt;
-	    end
+	    pci_addr = pci_cmds[pci_ptr+1];
+	    pci_data = pci_cmds[pci_ptr+2];
+	    pci_mask = pci_cmds[pci_ptr+3];
+	    pci_ptr = pci_ptr + 4;
 
 	    // tell user what we're doing
 
