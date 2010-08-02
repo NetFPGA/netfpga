@@ -38,6 +38,13 @@ module testbench;
    wire        rgmii_3_rx_er;
 
 
+   wire        net1_activity;
+   wire        net2_activity;
+   wire        net3_activity;
+   wire        net4_activity;
+
+   wire        pci_activity;
+
    wire        net1_barrier_req;
    wire        net2_barrier_req;
    wire        net3_barrier_req;
@@ -70,6 +77,7 @@ module testbench;
             .rgmii_tx_clk     (rgmii_0_tx_clk),
             .link_speed       (link_speed),
             .host32_is_active (host32_is_active),
+            .activity         (net1_activity),
             .barrier_req      (net1_barrier_req),
             .barrier_proceed  (barrier_proceed)
          );
@@ -84,6 +92,7 @@ module testbench;
             .rgmii_tx_clk     (rgmii_1_tx_clk),
             .link_speed       (link_speed),
             .host32_is_active (host32_is_active),
+            .activity         (net2_activity),
             .barrier_req      (net2_barrier_req),
             .barrier_proceed  (barrier_proceed)
          );
@@ -98,6 +107,7 @@ module testbench;
             .rgmii_tx_clk     (rgmii_2_tx_clk),
             .link_speed       (link_speed),
             .host32_is_active (host32_is_active),
+            .activity         (net3_activity),
             .barrier_req      (net3_barrier_req),
             .barrier_proceed  (barrier_proceed)
          );
@@ -112,12 +122,21 @@ module testbench;
             .rgmii_tx_clk     (rgmii_3_tx_clk),
             .link_speed       (link_speed),
             .host32_is_active (host32_is_active),
+            .activity         (net4_activity),
             .barrier_req      (net4_barrier_req),
             .barrier_proceed  (barrier_proceed)
          );
 
    // Barrier module for performing synchronization across modules
    barrier_ctrl barrier_ctrl (
+      .if_activity            ({
+                                 net1_activity,
+                                 net2_activity,
+                                 net3_activity,
+                                 net4_activity
+                               }),
+      .pci_activity           (pci_activity),
+
       .if_good                ({
                                  net1_barrier_req,
                                  net2_barrier_req,

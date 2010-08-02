@@ -51,6 +51,8 @@ module net
     input [1:0] link_speed,        // 0=10 1=100 2=1000 3=10000
     input       host32_is_active,  // reset and PCI config are complete.
 
+    output reg       activity,
+
     output reg       barrier_req,
     input            barrier_proceed
 

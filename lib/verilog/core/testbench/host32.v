@@ -34,6 +34,8 @@ module host32 (
                input      grant,
 	       output reg host32_is_active,  // tell TB when we are ready for requests
 
+               output reg activity,
+
                output reg barrier_req,
                input      barrier_proceed
                );
