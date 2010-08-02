@@ -248,8 +248,8 @@ begin
 
          CMD_DELAY: begin
             delay = {ingress_file[packet_index+1],ingress_file[packet_index+2]};
-            $display($time," %m Warning: saw delay (not implemented) -- delay: %0d ns",
-               delay);
+            $display($time," %m Info: delay: %0d ns", delay);
+            #delay;
             packet_index = packet_index + 3;
          end
       endcase

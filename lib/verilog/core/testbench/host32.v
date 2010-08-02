@@ -129,6 +129,8 @@ module host32 (
       reg [`PCI_DATA_WIDTH - 1:0]   interrupt_mask;
       reg rx_good;
 
+      time delay;
+
       begin
 	 for (i=0;i <= `PCI_SZ; i=i+1) pci_cmds[i] = 'h0;
 
@@ -146,6 +148,7 @@ module host32 (
             if (pci_cmd == `PCI_BARRIER)
                for (i = 0; i < `NUM_DMA_PORTS; i = i + 1)
                   exp_pkts[i] = pci_cmds[pci_ptr + 1 + i];
+            delay = {pci_cmds[pci_ptr+1], pci_cmds[pci_ptr+2]};
 
 	    // tell user what we're doing
 
@@ -173,7 +176,7 @@ module host32 (
                end
 
                `PCI_DELAY: begin
-	          $display("%t %m: Info: PCI delay %t ns", $time, {pci_addr, pci_data});
+	          $display("%t %m: Info: PCI delay %t ns", $time, delay);
                end
 
                default: begin
@@ -279,8 +282,9 @@ module host32 (
                end
 
                `PCI_DELAY: begin
-	          $display("%t %m: Warning: unimplemented PCI delay", $time);
-	          pci_ptr = pci_ptr + 4;
+	          $display("%t %m: Info: delaying %0d ns", $time, delay);
+                  #delay;
+	          pci_ptr = pci_ptr + 3;
                end
 
                default: begin
