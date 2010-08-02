@@ -73,6 +73,7 @@ module host32 (
       dma_in_progress = 0;
       dma_q_status = 'h0;
       barrier_req = 0;
+      activity = 0;
       for (dma_rx_pkts_i = 0; dma_rx_pkts_i < `NUM_DMA_PORTS;
          dma_rx_pkts_i = dma_rx_pkts_i + 1) begin
             dma_rx_pkts[dma_rx_pkts_i] = 0;
@@ -190,7 +191,9 @@ module host32 (
 	    // do it.
             case (pci_cmd)
                `PCI_READ: begin
+                  activity = 1;
                   PCI_DW_RD_RETRY( pci_addr[26:0],  4'h6, MAX_TRIES, rd_data, ok);
+                  activity = 0;
 
                   if (ok !== 1)
                     $display("%t %m: Error: PCI Read of address 0x%08x failed.",
@@ -211,7 +214,9 @@ module host32 (
 
 
                `PCI_WRITE: begin
+                  activity = 1;
                   PCI_DW_WR_RETRY( pci_addr[26:0],  4'h7, pci_data, MAX_TRIES, ok);
+                  activity = 0;
 
                   if (ok !== 1)
                     $display("%t %m: Error: PCI Write to address 0x%08x with data 0x%08x failed.",
@@ -231,6 +236,7 @@ module host32 (
 
                   // Mask off the packet available interrupts (don't start a new
                   // transfer while we're waiting for this transfer to begin)
+                  activity = 1;
                   PCI_DW_RD({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h6, interrupt_mask, success);
                   interrupt_mask = interrupt_mask | 32'h00000100;
                   PCI_DW_WR({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h7, interrupt_mask, success);
@@ -285,7 +291,9 @@ module host32 (
 
                `PCI_DELAY: begin
 	          $display("%t %m: Info: delaying %0d ns", $time, delay);
+                  activity = 1;
                   #delay;
+                  activity = 0;
 	          pci_ptr = pci_ptr + 3;
                end
 
@@ -386,7 +394,9 @@ module host32 (
             $display("%t %m: DMA queue status change", $time);
 
             // Read the queue status
+            activity = 1;
             PCI_DW_RD({`CPCI_DMA_QUEUE_STATUS, 2'b0}, 4'h6, dma_q_status, success);
+            activity = 0;
          end
 
          // Handle ingress DMA completion
@@ -414,6 +424,8 @@ module host32 (
             PCI_DW_RD({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h6, interrupt_mask, success);
             interrupt_mask = interrupt_mask & ~(32'h00000100);
             PCI_DW_WR({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h7, interrupt_mask, success);
+
+            activity = 0;
          end
 
          // Handle egress DMA completion
@@ -428,6 +440,7 @@ module host32 (
 
             // Clear the DMA in progress flag
             dma_in_progress = 0;
+            activity = 0;
          end
 
          // Handle PHY interrupts
@@ -445,6 +458,7 @@ module host32 (
             $display("%t %m: Packet available. Starting DMA ingress transfer", $time);
 
             dma_in_progress = 1;
+            activity = 1;
 
             // Begin by masking off the interrupt
             PCI_DW_RD({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h6, interrupt_mask, success);

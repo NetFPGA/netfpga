@@ -125,6 +125,7 @@ module net
 	tx_count = 0;
 	rx_count = 0;
         barrier_req = 0;
+        activity = 0;
 
 	// get info such as finish time from the config.txt file
 	read_configuration;
@@ -213,9 +214,12 @@ begin
             rx_packet_buffer[i+1] = crc[15:8];
             rx_packet_buffer[i]   = crc[7:0];
 
+            activity = 1;
+
             send_rgmii_rx_pkt(len+4);  // data + CRC
 
             last_activity = $time;
+            activity = 0;
 
             #inter_packet_gap;
 
@@ -251,7 +255,9 @@ begin
          CMD_DELAY: begin
             delay = {ingress_file[packet_index+1],ingress_file[packet_index+2]};
             $display($time," %m Info: delay: %0d ns", delay);
+            activity = 1;
             #delay;
+            activity = 0;
             packet_index = packet_index + 3;
          end
       endcase
@@ -345,7 +351,10 @@ endtask // handle_ingress
 			  end
 		       end
 		     else begin
-		        if (data == 8'hd5) seeing_data = 1;
+                        if (data == 8'hd5) begin
+                           seeing_data = 1;
+                           activity = 1;
+                        end
 		        else if (data != 8'h55)
 			  $display("%t ERROR %m : expected preamble but saw %2x", $time,data);
 		     end
@@ -355,6 +364,7 @@ endtask // handle_ingress
 
 	      handle_tx_packet(i);
 	      last_activity = $time;
+              activity = 0;
 
 	   end
       end
