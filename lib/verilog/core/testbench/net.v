@@ -69,9 +69,9 @@ module net
    parameter CMD_BARRIER   = 32'h00000002;
    parameter CMD_DELAY     = 32'h00000003;
 
-   reg [3:0]   my_rgmii_rx_d;
-
    parameter PKT_MEM_SZ = 10000;
+
+   reg [3:0]   my_rgmii_rx_d;
 
    reg [7:0] rx_packet_buffer [0:PKT_MEM_SZ]; // data of receive packet.
    reg [7:0] tx_packet_buffer [0:PKT_MEM_SZ];
