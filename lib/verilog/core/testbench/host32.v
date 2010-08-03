@@ -63,6 +63,9 @@ module host32 (
    reg exp_pkts [0: `NUM_DMA_PORTS - 1];
    reg all_exp_pkts_seen;
 
+   reg delay_done;
+   time delay_end;
+
 
 
 // Begin the actual simulation sequence
@@ -80,6 +83,8 @@ module host32 (
             exp_pkts[dma_rx_pkts_i] = 0;
          end
       all_exp_pkts_seen = 0;
+      delay_end = 0;
+      delay_done = 1;
 
       // wait for the system to reset
       RESET_WAIT;
@@ -116,6 +121,11 @@ module host32 (
                (dma_rx_pkts[dma_rx_pkts_i] >= exp_pkts[dma_rx_pkts_i]);
          end
       all_exp_pkts_seen = pkts_good;
+   end
+
+   always @(posedge CLK)
+   begin
+      delay_done = $time >= delay_end;
    end
 
    task process_PCI_requests;
@@ -292,7 +302,16 @@ module host32 (
                `PCI_DELAY: begin
 	          $display("%t %m: Info: delaying %0d ns", $time, delay);
                   activity = 1;
-                  #delay;
+                  delay_end = $time + delay;
+                  @(posedge CLK);
+                  #1;
+                  while (!delay_done) begin
+                     wait (delay_done || ~INTR_A);
+
+                     // Service any interrupts
+                     if (~INTR_A)
+                        service_interrupt;
+                  end
                   activity = 0;
 	          pci_ptr = pci_ptr + 3;
                end
