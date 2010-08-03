@@ -52,6 +52,15 @@ module testbench;
 
    wire        pci_barrier_req;
 
+   wire        net1_done;
+   wire        net2_done;
+   wire        net3_done;
+   wire        net4_done;
+
+   wire        pci_done;
+
+   wire        sim_end;
+
    wire        barrier_proceed;
 
 
@@ -77,6 +86,8 @@ module testbench;
             .rgmii_tx_clk     (rgmii_0_tx_clk),
             .link_speed       (link_speed),
             .host32_is_active (host32_is_active),
+            .done             (net1_done),
+            .sim_end          (sim_end),
             .activity         (net1_activity),
             .barrier_req      (net1_barrier_req),
             .barrier_proceed  (barrier_proceed)
@@ -92,6 +103,8 @@ module testbench;
             .rgmii_tx_clk     (rgmii_1_tx_clk),
             .link_speed       (link_speed),
             .host32_is_active (host32_is_active),
+            .done             (net2_done),
+            .sim_end          (sim_end),
             .activity         (net2_activity),
             .barrier_req      (net2_barrier_req),
             .barrier_proceed  (barrier_proceed)
@@ -107,6 +120,8 @@ module testbench;
             .rgmii_tx_clk     (rgmii_2_tx_clk),
             .link_speed       (link_speed),
             .host32_is_active (host32_is_active),
+            .done             (net3_done),
+            .sim_end          (sim_end),
             .activity         (net3_activity),
             .barrier_req      (net3_barrier_req),
             .barrier_proceed  (barrier_proceed)
@@ -122,6 +137,8 @@ module testbench;
             .rgmii_tx_clk     (rgmii_3_tx_clk),
             .link_speed       (link_speed),
             .host32_is_active (host32_is_active),
+            .done             (net4_done),
+            .sim_end          (sim_end),
             .activity         (net4_activity),
             .barrier_req      (net4_barrier_req),
             .barrier_proceed  (barrier_proceed)
@@ -146,6 +163,19 @@ module testbench;
       .pci_good               (pci_barrier_req),
 
       .barrier_proceed        (barrier_proceed)
+   );
+
+   // Finish module for handling the end of the simulation
+   finish_ctrl finish_ctrl (
+      .if_done                ({
+                                 net1_done,
+                                 net2_done,
+                                 net3_done,
+                                 net4_done
+                               }),
+      .pci_done               (pci_done),
+      .sim_end                (sim_end),
+      .host32_is_active       (host32_is_active)
    );
 
    // ---------------------------------------

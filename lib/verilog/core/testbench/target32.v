@@ -25,10 +25,6 @@
 `define DMA_EGRESS_FILE_LEN 24
 `define DMA_EGRESS_FILE_BITS 8*`DMA_EGRESS_FILE_LEN
 
-`define CONFIG_FILE_FMT "config.sim"
-`define CONFIG_FILE_LEN 10
-`define CONFIG_FILE_BITS 8*`CONFIG_FILE_LEN
-
 `define DEFAULT_FINISH_TIME 1000000
 
 /*
@@ -48,7 +44,9 @@ module target32 (
                 STOP_N,
                 DEVSEL_N,
                 RST_N,
-                CLK
+                CLK,
+
+                sim_end
                 );
 
 
@@ -78,6 +76,8 @@ output         DEVSEL_N;
 input          RST_N;
 input          CLK;
 
+input          sim_end;
+
 
 // Global Declarations
 
@@ -95,9 +95,6 @@ integer egress_count [NUM_PORTS-1:0];
 // Egress file descriptor
 integer fd_e [NUM_PORTS-1:0];
 
-reg [`CONFIG_FILE_BITS-1:0] 	config_file_name;
-time       finish_time;   // when simulation should end
-
 // Pointer to current word in ingress memory
 integer dma_iptr;
 
@@ -109,7 +106,6 @@ integer dma_iptr;
 initial
 begin
    // get info such as finish time from the config.txt file
-   read_configuration;
    read_DMA_ingress;
    initialize_egress;
    clear_memory;
@@ -541,55 +537,14 @@ endtask // handle_egress_packet
 
 
 // ========================================================
-// Process a configuration file (config.txt).
-// ========================================================
-
-task read_configuration;
-   integer fd_c, tmp;
-
-   begin
-      #1;
-
-      config_file_name = `CONFIG_FILE_FMT;
-
-      fd_c = $fopen(config_file_name, "r");
-
-      if (fd_c == 0) begin
-         finish_time = `DEFAULT_FINISH_TIME;
-      end
-      else begin
-         tmp=$fscanf(fd_c,"FINISH=%d",finish_time);
-      end
-
-      $fclose(fd_c);
-
-   end
-endtask // read_configuration
-
-
-
-// ========================================================
 // Decide when to finish the simulation and clean up
 // egress files.
 // ========================================================
 
 task handle_finish;
-   time t;
    integer i;
    begin
-      // First, figure out when to finish
-      if (finish_time == 0) begin
-         $display("%m Weird! finish_time should have been set. Will use default.");
-         finish_time = `DEFAULT_FINISH_TIME ;
-      end
-
-      if (finish_time < $time) begin // Finished already!
-         $display($time," Finishing immediately - maybe that's not what you wanted - if so then change config.txt to something larger");
-      end
-      else begin
-         t = finish_time - $time;
-         #t;
-      end
+      wait (sim_end === 1'b1);
 
       // OK, now it's time to finish so clean up
       for (i = 0; i < NUM_PORTS; i = i + 1) begin

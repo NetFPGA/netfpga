@@ -23,10 +23,6 @@
 `define EGRESS_FILE_LEN 25
 `define EGRESS_FILE_BITS 8*`EGRESS_FILE_LEN
 
-`define CONFIG_FILE_FMT "config.sim"
-`define CONFIG_FILE_LEN 10
-`define CONFIG_FILE_BITS 8*`CONFIG_FILE_LEN
-
 `define DEFAULT_FINISH_TIME 1000000
 
 `define INGRESS_MAX_WORD 1000000
@@ -50,6 +46,9 @@ module net
 
     input [1:0] link_speed,        // 0=10 1=100 2=1000 3=10000
     input       host32_is_active,  // reset and PCI config are complete.
+
+    output reg       done,
+    input            sim_end,
 
     output reg       activity,
 
@@ -85,13 +84,11 @@ module net
    integer    packet_length;
    integer    inter_packet_gap;
    integer    i;
-   time       finish_time;   // when simulation should end
    time       last_activity; // when we last saw packet on ingress or egress
 
 
    reg [`INGRESS_FILE_BITS-1:0] ingress_file_name;
    reg [`EGRESS_FILE_BITS-1:0] 	egress_file_name;
-   reg [`CONFIG_FILE_BITS-1:0] 	config_file_name;
 
    integer 			fd_e; // egress file descriptor
 
@@ -120,15 +117,14 @@ module net
 	rgmii_rx_d = 4'h0;
 	rgmii_rx_ctl = 0;
 	gen_crc_table;
-	finish_time = 0;
 	last_activity = 0;
 	tx_count = 0;
 	rx_count = 0;
         barrier_req = 0;
         activity = 0;
+        done = 0;
 
 	// get info such as finish time from the config.txt file
-	read_configuration;
 	gen_crc_table;
 
 	#1 initialize_ingress;
@@ -262,6 +258,9 @@ begin
          end
       endcase
    end
+
+   // Indicate that we are done
+   done = 1;
 end
 endtask // handle_ingress
 
@@ -643,68 +642,13 @@ endtask // initialize_egress
 
 
 
-///////////////////////////////////////////////////////////////
-// Process a configuration file (config.txt).
-
-  task read_configuration;
-      integer fd_c, tmp;
-      begin
-	 #1;
-
-	 config_file_name = `CONFIG_FILE_FMT;
-
-	 fd_c = $fopen(config_file_name, "r");
-
-	 if (fd_c == 0) begin
-	    if (my_port_number == 1)
-	      begin
-		 $display("Warning: could not read file config.txt");
-		 $display("Will use defaults:");
-		 $display("    Finish time is %t ",`DEFAULT_FINISH_TIME );
-		 $display("");
-		 $display("A config.txt file should have the format:");
-		 $display("FINISH=<time>");
-		 $display("where time is the desired finish time in ns");
-	      end
-	    finish_time = `DEFAULT_FINISH_TIME;
-	 end
-	 else begin
-	    tmp=$fscanf(fd_c,"FINISH=%d",finish_time);
-
-	    if (my_port_number == 1)
-	      begin
-		 $display("Read Configuration file %s",config_file_name);
-		 $display("    Finish time is %t.", finish_time);
-	      end
-	 end
-
-	 $fclose(fd_c);
-
-      end
-  endtask // read_configuration
-
-
-
-
 ///////////////////////////////////////////////////
 // Decide when to finish the simulation and clean up
 // egress files.
 task handle_finish;
       time t;
 begin
-   // First, figure out when to finish
-   if (finish_time == 0) begin
-      $display("%m Weird! finish_time should have been set. Will use default.");
-      finish_time = `DEFAULT_FINISH_TIME ;
-   end
-
-   if (finish_time < $time) begin // Finished already!
-      $display($time," Finishing immediately - maybe that's not what you wanted - if so then change config.txt to something larger");
-   end
-   else begin
-      t = finish_time - $time;
-      #t;
-   end
+   wait (sim_end === 1'b1);
 
    // OK, now it's time to finish so clean up
    $fwrite(fd_e,"\n<!-- Simulation terminating at time %0t -->\n",$time);

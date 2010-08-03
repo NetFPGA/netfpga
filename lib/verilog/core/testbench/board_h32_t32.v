@@ -197,6 +197,7 @@
 		  .req	   	   (host_req),
 		  .grant	   (host_gnt),
 		  .host32_is_active(host32_is_active),
+                  .done            (pci_done),
                   .activity        (pci_activity),
                   .barrier_req     (pci_barrier_req),
                   .barrier_proceed (barrier_proceed)
@@ -213,7 +214,8 @@
 		      .STOP_N (STOP_N),
 		      .DEVSEL_N (DEVSEL_N),
 		      .RST_N (RST_N),
-		      .CLK (PCLK)
+		      .CLK (PCLK),
+                      .sim_end (sim_end)
 		      );
 
 

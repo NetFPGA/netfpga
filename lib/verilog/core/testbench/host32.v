@@ -34,6 +34,8 @@ module host32 (
                input      grant,
 	       output reg host32_is_active,  // tell TB when we are ready for requests
 
+               output reg done,
+
                output reg activity,
 
                output reg barrier_req,
@@ -77,6 +79,7 @@ module host32 (
       dma_q_status = 'h0;
       barrier_req = 0;
       activity = 0;
+      done = 0;
       for (dma_rx_pkts_i = 0; dma_rx_pkts_i < `NUM_DMA_PORTS;
          dma_rx_pkts_i = dma_rx_pkts_i + 1) begin
             dma_rx_pkts[dma_rx_pkts_i] = 0;
@@ -342,6 +345,9 @@ module host32 (
             endcase
 
 	 end // while ((pci_ptr < `PCI_SZ) && (pci_cmds[pci_ptr] != 0))
+
+         // Indicate that we are done
+         done = 1;
 
          // Finished processing all PCI simulation data.
          //
