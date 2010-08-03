@@ -8,7 +8,7 @@ export PERL5LIB := $(CURDIR)/lib/Perl5:$(PERL5LIB)
 
 
 # List of directories in which we should build
-SUBDIRS = lib bitfiles projects/scone/sw projects/selftest/sw projects/reference_router/sw projects/router_buffer_sizing/sw projects/router_kit/sw
+SUBDIRS = lib bitfiles projects
 
 
 # Install the various files
