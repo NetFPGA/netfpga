@@ -1,7 +1,7 @@
 HEAD -- Version X.X.X
 
 Version 2.1.2
-(30 Jul, 2010)
+(6 Aug, 2010)
   Improvements:
    * Add parameter to disable registers on CPU DMA queues
    * GUI SCONE:
@@ -23,6 +23,8 @@ Version 2.1.2
    * cpci_reprogram.pl: report failure if dumpregs.sh/loadregs.sh fails
      (reported by Berywn Hoyt <berwyn at brush.co.nz>)
    * Simulation: don't run simulation if make_pkts.pl fails
+   * Fixed some instances of register defines files not being built when
+     installed from the .tar.gz
 
 Version 2.1.1
 (11 Jun, 2010)
