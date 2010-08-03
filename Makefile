@@ -1,14 +1,21 @@
-
+#
 # Run make in each of the subdirectories
-# $Id: Makefile 5765 2009-07-22 20:58:24Z g9coving $
 #
 
+# Set environment variables to correspond to the current working directory
+export NF_ROOT = $(CURDIR)
+export PERL5LIB := $(CURDIR)/lib/Perl5:$(PERL5LIB)
+
+
+# List of directories in which we should build
 SUBDIRS = lib bitfiles projects/scone/sw projects/selftest/sw projects/reference_router/sw projects/router_buffer_sizing/sw projects/router_kit/sw
+
 
 # Install the various files
 subdirs: $(SUBDIRS)
 
 $(SUBDIRS):
+	echo $(PERL5LIB)
 	if [ -f "$@/Makefile" ] ; then \
 		$(MAKE) -C $@ ; \
 	fi
