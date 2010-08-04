@@ -204,7 +204,7 @@ int dmaTst() {
       char readBuf[DMA_READ_BUF_SIZE];
       bzero(readBuf, DMA_READ_BUF_SIZE);
       timeout.tv_sec = 0;
-      timeout.tv_usec = 1000;
+      timeout.tv_usec = 50000;
       FD_ZERO(&read_set);
       max_sd = s[i] + 1;
       FD_SET(s[i], &read_set);

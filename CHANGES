@@ -9,6 +9,7 @@ Version 2.1.2
    * Selftest:
      - allow selftest to run when interfaces are down
      - clean up output when DMA test fails
+     - increase time time for DMA transfer timeouts
    * Gigabit MAC:
      - new MAC provided by Erik Rubow at UCSD
      - located in lib/verilog/contrib/ucsd/gig_eth_mac
