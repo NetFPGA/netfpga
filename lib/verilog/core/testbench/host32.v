@@ -62,7 +62,7 @@ module host32 (
    integer dma_rx_pkts[0 : `NUM_DMA_PORTS - 1];
    integer dma_rx_pkts_i;
 
-   reg exp_pkts [0: `NUM_DMA_PORTS - 1];
+   integer exp_pkts [0: `NUM_DMA_PORTS - 1];
    reg all_exp_pkts_seen;
 
    reg delay_done;
