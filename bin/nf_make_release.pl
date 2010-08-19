@@ -2,13 +2,13 @@
 
 #
 # Perl script to generate a release
-# $Id: nf_make_release.pl 6067 2010-04-01 22:36:26Z grg $
 #
 
 use File::Basename;
 use XML::Simple;
 use Getopt::Long;
 use File::Temp qw/ tempdir /;
+use Cwd;
 use strict;
 
 # Base NetFPGA directory
@@ -900,8 +900,11 @@ sub preExportPrep {
 	if ($use_git) {
 		$exportDir = tempdir(CLEANUP => 1);
 		my @args = ("git", "checkout-index", "-a", "-f", "--prefix=$exportDir/");
+		my $cwd = getcwd;
+		chdir($nf_root);
 		system(@args) == 0
 			or die "system @args failed: $?";
+		chdir($cwd);
 	}
 }
 
