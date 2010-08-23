@@ -198,6 +198,17 @@ my @gui = ();
 if (@src_test_dirs == 0) {
   print "=== Error: No tests match regexp test_${major}_${minor} - exiting.\n";
 }
+elsif ($gui && scalar(@src_test_dirs) != 1) {
+  print "=== Error: GUI mode specified but more than one test matches the set of tests to run.\n";
+  print "           Restrict the set of tests with the --major and --minor flags.\n\n";
+  print "           Matching set of tests:\n";
+  my $str = '              ';
+  for (@src_test_dirs) {
+    $str .= $_.' ';
+    if (length($str) > 50) { print "$str\n"; $str = '              '; }
+  }
+  if ($str){ print "$str\n" }
+}
 else {
   print "=== Will run the following tests:\n";
   my $str ='';
