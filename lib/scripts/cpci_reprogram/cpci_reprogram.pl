@@ -32,6 +32,9 @@ my $dir = getcwd;
 
 my %config;
 
+# Verify that we're running as root
+unless ($> == 0 || $< == 0) { die "Error: $0 must be run as root" }
+
 # Parse the command line arguments
 my $all = 0;   			# Program ALL devices
 my $program_device = -1; 	# select which device to program default to 0
