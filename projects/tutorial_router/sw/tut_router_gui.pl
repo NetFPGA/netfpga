@@ -14,7 +14,7 @@ system("pushd $ENV{'NF_ROOT'}/projects/scone/sw/ ; sudo ./scone &");
 `popd`;
 system("pushd $ENV{'NF_ROOT'}/lib/java/gui ; ./router.sh");
 `popd`;
-`killall scone`;
+`sudo killall scone`;
 
 exit 0;
 
