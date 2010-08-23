@@ -15,6 +15,7 @@
 #include <string>
 #include <cstdio>
 #include <cstdlib>
+#include <sys/stat.h>
 
 #include "iflist.hh"
 #include "nf21_mon.hh"
