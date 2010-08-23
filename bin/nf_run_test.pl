@@ -290,14 +290,30 @@ else {
   # Print out a summary
   my $summary;
   $summary = "------------SUMMARY---------------\n";
+
   $summary .= "PASSING TESTS: \n";
-  for (@pass) { $summary .= "\t\t$_\n" }
+  if (scalar(@pass) != 0) {
+    for (@pass) { $summary .= "\t\t$_\n" }
+  } else {
+    $summary .= "\t\tNone\n";
+  }
+
   $summary .= "FAILING TESTS: \n";
-  for (@fail) { $summary .= "\t\t$_\n" }
-  $summary .= "GUI TESTS: \n";
+  if (scalar(@fail) != 0) {
+    for (@fail) { $summary .= "\t\t$_\n" }
+  } else {
+    $summary .= "\t\tNone\n";
+  }
+
+  if (scalar(@gui) != 0) {
+    $summary .= "GUI TESTS: \n";
+  } else {
+    $summary .= "\t\tNone\n";
+  }
   for (@gui) { $summary .= "\t\t$_\n" }
-  $summary .= "TOTAL: " . scalar(@src_test_dirs) . " PASS: " . scalar(@pass) .
-    "  FAIL: " . scalar(@fail) . "  GUI: " . scalar(@gui) . "\n";
+
+  $summary .= "TOTAL: " . scalar(@src_test_dirs) . "   PASS: " . scalar(@pass) .
+    "   FAIL: " . scalar(@fail) . "   GUI: " . scalar(@gui) . "\n";
 
   print $summary;
   if ($#fail >= 0) {
