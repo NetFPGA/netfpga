@@ -10,4 +10,9 @@ all: $(projects)
 $(projects):
 	$(MAKE) -C $@
 
-.PHONY: all $(projects)
+clean install:
+	#for dir in $(projects) ; do \
+	#	$(MAKE) -C $$dir $@; \
+	#done
+
+.PHONY: all clean install $(projects)
