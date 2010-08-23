@@ -5,6 +5,13 @@
 
 SUBDIRS = C scripts
 
+# Work out if we have java in the system path, in which case we should recurse into the java directory as well
+JAVA := $(shell which javac)
+ifneq ($(JAVA), )
+	SUBDIRS += java
+endif
+
+
 # Install the various files
 subdirs: $(SUBDIRS)
 
