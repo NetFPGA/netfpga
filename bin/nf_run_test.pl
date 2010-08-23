@@ -193,6 +193,7 @@ else {
 
 my @pass = ();
 my @fail = ();
+my @gui = ();
 
 if (@src_test_dirs == 0) {
   print "=== Error: No tests match regexp test_${major}_${minor} - exiting.\n";
@@ -268,9 +269,16 @@ else {
 
     print "=== Running test $dst_dir/$td ...\n";
     $status = system($cmd);
-    if ($status > 255) { # test failed
-      print "Error: test $td failed!\n";
-      push @fail, $td;
+    if ($status > 255) { # test failed or ran in GUI mode
+      $status >>= 8;
+      if ($status == 99) {
+        print "Test $td ran in GUI mode. Unable to identify pass/failure\n";
+        push @gui, $td;
+      }
+      else {
+        print "Error: test $td failed!\n";
+        push @fail, $td;
+      }
     }
     else {
       print "Test $td passed!\n";
@@ -286,8 +294,10 @@ else {
   for (@pass) { $summary .= "\t\t$_\n" }
   $summary .= "FAILING TESTS: \n";
   for (@fail) { $summary .= "\t\t$_\n" }
+  $summary .= "GUI TESTS: \n";
+  for (@gui) { $summary .= "\t\t$_\n" }
   $summary .= "TOTAL: " . scalar(@src_test_dirs) . " PASS: " . scalar(@pass) .
-    "  FAIL: " . scalar(@fail) . "\n";
+    "  FAIL: " . scalar(@fail) . "  GUI: " . scalar(@gui) . "\n";
 
   print $summary;
   if ($#fail >= 0) {
