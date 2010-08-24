@@ -13,7 +13,7 @@ if ($ARGV[0] eq "--use_bin")
   $bitfile = $ARGV[1];
 }
 
-`nf_download $bitfile`;
+`/usr/local/bin/nf_download $bitfile`;
 system("pushd $ENV{'NF_ROOT'}/projects/scone/sw/ ; ./scone &");
 `popd`;
 system("pushd $ENV{'NF_ROOT'}/lib/java/gui ; ./router.sh");
