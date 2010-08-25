@@ -1,37 +1,25 @@
 <build>
-	<base name="bin" />
-	<base name="lib/C" />
-	<base name="lib/Makefiles" />
-	<base name="lib/Perl5" />
-	<base name="lib/scripts" />
-	<base name="README" />
-	<base name="bitfiles" />
-	<base name="LICENSE" />
-	<base name="bashrc_addon" />
-	<base name="Makefile" />
-	<base name="lib/Makefile" />
-	<base name="lib/java" />
-	<base name="lib/python" />
+        <base name="bitfiles" />
+        <base name="LICENSE" />
 
-	<release name="tutorial" version="tutorial_seattle">
-		<bitfile name="cpci" />
-		<bitfile name="cpci_reprogrammer" />
-		<!--<bitfile name="selftest" />-->
+        <release name="tutorial" version="tutorial_2_1_2">
+                <project name="tutorial_router" />
+                <project name="crypto_nic" />
 
-		<project name="cpci" />
-		<project name="driver" />
-		<!--<project name="selftest" noverilog="1"/>-->
-		<project name="reference_nic" />
-		<!--<project name="reference_switch" />-->
-		<project name="reference_router" />
-		<project name="tutorial_router" />
-		<project name="router_buffer_sizing" />
-		<project name="scone" />
-		<project name="gui_scone" />
-		<!--<project name="router_kit" />-->
+                <!-- Exclude all modules from Base Package -->
+                <exclude name="cpci" />
+                <exclude name="cpci_reprogrammer" />
+                <exclude name="selftest" />
+                <exclude name="driver" />
+                <exclude name="reference_nic" />
+                <exclude name="reference_switch" />
+                <exclude name="reference_router" />
+                <exclude name="dram_queue_test" />
+                <exclude name="router_buffer_sizing" />
+                <exclude name="scone" />
+                <exclude name="gui_scone" />
+                <exclude name="router_kit" />
+                <exclude name="dram_router" />
 
-		<verlibinclude name="rate_limiter" />
-		<!--<verlibinclude name="output_port_lookup/learning_cam_switch" />-->
-		<verlibinclude name="io_queues/cpu_reg_queue" />
-	</release>
+        </release>
 </build>
