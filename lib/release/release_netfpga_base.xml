@@ -36,6 +36,7 @@
 		<verlibinclude name="core/rate_limiter" />
 		<verlibinclude name="core/output_port_lookup/learning_cam_switch" />
 		<verlibinclude name="core/io_queues/cpu_reg_queue" />
+		<verlibinclude name="core/module_template" />
 		<verlibinclude name="contrib/ucsd/gig_eth_mac" />
 	</release>
 </build>
