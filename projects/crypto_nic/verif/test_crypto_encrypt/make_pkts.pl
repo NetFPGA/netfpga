@@ -2,7 +2,7 @@
 # make_pkts.pl
 #
 #
-#
+# 
 
 use NF::PacketGen;
 use NF::PacketLib;
@@ -41,33 +41,6 @@ my $dst_ip = 0;
 my $src_ip = 0;
 my $pkt;
 
-#
-###############################
-#
-
-# Enable encryption
-my $key = 0x55aaff33;
-
-$delay = 0;
-nf_PCI_write32($delay, 0, CRYPTO_KEY_REG(), $key);
-
-#
-###############################
-#
-
-# Send an IP packet in port 1
-$delay = '@10us';
-$length = 64;
-$DA = $MAC_1;
-$SA = $MAC_2;
-$dst_ip = $IP_1;
-$src_ip = $IP_2;
-$pkt = make_IP_pkt($length, $DA, $SA, $TTL, $dst_ip, $src_ip);
-nf_dma_data_in($length, $delay, 1,  $pkt);
-
-# Expect the packet on all other ports
-my $encrypted_pkt = encrypt_pkt($key, $pkt);
-nf_expected_packet(1, $length, $encrypted_pkt);
 
 # *********** Finishing Up - need this in all scripts ! ****************************
 my $t = nf_write_sim_files();

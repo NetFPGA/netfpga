@@ -1,7 +1,1 @@
-download_nic
-test_loopback_random
-test_loopback_minsize
-test_loopback_maxsize
-test_loopback_drop
-test_loopback_crc
-test_ip_interface
+test_crypto_encrypt/run.pl

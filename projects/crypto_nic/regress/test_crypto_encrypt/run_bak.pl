@@ -32,6 +32,38 @@ my $dst_ip = 0;
 my $src_ip = 0;
 my $pkt;
 
+#
+###############################
+#
+
+# Enable encryption
+my $key = 0x55AAFF33;
+
+nftest_regwrite('nf2c0', CRYPTO_KEY_REG(), $key);
+
+#
+###############################
+#
+
+# Send an IP packet in port 1
+$length = 64;
+$DA = $MAC_1;
+$SA = $MAC_2;
+$dst_ip = $IP_1;
+$src_ip = $IP_2;
+
+$pkt = NF::IP_pkt->new(len => $length, 
+			DA => $DA, 
+			SA => $SA, 
+			ttl => $TTL, 
+			dst_ip => $dst_ip, 
+			src_ip => $src_ip);
+
+nftest_send('eth1', $pkt->packed);
+
+# Expect the packet on all other ports
+my $encrypted_pkt = encrypt_pkt($key, $pkt);
+nftest_expect('nf2c2', $encrypted_pkt->packed);
 
 my $unmatched_hoh = nftest_finish();
 my $total_errors = nftest_print_errors($unmatched_hoh);

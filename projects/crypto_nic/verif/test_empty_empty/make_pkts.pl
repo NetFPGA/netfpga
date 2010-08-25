@@ -2,11 +2,11 @@
 # make_pkts.pl
 #
 #
-#
+# 
 
 use NF::PacketGen;
 use NF::PacketLib;
-
+use SimLib;
 
 $delay = 2000;
 $batch = 0;
@@ -15,6 +15,11 @@ nf_set_environment( { PORT_MODE => 'PHYSICAL', MAX_PORTS => 4 } );
 # use strict AFTER the $delay, $batch and %reg are declared
 use strict;
 use vars qw($delay $batch %reg);
+
+# Prepare the DMA and enable interrupts
+prepare_DMA('@3.9us');
+enable_interrupts(0);
+
 
 # *********** Finishing Up - need this in all scripts ! ****************************
 my $t = nf_write_sim_files();

@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // vim:set shiftwidth=3 softtabstop=3 expandtab:
-// $Id: crypto.v 5994 2010-03-12 00:17:01Z grg $
+// $Id: crypto.v 5590 2009-05-19 19:43:27Z g9coving $
 //
 // Module: crypto.v
 // Project: NF2.1
@@ -15,15 +15,11 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/1ps
-module crypto
+module crypto 
    #(
       parameter DATA_WIDTH = 64,
       parameter CTRL_WIDTH = DATA_WIDTH/8,
-      parameter UDP_REG_SRC_WIDTH = 2,
-      parameter INPUT_ARBITER_STAGE_NUM = 2,
-      parameter NUM_OUTPUT_QUEUES = 8,
-      parameter STAGE_NUM = 5,
-      parameter NUM_IQ_BITS = 3
+      parameter UDP_REG_SRC_WIDTH = 2
    )
    (
       // --- data path interface
@@ -51,7 +47,7 @@ module crypto
       output  [`UDP_REG_ADDR_WIDTH-1:0]  reg_addr_out,
       output  [`CPCI_NF2_DATA_WIDTH-1:0] reg_data_out,
       output  [UDP_REG_SRC_WIDTH-1:0]    reg_src_out,
-
+      
 
       // --- Misc
       input                              clk,
@@ -59,7 +55,7 @@ module crypto
    );
 
    `LOG2_FUNC
-
+   
    //--------------------- Internal Parameter-------------------------
    localparam NUM_STATES = 4;
 
@@ -85,13 +81,13 @@ module crypto
    reg [NUM_STATES-1:0]             state_next;
    reg [2:0]                        count;
    reg [2:0]                        count_next;
-
+   
    //------------------------- Modules-------------------------------
    fallthrough_small_fifo #(.WIDTH(DATA_WIDTH+CTRL_WIDTH), .MAX_DEPTH_BITS(2))
       input_fifo
         (.din ({in_ctrl,in_data}),     // Data in
          .wr_en (in_wr),               // Write enable
-         .rd_en (in_fifo_rd_en),       // Read the next word
+         .rd_en (in_fifo_rd_en),       // Read the next word 
          .dout ({in_fifo_ctrl_dout, in_fifo_data_dout}),
          .full (),
          .nearly_full (in_fifo_nearly_full),
@@ -101,10 +97,10 @@ module crypto
          );
 
    generic_regs
-   #(
+   #( 
       .UDP_REG_SRC_WIDTH   (UDP_REG_SRC_WIDTH),
       .TAG                 (`CRYPTO_BLOCK_ADDR),
-      .REG_ADDR_WIDTH      (`CRYPTO_REG_ADDR_WIDTH),  // Width of block addresses
+      .REG_ADDR_WIDTH      (`CRYPTO_REG_ADDR_WIDTH),                       // Width of block addresses
       .NUM_COUNTERS        (0),                       // How many counters
       .NUM_SOFTWARE_REGS   (1),                       // How many sw regs
       .NUM_HARDWARE_REGS   (0)                        // How many hw regs
@@ -172,7 +168,7 @@ module crypto
                   end
                end
             end // case: PROCESS_CTRL_HDR
-
+   
             // Pass the ethernet and IP headers through unmodified
             ETH_IP_HDR: begin
                // Wait for data to be in the FIFO and the output to be ready
@@ -186,7 +182,7 @@ module crypto
                   end
                end
             end // case: ETH_IP_HDR
-
+   
             // In the final IP header word, touch only the last 2 bytes
             FINAL_IP_HDR: begin
                // Wait for data to be in the FIFO and the output to be ready
@@ -198,7 +194,7 @@ module crypto
                   state_next = PAYLOAD;
                end
             end // case: FINAL_IP_HDR
-
+   
             // Process all data
             PAYLOAD: begin
                // Wait for data to be in the FIFO and the output to be ready
@@ -216,7 +212,7 @@ module crypto
                   end
                end
             end // case: PAYLOAD
-
+   
          endcase // case(state)
       end // else
    end // always @ (*)
