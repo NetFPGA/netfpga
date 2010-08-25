@@ -653,10 +653,9 @@ module user_data_path
       // --- Misc
       .clk                                (clk),
       .reset                              (reset));
- -----/\----- EXCLUDED -----/\----- */
-
 
    defparam rate_limiter.RATE_LIMIT_BLOCK_TAG = `RATE_LIMIT_1_BLOCK_ADDR;
+ -----/\----- EXCLUDED -----/\----- */
 
    //
    // --- User data path register master
