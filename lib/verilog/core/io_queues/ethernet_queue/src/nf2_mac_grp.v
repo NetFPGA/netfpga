@@ -74,79 +74,47 @@
    wire [9:0]     rx_pkt_word_cnt;
    wire           rx_pkt_pulled;
 
-   // See Tri-Mode Ethernet MAC user Guide "Configuration Vector Description" (p66)
-   wire [66 : 0] tieemacconfigvec =
-                 {mac_speed[1:0],        // 66:65 = MAC speed  00=10M 01=100M 10=1000M (default)
-                  1'b0,                  // 64 0 = promiscuous mode
-                  1'b1,                  // 63 0 = perform length/error checks
-                                         //        Note: When this is zero the MAC will verify that the
-                                         //        length in the ethertype/length field matches the packet
-                                         //        length if the length <= 1536. If the length < 46 it
-                                         //        will actually result in packet truncation as it
-                                         //        assumes that the packet has padding.
-                                         //        This WILL cause problems unless all modules are
-                                         //        capable of working with packets that are 2 words
-                                         //        in length.
-                                         //
-                  1'b0,                  // 62 0 = ignore pause frames (pass them thru)
-                  1'b0,                  // 61 0 = ignore clientemacpausereq signal
-                  reset_MAC,             // 60 1 = reset transmitter (asynch)
-                  enable_jumbo_tx,       // 59 1 = allow Tx of Jumbos (dflt 1)
-                  disable_crc_gen,       // 58 1 = user will supply FCS 0 = MAC will compute it (dflt = 0)
-                  1'b1,                  // 57 1 = Transmitter Enable
-                  1'b1,                  // 56 1 = Enable VLAN frames to be sent
-                  1'b0,                  // 55 0 = Tx is full duplex (dflt), 1 = half duplex
-                  1'b0,                  // 54 0 = Tx inter Frame Gap is ignored (always legal)
-                  reset_MAC,             // 53 0 = reset receiver (asynch)
-                  enable_jumbo_rx,       // 52 1 = allow Rx of Jumbos (dflt 1)
-                  disable_crc_check,     // 51 1 = receiver will provide FCS 0 = no FCS (dflt = 0)
-                  1'b1,                  // 50 1 = Receiver Enable
-                  1'b1,                  // 49 1 = Enable VLAN frames to be received
-                  1'b0,                  // 48 0 = Rx is full duplex (dflt), 1 = half duplex
-                  48'haaaaaa_bbbbbb      // 47:0 = MAC Pause Frame SA (ignored anyway)
-                  };
+   // ethernet MAC
 
-   // tri-mode MAC
+   gig_eth_mac gig_eth_mac
+     (
+       // Reset, clocks
+       .reset			(reset_MAC),
+       .tx_clk			(txgmiimiiclk),
+       .rx_clk			(rxgmiimiiclk),
 
-   tri_mode_eth_mac tri_mode_eth_mac (
-        .reset                  (reset_MAC),
-        .emacphytxd             (gmii_tx_d),
-        .emacphytxen            (gmii_tx_en),
-        .emacphytxer            (gmii_tx_er),
-        .phyemaccrs             (gmii_crs),
-        .phyemaccol             (gmii_col),
-        .phyemacrxd             (gmii_rx_d),
-        .phyemacrxdv            (gmii_rx_dv),
-        .phyemacrxer            (gmii_rx_er),
+       // Run-time Configuration (takes effect between frames)
+       .conf_tx_en		(tx_mac_en),
+       .conf_rx_en		(rx_mac_en),
+       .conf_tx_no_gen_crc	(disable_crc_check),
+       .conf_rx_no_chk_crc	(disable_crc_gen),
+       .conf_tx_jumbo_en	(enable_jumbo_tx),
+       .conf_rx_jumbo_en	(enable_jumbo_rx),
 
-        .clientemactxd          (gmac_tx_data),
-        .clientemactxdvld       (gmac_tx_dvld),
-        .emacclienttxack        (gmac_tx_ack),
-        .clientemactxunderrun   (1'b0),
-        .emacclienttxcollision  (),
-        .emacclienttxretransmit (),
-        .clientemactxifgdelay   (8'd13), // see Interframe Gap Adjust in Tri-mode_MAC User Guide
-        .clientemacpausereq     (1'b0),
-        .clientemacpauseval     (16'h0),
-        .clientemactxenable     (tx_mac_en),    // default = 1
-        .emacclientrxd          (gmac_rx_data),
-        .emacclientrxdvld       (gmac_rx_dvld),
-        .emacclientrxgoodframe  (gmac_rx_goodframe),
-        .emacclientrxbadframe   (gmac_rx_badframe),
-        .clientemacrxenable     (rx_mac_en),    // default = 1
-        .emacclienttxstats      (),  // dont use stats
-        .emacclienttxstatsvld   (),
-        .emacclientrxstats      (),
-        .emacclientrxstatsvld   (),
+       // TX Client Interface
+       .mac_tx_data		(gmac_tx_data),
+       .mac_tx_dvld		(gmac_tx_dvld),
+       .mac_tx_ack		(gmac_tx_ack),
+       .mac_tx_underrun		(1'b0),
 
-        .tieemacconfigvec       (tieemacconfigvec),
+       // RX Client Interface
+       .mac_rx_data		(gmac_rx_data),
+       .mac_rx_dvld		(gmac_rx_dvld),
+       .mac_rx_goodframe	(gmac_rx_goodframe),
+       .mac_rx_badframe		(gmac_rx_badframe),
 
-        .txgmiimiiclk           (txgmiimiiclk),
-        .rxgmiimiiclk           (rxgmiimiiclk),
-        .speedis100             (),
-        .speedis10100           (),
-        .corehassgmii           (1'b0));
+       // TX GMII Interface
+       .gmii_tx_data		(gmii_tx_d),
+       .gmii_tx_en		(gmii_tx_en),
+       .gmii_tx_er		(gmii_tx_er),
 
+       // RX GMII Interface
+       .gmii_rx_data		(gmii_rx_d),
+       .gmii_rx_dvld		(gmii_rx_dv),
+       .gmii_rx_er		(gmii_rx_er),
+
+       .gmii_col		(gmii_col),
+       .gmii_crs	        (gmii_crs));
 
    rx_queue
      #(.DATA_WIDTH(DATA_WIDTH),
