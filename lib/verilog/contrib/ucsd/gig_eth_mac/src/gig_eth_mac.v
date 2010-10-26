@@ -45,14 +45,17 @@ module gig_eth_mac
   output wire mac_rx_badframe,
 
   // TX GMII Interface
-  output wire [7:0] gmii_txd,
-  output wire gmii_txen,
-  output wire gmii_txer,
+  output wire [7:0] gmii_tx_data,
+  output wire gmii_tx_en,
+  output wire gmii_tx_er,
 
   // RX GMII Interface
-  input  wire [7:0] gmii_rxd,
-  input  wire gmii_rxdv,
-  input  wire gmii_rxer
+  input  wire [7:0] gmii_rx_data,
+  input  wire gmii_rx_dvld,
+  input  wire gmii_rx_er,
+
+  input  wire gmii_col,
+  input  wire gmii_crs
 );
 
   //-------- Instantiated modules --------//
@@ -68,9 +71,9 @@ module gig_eth_mac
     .mac_tx_dvld        (mac_tx_dvld),
     .mac_tx_ack         (mac_tx_ack),
     .mac_tx_underrun    (mac_tx_underrun),
-    .gmii_txd           (gmii_txd),
-    .gmii_txen          (gmii_txen),
-    .gmii_txer          (gmii_txer)
+    .gmii_txd           (gmii_tx_data),
+    .gmii_txen          (gmii_tx_en),
+    .gmii_txer          (gmii_tx_er)
   );
 
   gig_eth_mac_rx #( .MAX_FRAME_SIZE_STANDARD (MAX_FRAME_SIZE_STANDARD),
@@ -85,9 +88,9 @@ module gig_eth_mac
     .mac_rx_dvld        (mac_rx_dvld),
     .mac_rx_goodframe   (mac_rx_goodframe),
     .mac_rx_badframe    (mac_rx_badframe),
-    .gmii_rxd           (gmii_rxd),
-    .gmii_rxdv          (gmii_rxdv),
-    .gmii_rxer          (gmii_rxer)
+    .gmii_rxd           (gmii_rx_data),
+    .gmii_rxdv          (gmii_rx_dvld),
+    .gmii_rxer          (gmii_rx_er)
   );
 
 endmodule
