@@ -8,6 +8,7 @@
   <nf:dev_id>8</nf:dev_id>
   <nf:use_modules>
     core/io_queues/cpu_dma_queue
+    core/io_queues/ethernet_queue
     core/io_queues/ethernet_mac
     core/input_arbiter/rr_input_arbiter
     core/nf2/generic_top
