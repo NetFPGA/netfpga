@@ -1,0 +1,24 @@
+# Makefile.common for H.223 plugin
+#     Contains the stuff from Makefile.am and Makefile.nmake that is
+#     a) common to both files and
+#     b) portable between both files
+#
+# $Id: Makefile.common 18197 2006-05-21 05:12:17Z sahlberg $
+#
+# Wireshark - Network traffic analyzer
+# By Gerald Combs <gerald@wireshark.org>
+# Copyright 1998 Gerald Combs
+
+# the name of the plugin
+PLUGIN_NAME = pwospf
+
+# the dissector sources (without any helpers)
+DISSECTOR_SRC = packet-pwospf.c
+
+# corresponding headers
+DISSECTOR_INCLUDES =
+
+# Dissector helpers.  They're included in the source files in this
+# directory, but they're not dissectors themselves, i.e. they're not
+# used to generate "register.c").
+DISSECTOR_SUPPORT_SRC =
