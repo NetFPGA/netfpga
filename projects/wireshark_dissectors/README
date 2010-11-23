@@ -1,0 +1,18 @@
+Wireshark Dissectors
+====================
+
+This directory contains Wireshark dissectors for the following NetFPGA
+elements:
+ - event capture (buffer occupancy monitoring)
+ - PWOSPF (Pee-Wee OSPF -- see: http://yuba.stanford.edu/cs344/pwospf/)
+
+
+Installation
+------------
+The Wireshark dissectors require the following packages to be installed:
+ - glib2-devel (glib.h)
+ - wireshark-devel (epan/packet.h, epan/prefs.h)
+ 
+The dissectors currently do NOT build without some manual tweaking of the
+makefiles and header file locations. Please consider contributing improvements
+to the build system back to the NetFPGA project.
