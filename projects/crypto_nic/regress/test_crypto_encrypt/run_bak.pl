@@ -52,11 +52,11 @@ $SA = $MAC_2;
 $dst_ip = $IP_1;
 $src_ip = $IP_2;
 
-$pkt = NF::IP_pkt->new(len => $length, 
-			DA => $DA, 
-			SA => $SA, 
-			ttl => $TTL, 
-			dst_ip => $dst_ip, 
+$pkt = NF::IP_pkt->new(len => $length,
+			DA => $DA,
+			SA => $SA,
+			ttl => $TTL,
+			dst_ip => $dst_ip,
 			src_ip => $src_ip);
 
 nftest_send('eth1', $pkt->packed);
