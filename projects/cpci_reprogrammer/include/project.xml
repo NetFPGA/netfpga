@@ -7,22 +7,14 @@
   <nf:version_revision>1</nf:version_revision>
   <nf:dev_id>4</nf:dev_id>
   <nf:use_modules>
-    core/io_queues/cpu_dma_queue
-    core/io_queues/ethernet_mac
     core/nf2/generic_top
     core/nf2/reference_core
-    core/io/mdio
     core/cpci_bus
-    core/dma
     core/utils
   </nf:use_modules>-
   <nf:memalloc layout="reference">
     <nf:group name="core1">
       <nf:instance name="device_id" />
-      <nf:instance name="dma" base="0x0500000"/>
-      <nf:instance name="mdio" />
-      <nf:instance name="nf2_mac_grp" count="4" />
-      <nf:instance name="cpu_dma_queue" count="4" />
     </nf:group>
   </nf:memalloc>
 </nf:project>
