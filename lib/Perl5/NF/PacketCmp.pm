@@ -541,7 +541,7 @@ sub compare_2_pkts {
   if (scalar(@{$d1}) != scalar(@{$d2})) {
     #print (@{$d2});
     return (sprintf "Packet lengths do not match, expecting %d, saw %d\n",
-	    ($#{@{$d1}}+1), ($#{@{$d2}}+1));
+	    scalar(@{$d1}), scalar(@{$d2}));
   }
 
   for ($byte=0;$byte<scalar(@{$d1}); $byte++) {
@@ -592,7 +592,7 @@ sub showDASAtype {
   my $data = shift;  # ref to array of bytes
   my $DA = join ':',@{$data}[0..5];
   my $SA = join ':',@{$data}[6..11];
-  return 'Len:'.($#{$data}+1)." DA: $DA SA: $SA [${$data}[12]${$data}[13]] ".join (' ',@{$data}[14..19]).'...';
+  return 'Len:'.scalar($data)." DA: $DA SA: $SA [${$data}[12]${$data}[13]] ".join (' ',@{$data}[14..19]).'...';
 }
 
 
