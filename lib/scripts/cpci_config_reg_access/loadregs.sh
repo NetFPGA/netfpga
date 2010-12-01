@@ -41,6 +41,12 @@ fi
 # Load the registers
 echo "Loading registers..."
 while read REG ; do
+	# Verify that we don't have a blank line
+	if [ "$REG" = "" ] ; then
+		continue
+	fi
+
+	# Program the register
 	/sbin/setpci $DEVICE "$REG"
 done
 
