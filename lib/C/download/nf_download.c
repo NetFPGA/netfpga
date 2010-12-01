@@ -274,10 +274,17 @@ void DownloadCode(FILE *code_file) {
    else {
       switch (version) {
          case 1: bytes_expected = VIRTEX_BIN_SIZE_V2_0; break;
-         case 2: bytes_expected = VIRTEX_BIN_SIZE_V2_1; break;
-         case 3: bytes_expected = VIRTEX_BIN_SIZE_V2_1; break;
+         case 2:
+         case 3:
+         case 4: bytes_expected = VIRTEX_BIN_SIZE_V2_1; break;
          default : bytes_expected = -1;
       }
+      if (version < CPCI_MIN_VER || version > CPCI_MAX_VER)
+         fprintf(log_file, "\n"
+               "WARNING: Unkown CPCI version (%d).\n"
+               "         Known versions are between %d and %d inclusive.\n"
+               "         Expected number of bytes will be displayed as -1.\n\n",
+               version, CPCI_MIN_VER, CPCI_MAX_VER);
    }
 
    fprintf(log_file, "Download completed -  %d bytes. (expected %d).\n", bytes_sent, bytes_expected);

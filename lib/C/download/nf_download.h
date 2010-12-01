@@ -35,6 +35,9 @@ u_int intr_enable;
 #define VIRTEX_BIN_SIZE_V2_0     1448740
 #define VIRTEX_BIN_SIZE_V2_1     2377668
 
+// Minimum and maximum known versions of the CPCI
+#define CPCI_MIN_VER             1
+#define CPCI_MAX_VER             4
 
 
 void BeginCodeDownload(char *codefile_name);
