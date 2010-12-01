@@ -24,7 +24,7 @@ CONTENTS:
 
 The tree is structured as follows:
 
-NetFPGA2.1-x.y
+netfpga
 |
 +------ bin (contains scripts for running simulations
 |            and setting up the environment)
@@ -35,6 +35,11 @@ NetFPGA2.1-x.y
 |       +---- C (contains common software and code for reference designs)
 |       |
 |       +---- verilog (contains modules and files that can be reused for design)
+|       |     |
+|       |     +---- core (modules used by reference designs developed as part
+|       |     |           of the NetFPGA design process)
+|       |     |
+|       |     +---- contrib (modules contributed by NetFPGA users)
 |       |
 |       +---- Makefiles (various makefiles for simulation and synthesis)
 |       |
@@ -58,7 +63,24 @@ NetFPGA2.1-x.y
         |
         +---- reference_router (reference 4-port IPv4 router)
         |
-        +---- CPCI2.1 (code for the Spartan device)
+        +---- reference_switch (reference 4-port learning Ethernet switch)
+        |
+        +---- cpci (code for the Spartan device)
+        |
+        +---- cpci_reprogrammer (Virtex device to reprogram the Spartan)
+        |
+        +---- selftest (design to test all NetFPGA subsystems)
+        |
+        +---- dram_queue_test (verify the DRAM queue)
+        |
+        +---- dram_router (4-port IPv4 router using DRAM queues)
+        |
+        +---- scone (Software Component Of NEtfgpa)
+        |
+        +---- gui_scone (Java GUI for NetFPGA designs)
+        |
+	+---- wireshark_dissectors (Wireshark dissectors for NetFPGA packet
+	                            types)
 
 The tree was design to enable modularity and common code sharing between the
 library and the user projects.
