@@ -1222,6 +1222,10 @@ int nf2c_probe(struct pci_dev *pdev, const struct pci_device_id *id,
 
 		/* call the ethtool ops */
 		nf2_set_ethtool_ops(netdev);
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 0)
+                SET_NETDEV_DEV(netdev, &(pdev->dev));
+#endif
 	}
 
 	/* Register the network devices */
