@@ -257,26 +257,26 @@ void nf2_read_info(struct nf2device *nf2)
 
 	// Verify the MD5 checksum of the device ID block
 	for  (i = 0; i < MD5_LEN; i++) {
-		readReg(nf2, DEVICE_MD5_1_REG + i * 4, &md5[i]);
+		readReg(nf2, DEV_ID_MD5_0_REG + i * 4, &md5[i]);
 	}
-	md5_good &= md5[0] == DEVICE_MD5_1_VAL;
-	md5_good &= md5[1] == DEVICE_MD5_2_VAL;
-	md5_good &= md5[2] == DEVICE_MD5_3_VAL;
-	md5_good &= md5[3] == DEVICE_MD5_4_VAL;
+	md5_good &= md5[0] == DEV_ID_MD5_VALUE_V1_0;
+	md5_good &= md5[1] == DEV_ID_MD5_VALUE_V1_1;
+	md5_good &= md5[2] == DEV_ID_MD5_VALUE_V1_2;
+	md5_good &= md5[3] == DEV_ID_MD5_VALUE_V1_3;
 
 	// Process only if the MD5 sum is good
 	if (md5_good) {
 		// Read the version and revision
-		readReg(nf2, DEVICE_ID_REG, &nf2_device_id);
-		readReg(nf2, DEVICE_REVISION_REG, &nf2_revision);
-		readReg(nf2, DEVICE_CPCI_ID_REG, &nf2_cpci_id);
+		readReg(nf2, DEV_ID_DEVICE_ID_REG, &nf2_device_id);
+		readReg(nf2, DEV_ID_VERSION_REG, &nf2_revision);
+		readReg(nf2, DEV_ID_CPCI_ID_REG, &nf2_cpci_id);
 		nf2_cpci_version = nf2_cpci_id & 0xffffff;
 		nf2_cpci_revision = nf2_cpci_id >> 24;
 
 		// Read the version string
 		for (i = 0; i < (DEVICE_STR_LEN / 4) - 2; i++)
 		{
-			readReg(nf2, DEVICE_STR_REG + i * 4, (unsigned *)(nf2_device_str + i * 4));
+			readReg(nf2, DEV_ID_PROJ_DIR_0_REG + i * 4, (unsigned *)(nf2_device_str + i * 4));
 
 			// Perform byte swapping if necessary
 			*(unsigned *)(nf2_device_str + i * 4) = ntohl(*(unsigned *)(nf2_device_str + i * 4));
