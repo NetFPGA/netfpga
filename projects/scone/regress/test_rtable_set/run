@@ -41,7 +41,7 @@ for i in range(32):
 
 	found = -1;
 	for route in expectedRoutes:
-		if ((route["ip"] == hex(ip)) and (route["gw"] == hex(gw)) and (route["mask"] == hex(mask)) and (route["port"] == hex(port))):
+		if ((long(route["ip"], 16) == ip) and (long(route["gw"], 16) == gw) and (long(route["mask"], 16) == mask) and (long(route["port"], 16) == port)):
 			found = expectedRoutes.index(route);
 			break;
 	if (found != -1):
