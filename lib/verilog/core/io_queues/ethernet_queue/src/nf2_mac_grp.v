@@ -86,8 +86,8 @@
        // Run-time Configuration (takes effect between frames)
        .conf_tx_en		(tx_mac_en),
        .conf_rx_en		(rx_mac_en),
-       .conf_tx_no_gen_crc	(disable_crc_check),
-       .conf_rx_no_chk_crc	(disable_crc_gen),
+       .conf_tx_no_gen_crc	(disable_crc_gen),
+       .conf_rx_no_chk_crc	(disable_crc_check),
        .conf_tx_jumbo_en	(enable_jumbo_tx),
        .conf_rx_jumbo_en	(enable_jumbo_rx),
 
