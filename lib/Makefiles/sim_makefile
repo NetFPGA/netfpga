@@ -4,7 +4,9 @@
 
 DESIGN_DIR = $(NF_DESIGN_DIR)
 
-# Start by including the synth_makefile.vars to get all that goodness
+# Start by including the synth_makefile functions and variables to get all that
+# goodness
+include $(NF_ROOT)/lib/Makefiles/synth_makefile.funcs
 include $(NF_ROOT)/lib/Makefiles/synth_makefile.vars
 
 

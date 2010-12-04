@@ -1,0 +1,30 @@
+##################################################################
+# Functions
+#
+# This makefile contains various functions that are used by
+# other makefiles
+#
+
+# function that compares the two input filenames without directories
+# and returns the first input if the filenames match
+compare_base = $(if $(filter $(notdir $(1)),$(notdir $(2))),$(1))
+
+# function that returns the list of files with a matching name in
+filename_match_list = $(foreach other_src,$(2),$(call compare_base,$(strip $(other_src)),$(strip $(1))))
+
+# function that returns the last word in the list of files
+# matching the filename of the input. Unfortunately, the version of make
+# in Centos 4.4 doesn't have $(lastword ...) function.
+last_filename_match = $(word $(words $(call filename_match_list,$(1),$(2))),$(call filename_match_list,$(1),$(2)))
+
+# function that returns the first word in the list of files
+# matching the filename of the input
+first_filename_match = $(word 1,$(call filename_match_list,$(1),$(2)))
+
+# function that checks to see if a filename has a unique base relative to a
+# list of file names
+want_unique_base = $(if $(strip $(foreach src,$(2),$(call compare_base,$(1),$(src)))),,$(1))
+
+# filter out filenames from the second list with
+# basenames identical to those in the first list
+filter-out-bases = $(strip $(foreach src,$(2),$(call want_unique_base,$(src),$(1))))

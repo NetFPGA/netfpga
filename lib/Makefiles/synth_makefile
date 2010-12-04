@@ -4,5 +4,6 @@
 #
 # These are split up to allow other makefiles to override variables if necessary
 
+include $(NF_ROOT)/lib/Makefiles/synth_makefile.funcs
 include $(NF_ROOT)/lib/Makefiles/synth_makefile.vars
 include $(NF_ROOT)/lib/Makefiles/synth_makefile.rules
