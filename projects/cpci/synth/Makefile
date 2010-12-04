@@ -23,6 +23,7 @@ MAP_OPTIONS = -r
 
 # Include the generic synthesis makefile for the variables
 #include $(NF_ROOT)/lib/Makefiles/synth_makefile
+include $(NF_ROOT)/lib/Makefiles/synth_makefile.funcs
 include $(NF_ROOT)/lib/Makefiles/synth_makefile.vars
 
 # Perform any variable updates here
