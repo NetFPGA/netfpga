@@ -18,6 +18,8 @@ $(TOP).ucf: $(GENERIC_TOP)/synth/$(TOP).ucf
 	@if [ -r $(GENERIC_TOP)/synth/$(TOP).ucf ] ; then \
 		cp -p $? . ; \
 	fi
+	# Append libmodules .ucf files to the main .ucf file
+	@for ucf in $(LIB_UCF) ; do cat $$ucf >> $(TOP).ucf ; done
 endif
 
 .PHONY: cores registers
