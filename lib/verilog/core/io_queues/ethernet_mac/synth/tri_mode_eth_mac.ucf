@@ -1,0 +1,22 @@
+#####################################################
+# Tri mode MAC constraints
+#####################################################
+
+#----------------------------------------------------
+# Reset path constraints                                   #
+#  These constraints add a measure of protection against   #
+#  metastability and skew in the reset nets.               #
+#----------------------------------------------------
+
+NET "*tri_mode_eth_mac?BU2?U0?TRIMAC_INST?RXGMIIRSTGENEN?SYNC_GMII_MII_RX_RESET_I?RESET_OUT*" MAXDELAY = 6100 ps;
+NET "*tri_mode_eth_mac?BU2?U0?TRIMAC_INST?SYNC_GMII_MII_TX_RESET_I?RESET_OUT*" MAXDELAY = 6100 ps;
+
+#----------------------------------------------------
+# Crossing of Clock Domain Constraints: please do not edit #
+#----------------------------------------------------
+# Flow Control logic reclocking
+
+INST "*tri_mode_eth_mac?BU2?U0?TRIMAC_INST?FLOW?RX_PAUSE?GOOD_FRAME_TO_TX"   TNM="flow_rx_to_tx";
+INST "*tri_mode_eth_mac?BU2?U0?TRIMAC_INST?FLOW?RX_PAUSE?PAUSE_REQ_TO_TX"    TNM="flow_rx_to_tx";
+INST "*tri_mode_eth_mac?BU2?U0?TRIMAC_INST?FLOW?RX_PAUSE?PAUSE_VALUE_TO_TX*" TNM="flow_rx_to_tx";
+
