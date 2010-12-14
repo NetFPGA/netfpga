@@ -7,8 +7,12 @@ SUBDIRS = C scripts
 
 # Work out if we have java in the system path, in which case we should recurse into the java directory as well
 JAVA := $(shell which javac)
+JAVAMAKE := $(wildcard java/Makefiles)
+
 ifneq ($(JAVA), )
-	SUBDIRS += java
+	ifneq ($(JAVAMAKE), )
+		SUBDIRS += java
+	endif
 endif
 
 
