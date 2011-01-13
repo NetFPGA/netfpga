@@ -15,6 +15,7 @@
 #define PATHLEN		          80
 #define DEVICE_STR_LEN           100
 #define DEVICE_INFO_STR_LEN     1024
+#define MAX_IPADDR_LEN          32
 
 #define PROJ_UNKNOWN    "Unknown"
 
@@ -27,7 +28,10 @@ struct nf2device {
 	char *device_name;
 	int fd;
 	int net_iface;
+        char server_ip_addr[MAX_IPADDR_LEN];
+        int server_port_num;
 };
+
 
 /* Function declarations */
 

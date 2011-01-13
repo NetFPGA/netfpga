@@ -15,7 +15,7 @@ COMMON = ../common
 
 all: common nf_download
 
-nf_download : nf_download.o $(COMMON)/nf2util.o
+nf_download : nf_download.o $(COMMON)/nf2util.o $(COMMON)/nf2util_proxy_common.o
 
 common:
 	$(MAKE) -C $(COMMON)

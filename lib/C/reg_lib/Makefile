@@ -5,22 +5,23 @@
 CFLAGS = -g
 CC = gcc
 LDFLAGS = -lnf2regs
-SRCS = reg_proxy_server.c reg_proxy_client.c reg_proxy.c
+COMMON = ../common
+SRCS = reg_proxy_server.c reg_proxy_client.c reg_proxy.c $(COMMON)/nf2util_proxy_common.c
 
 INSTALL_PREFIX ?= /usr/local
 
 all : reg_proxy_server client_test
 
-reg_proxy_server : reg_proxy_server.o reg_proxy.o ../common/reg_defines.h ../common/nf2util.h
+reg_proxy_server : reg_proxy_server.o reg_proxy.o $(COMMON)/reg_defines.h $(COMMON)/nf2util.h
 
-client_test : libreg_proxy.so client_test.o ../common/reg_defines.h
+client_test : libreg_proxy.so client_test.o $(COMMON)/reg_defines.h
 
-libreg_proxy.so: reg_proxy_client.c reg_proxy.c reg_proxy.h ../common/nf2util.h
-	$(CC) -fpic -c reg_proxy_client.c reg_proxy.c
-	$(CC) -shared reg_proxy_client.o reg_proxy.o -o $@
+libreg_proxy.so: reg_proxy_client.c $(COMMON)/nf2util_proxy_common.c reg_proxy.c reg_proxy.h $(COMMON)/nf2util.h
+	$(CC) -fpic -c reg_proxy_client.c reg_proxy.c $(COMMON)/nf2util_proxy_common.c
+	$(CC) -shared reg_proxy_client.o reg_proxy.o nf2util_proxy_common.o -o $@
 
 clean :
-	rm -f reg_proxy_server client_test *.o
+	rm -f reg_proxy_server client_test *.o *.so
 
 install_client_lib: libreg_proxy.so
 	install -d $(INSTALL_PREFIX)/lib
@@ -30,11 +31,11 @@ install_client_lib: libreg_proxy.so
 	ldconfig
 
 ../common/libnf2.so:
-	$(MAKE) -C ../common libnf2.so
+	$(MAKE) -C $(COMMON) libnf2.so
 
-install_server_lib: ../common/libnf2.so
+install_server_lib: $(COMMON)/libnf2.so
 	install -d $(INSTALL_PREFIX)/lib
-	install -m 644 ../common/libnf2.so $(INSTALL_PREFIX)/lib
+	install -m 644 $(COMMON)/libnf2.so $(INSTALL_PREFIX)/lib
 	rm -f $(INSTALL_PREFIX)/lib/libnf2regs.so
 	ln -s $(INSTALL_PREFIX)/lib/libnf2.so $(INSTALL_PREFIX)/lib/libnf2regs.so
 	ldconfig

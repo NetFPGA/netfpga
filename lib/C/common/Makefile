@@ -4,12 +4,12 @@
 
 all: nf2util.o libnf2.so
 
-libnf2.so: nf2util.c nf2util.h nf2.h
-	gcc -fpic -c nf2util.c
-	gcc -shared nf2util.o -o $@
+libnf2.so: nf2util.c nf2util_proxy_common.o nf2util.h nf2.h
+	gcc -fpic -c nf2util.c nf2util_proxy_common.c
+	gcc -shared nf2util.o nf2util_proxy_common.o -o $@
 
 clean :
-	rm -rf nf2util.o libnf2.so
+	rm -rf nf2util.o nf2util_proxy_common.o libnf2.so
 
 install: libnf2.so
 	install -d /usr/local/lib

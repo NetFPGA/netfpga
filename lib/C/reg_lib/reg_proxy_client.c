@@ -9,17 +9,6 @@
 #include "../common/reg_defines.h"
 #include <string.h>
 
-#define MD5_LEN		4
-
-/* Local variables */
-unsigned cpci_version = -1;
-unsigned cpci_revision = -1;
-unsigned nf2_device_id = -1;
-unsigned nf2_revision = -1;
-unsigned nf2_cpci_version = -1;
-unsigned nf2_cpci_revision = -1;
-char nf2_device_str[DEVICE_STR_LEN] = "";
-
 static int connectRegServer();
 static int sendRequest(int socket_to_server, struct reg_request *reg_request);
 static void disconnectRegServer(int socket_to_server);
@@ -213,83 +202,4 @@ int closeDescriptor(struct nf2device *nf2)
 	}
 	disconnectRegServer(nf2->net_iface);
 	return req.error;
-}
-
-
-/*
- *  Read the version info from the board
- */
-void read_info(struct nf2device *nf2)
-{
-  int i;
-
-  // Read the version and revision
-  readReg(nf2, NF2_DEVICE_ID, &nf2_device_id);
-  readReg(nf2, NF2_REVISION, &nf2_revision);
-
-  // Read the version string
-  for (i = 0; i < (DEVICE_STR_LEN / 4) - 2; i++)
-  {
-    readReg(nf2, NF2_DEVICE_STR + i * 4, (unsigned *)(nf2_device_str + i * 4));
-
-    // Perform byte swapping if necessary
-    *(unsigned *)(nf2_device_str + i * 4) = ntohl(*(unsigned *)(nf2_device_str + i * 4));
-  }
-  nf2_device_str[DEVICE_STR_LEN - 1] = '\0';
-}
-
-
-/*
- *  Read the version info from the Virtex and CPCI
- */
-void nf2_read_info(struct nf2device *nf2)
-{
-	int i;
-	int md5_good = 1;
-	unsigned md5[MD5_LEN];
-	unsigned cpci_id;
-	unsigned nf2_cpci_id;
-
-	// Read the CPCI version/revision
-	readReg(nf2, CPCI_ID_REG, &cpci_id);
-	cpci_version = cpci_id & 0xffffff;
-	cpci_revision = cpci_id >> 24;
-
-	// Verify the MD5 checksum of the device ID block
-	for  (i = 0; i < MD5_LEN; i++) {
-		readReg(nf2, DEV_ID_MD5_0_REG + i * 4, &md5[i]);
-	}
-	md5_good &= md5[0] == DEV_ID_MD5_VALUE_V1_0;
-	md5_good &= md5[1] == DEV_ID_MD5_VALUE_V1_1;
-	md5_good &= md5[2] == DEV_ID_MD5_VALUE_V1_2;
-	md5_good &= md5[3] == DEV_ID_MD5_VALUE_V1_3;
-
-	// Process only if the MD5 sum is good
-	if (md5_good) {
-		// Read the version and revision
-		readReg(nf2, DEV_ID_DEVICE_ID_REG, &nf2_device_id);
-		readReg(nf2, DEV_ID_VERSION_REG, &nf2_revision);
-		readReg(nf2, DEV_ID_CPCI_ID_REG, &nf2_cpci_id);
-		nf2_cpci_version = nf2_cpci_id & 0xffffff;
-		nf2_cpci_revision = nf2_cpci_id >> 24;
-
-		// Read the version string
-		for (i = 0; i < (DEVICE_STR_LEN / 4) - 2; i++)
-		{
-			readReg(nf2, DEV_ID_PROJ_DIR_0_REG + i * 4, (unsigned *)(nf2_device_str + i * 4));
-
-			// Perform byte swapping if necessary
-			*(unsigned *)(nf2_device_str + i * 4) = ntohl(*(unsigned *)(nf2_device_str + i * 4));
-		}
-		nf2_device_str[DEVICE_STR_LEN - 1] = '\0';
-	}
-}
-
-/*
- * Print out a test string
- */
-void printHello (struct nf2device *nf2, int *val)
-{
-  printf ("Hello world. Name=%s val=%d\n", nf2->device_name, *val);
-  *val = 10;
 }
