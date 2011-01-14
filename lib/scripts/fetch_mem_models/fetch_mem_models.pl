@@ -25,7 +25,7 @@ my %ddrTargets = (
 );
 my $ddrSrcPrefix = '.';
 
-my $sramURL = "http://download.cypress.com.edgesuite.net/design_resources/models/contents/cy7c1370d_verilog_10.zip";
+my $sramURL = "http://www.cypress.com/?docID=25033";
 my $sramFile = "cy7c1370d_verilog_10.zip";
 my %sramTargets = (
 	"cy7c1370d.v" => "cy7c1370.v"
