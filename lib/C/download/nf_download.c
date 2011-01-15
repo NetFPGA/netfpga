@@ -42,6 +42,7 @@ int main(int argc, char **argv) {
    nf2.device_name = DEFAULT_IFACE;
 
    processArgs(argc, argv);
+
    if (check_iface(&nf2))
    {
 	   exit(1);
@@ -195,7 +196,6 @@ void DownloadCode(FILE *code_file) {
    version = NF2_RD32(CPCI_ID);
    version &= 0xffffff;
 
-
    if (!cpci_reprog) {
       /*
          First, make sure the download interface is reset.
@@ -236,8 +236,9 @@ void DownloadCode(FILE *code_file) {
       {
          if ((NF2_RD32(CPCI_PROGRAMMING_STATUS) & 0x10000))
              usleep(10000);
-         else
+         else {
             break;
+         }
          retries--;
 
          if (retries <= 0)
@@ -249,9 +250,8 @@ void DownloadCode(FILE *code_file) {
       }
    } // if (!cpci_reprog)
 
-   /*
-      Read the code file, and write it to the card.
-   */
+
+   /* Read the code file, and write it to the card.  */
 
    code_data = (unsigned char *) malloc(sizeof(unsigned char) * READ_BUFFER_SIZE);
 
@@ -410,7 +410,6 @@ void ResetDevice(void) {
 }
 
 
-
 /*
  * Verify the device info
  */
@@ -441,7 +440,6 @@ void VerifyDevInfo(void) {
       }
    }
 }
-
 
 
 /*
