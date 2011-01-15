@@ -547,8 +547,8 @@ void processArgs (int argc, char **argv ) {
    }
 
    /* filename MUST end in .bin or .bit */
-   if (strstr(argv[optind],".bin") == NULL && strstr(argv[optind],".bit") == NULL ) {
-      fprintf(stderr,"Error: the filename must end in .bin or .bit\n");
+   if (strstr(argv[optind],".bin") == NULL && strstr(argv[optind],".bit") == NULL) {
+      fprintf(stderr,"Error: the filename must end in .bin or .bit (filename: %s)\n", argv[optind]);
       exit(1);
    }
 
