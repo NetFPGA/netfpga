@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <sys/types.h>
@@ -35,13 +36,29 @@ static inline void print (unsigned);
 void printMAC (unsigned, unsigned);
 void printIP (unsigned);
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
 	unsigned val;
 
 	nf2.device_name = DEFAULT_IFACE;
 
-	printf("Checking iface.\n");
+	if (argc < 3) {
+		printf("Usage: client_test <ip_addr> <port_num>\n");
+		printf("   ip_addr is the address to connect to.\n");
+		printf("   port_num is the port number to connect to.\n");
+		exit(0);
+	}
+
+	nf2.server_port_num = strtol(argv[2], NULL, 0);
+
+	if (nf2.server_port_num < 1024 || nf2.server_port_num > 65535) {
+	   fprintf(stderr, "Error: port number has to be between 1024 and 65535. Saw %s.\n", argv[2]);
+          exit(1);
+	}
+
+	strncpy(nf2.server_ip_addr, argv[1], strlen(argv[1]));
+
+	printf("Checking iface\n");
 
 	if (check_iface(&nf2))
 	{
@@ -56,7 +73,7 @@ int main(int argc, char *argv[])
 
 	printf("Printing.\n");
 
-	for(val=0; val<1000000; val++){
+	for(val=0; val<10; val++){
 		print(val);
 	}
 

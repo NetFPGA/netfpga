@@ -9,11 +9,11 @@
 #include "../common/reg_defines.h"
 #include <string.h>
 
-static int connectRegServer();
+static int connectRegServer(struct nf2device* nf2);
 static int sendRequest(int socket_to_server, struct reg_request *reg_request);
 static void disconnectRegServer(int socket_to_server);
 
-static int connectRegServer(){
+static int connectRegServer(struct nf2device* nf2){
     struct sockaddr_in servaddr;
     int socket_to_server;
 
@@ -29,8 +29,8 @@ static int connectRegServer(){
     /* fill in the address struct */
     memset(&servaddr, 0, sizeof(SA));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(SERVER_PORT);
-    inet_aton(SERVER_IP_ADDR, &servaddr.sin_addr);
+    servaddr.sin_port = htons(nf2->server_port_num);
+    inet_aton(nf2->server_ip_addr, &servaddr.sin_addr);
 
     DPRINTF("Connecting to %s:%u\n", SERVER_IP_ADDR, SERVER_PORT);
 
@@ -137,7 +137,7 @@ int check_iface(struct nf2device *nf2)
 	req.error = 0;
 	req.type = CHECK_REQ;
 
-	socket_to_server = connectRegServer();
+	socket_to_server = connectRegServer(nf2);
 	if(sendRequest(socket_to_server, &req) < 0) {
 		DPRINTF("sendRequest caused an error.\n");
 		disconnectRegServer(socket_to_server);
@@ -171,7 +171,7 @@ int openDescriptor(struct nf2device *nf2)
 	req.error = 0;
 	req.type = OPEN_REQ;
 
-	socket_to_server = connectRegServer();
+	socket_to_server = connectRegServer(nf2);
 	if(sendRequest(socket_to_server, &req) < 0) {
 		DPRINTF("sendRequest failed.\n");
 		disconnectRegServer(socket_to_server);

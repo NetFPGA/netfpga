@@ -8,15 +8,26 @@ CC = gcc
 # Location of binary files
 BINDIR ?= /usr/local/bin
 
+INSTALL_PREFIX ?= /usr/local
+
 # Location of common files
 COMMON = ../common
 
-
-
 all : common regread regwrite
 
-regread : regread.o ../common/nf2util.o
-regwrite : regwrite.o ../common/nf2util.o
+# Add Xen proxy client library for register access
+ifeq ($(TARGET),xen)
+
+    regread : regread.o $(INSTALL_PREFIX)/lib/libreg_proxy.so $(COMMON)/reg_defines.h
+    regwrite : regwrite.o $(INSTALL_PREFIX)/lib/libreg_proxy.so $(COMMON)/reg_defines.h
+
+else
+
+    regread : regread.o ../common/nf2util.o
+    regwrite : regwrite.o ../common/nf2util.o
+
+endif
+
 
 common:
 	$(MAKE) -C $(COMMON)

@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <net/if.h>
 
@@ -37,7 +38,6 @@ int main(int argc, char *argv[])
 	unsigned val;
 
 	nf2.device_name = DEFAULT_IFACE;
-
 
 	processArgs(argc, argv);
 
@@ -125,13 +125,19 @@ void processArgs (int argc, char **argv )
 	/* don't want getopt to moan - I can do that just fine thanks! */
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "i:h")) != -1)
+	while ((c = getopt (argc, argv, "i:p:a:h")) != -1)
 	{
 		switch (c)
 	 	{
 	 		case 'i':	/* interface name */
 		 		nf2.device_name = optarg;
 		 		break;
+			case 'p':
+				nf2.server_port_num = strtol(optarg, NULL, 0);
+				break;
+			case 'a':
+				strncpy(nf2.server_ip_addr, optarg, strlen(optarg));
+				break;
 	 		case '?':
 		 		if (isprint (optopt))
 		         		fprintf (stderr, "Unknown option `-%c'.\n", optopt);
@@ -155,6 +161,8 @@ void usage (void)
 {
 	printf("Usage: ./regwrite <options> [addr...] \n\n");
 	printf("Options: -i <iface> : interface name (default nf2c0)\n");
+	printf("         -a <IP-Addr> : IP Address of socket listen.\n");
+	printf("         -p <Port-num> : Port Number of socket listen.\n");
 	printf("         -h : Print this message and exit.\n");
 	printf("         [[addr] [value]...] is a list of one or more address/value pairs to write\n");
 }

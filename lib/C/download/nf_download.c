@@ -25,6 +25,7 @@
 #include "../common/nf2.h"
 #include "../common/nf2util.h"
 #include "../common/reg_defines.h"
+#include "../reg_lib/reg_proxy.h"
 
 #include <net/if.h>
 
@@ -497,7 +498,7 @@ void processArgs (int argc, char **argv ) {
    /* don't want getopt to moan - I can do that just fine thanks! */
    opterr = 0;
 
-   while ((c = getopt (argc, argv, "rvcnl:i:")) != -1)
+   while ((c = getopt (argc, argv, "rvcnl:i:a:p:")) != -1)
       switch (c)
 	 {
 	 case 'v':
@@ -518,6 +519,13 @@ void processArgs (int argc, char **argv ) {
 	 case 'i':   /* interface name */
 	    nf2.device_name = optarg;
 	    break;
+         case 'p':
+            nf2.server_port_num = strtol(optarg, NULL, 0);
+            break;
+         case 'a':
+            strncpy(nf2.server_ip_addr, optarg, strlen(optarg));
+            break;
+
 	 case '?':
 	    if (isprint (optopt))
                fprintf (stderr, "Unknown option `-%c'.\n", optopt);
@@ -560,6 +568,8 @@ void usage () {
    printf("Usage: ./nf_download <options>  [filename.bin | filename.bit]\n");
    printf("\nOptions: -l <logfile> (default is stdout).\n");
    printf("         -i <iface> : interface name.\n");
+   printf("         -a <IP-Addr> : IP Address of socket listen.\n");
+   printf("         -p <Port-num> : Port Number of socket listen.\n");
    printf("         -c : reprogram CPCI.\n");
    printf("         -n : don't verify Spartan/Virtex build compatibility.\n");
    printf("         -v : be verbose.\n");
