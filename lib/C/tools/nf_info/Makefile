@@ -15,7 +15,7 @@ COMMON = ../../common
 
 all: common nf_info
 
-nf_info : nf_info.o $(COMMON)/nf2util.o
+nf_info : nf_info.o $(COMMON)/nf2util.o $(COMMON)/nf2util_proxy_common.o
 
 common:
 	$(MAKE) -C $(COMMON)
