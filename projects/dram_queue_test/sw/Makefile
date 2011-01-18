@@ -8,8 +8,9 @@ LDFLAGS = -lncurses
 
 all : regdump shortcut_disable
 
-regdump : regdump.o $(NF_ROOT)/lib/C/common/nf2util.o $(NF_ROOT)/lib/C/common/reg_defines.h
-shortcut_disable : shortcut_disable.o $(NF_ROOT)/lib/C/common/nf2util.o $(NF_ROOT)/lib/C/common/reg_defines.h
+regdump : regdump.o $(NF_ROOT)/lib/C/common/nf2util.o $(NF_ROOT)/lib/C/common/nf2util_proxy_common.o $(NF_ROOT)/lib/C/common/reg_defines.h
+
+shortcut_disable : shortcut_disable.o $(NF_ROOT)/lib/C/common/nf2util.o $(NF_ROOT)/lib/C/common/nf2util_proxy_common.o $(NF_ROOT)/lib/C/common/reg_defines.h
 
 clean :
 	rm -f regdump *.o

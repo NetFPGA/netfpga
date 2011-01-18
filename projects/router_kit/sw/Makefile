@@ -17,7 +17,7 @@ registers:
 common:
 	ln -s ../../../lib/C/common/ common
 
-rkd : rkd.cc linux_proc_net.o nf21_mon.o nf21_mon.o common/nf2util.o common/util.o $(HEADERS)
+rkd : rkd.cc linux_proc_net.o nf21_mon.o nf21_mon.o common/nf2util.o common/nf2util_proxy_common.o common/util.o $(HEADERS)
 	g++ -g -Wall -o rkd rkd.cc nf21_mon.o common/nf2util.o common/util.o linux_proc_net.o
 
 clean:
