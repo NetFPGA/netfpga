@@ -14,7 +14,7 @@ $(TOP).scr: $(GENERIC_TOP)/synth/$(TOP).scr
 
 # Only source the shared UCF file if LOCAL_UCF is not defined
 ifeq ($(origin LOCAL_UCF), undefined)
-$(TOP).ucf: $(GENERIC_TOP)/synth/$(TOP).ucf
+$(TOP).ucf: $(GENERIC_TOP)/synth/$(TOP).ucf $(LIB_UCF)
 	@if [ -r $(GENERIC_TOP)/synth/$(TOP).ucf ] ; then \
 		cp -p $? . ; \
 	fi
