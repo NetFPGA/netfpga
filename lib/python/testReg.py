@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# Author: James Hsi
-# Date: 7/30/10
+# Author: James Hsi, Eric Lo
+# Date: 1/31/2011
 
 #might need sim/hardware specific fns
 
@@ -43,45 +43,47 @@ NUM_PORTS = 4;
 ############################
 # Function: regDMA
 # Arguments:
+# queue is DMA queue #, length is packet length
 ############################
-def regDMA(reg, value):
-        f = Test.fPCI()
-	f.write("// DMA:  Time: ns  QUEUE: "+str(1)+"  LENGTH: 0x0\n")
+def regDMA(queue, length):
+	f = Test.fPCI()
+	f.write("// DMA: QUEUE: "+hex(queue)+ " LENGTH: "+hex(length)+"\n")
 	f.write("00000003 // DMA\n")
-	f.write("00000001"+" // Queue ("+str(1)+")\n") #should be the port number
-	f.write("00000000"+" // Length ("+str()+")\n")
-	f.write("00000000"+" // Mask (0)\n")
+	f.write("%08x"%queue +" // Queue ("+hex(queue)+")\n")
+	f.write("%08x"%length+" // Length ("+hex(length)+")\n")
+	f.write("00000000"+" // Mask (0x0)\n")
 
 ############################
-# Function: regRead // NEEDS TO BE IMPLEMENTED
+# Function: regRead
 # Arguments:
 # reg is an address, value is data
 ############################
 def regRead(reg, value):
 	f = Test.fPCI()
-	f.write("// DMA \n")
-	#f.write("// DMA:  Time: ns  QUEUE: "+str(1)+"  LENGTH: 0x0\n")
-	#f.write("00000003 // DMA\n")
-	#f.write("00000001"+" // Queue ("+str(1)+")\n") #should be the port number
-	#f.write("00000000"+" // Length ("+str(1)+")\n")
-	#f.write("00000000"+" // Mask (0)\n")
+	f.write("// Read:  Address: "+hex(reg)+" Expected Data: "+hex(value)+"\n")
+	f.write("00000001 // DMA\n")
+	f.write("%08x"%reg+" // Address ("+hex(reg)+")\n")
+	f.write("%08x"%value+" // Data ("+hex(value)+")\n")
+	f.write("FFFFFFFF"+" // Mask (0xFFFFFFFF)\n")
 
 ############################
 # Function: regWrite
 # Arguments:
+# reg is an address, value is data
 ############################
 def regWrite(reg, value):
 	f = Test.fPCI()
-	f.write("// WRITE:  Time: ns  QUEUE: x  LENGTH: 0x3c\n")
+	f.write("// WRITE:  Address: "+hex(reg)+" Data: "+hex(value)+"\n")
 	f.write("00000002"+" // WRITE\n")
 	f.write("%08x"%reg + " // Address \n")
-	f.write(str(value)+" // Data (0)\n")
-	f.write("00000000"+" // Mask (0)\n")
+	f.write("%08x"%value+" // Data ("+hex(value)+")\n")
+	f.write("00000000"+" // Mask (0x0)\n")
 	++numExpectedRegs
 
 
 ############################
 # compare two registers, where reg2 can be used as an expected value
+# TO BE IMPLEMENTED
 ############################
 def regCmp(reg1, reg2):
 	return 0
@@ -97,9 +99,9 @@ def resetBarrier():
 #   Writes the number of expected packets. Simulation will wait for all packets to be recieved.
 ############################
 def barrier():
-    Test.fPCI().write("00000004 // BARRIER \n")
-    Test.fPCI().write(str(numExpectedRegs)+" // ("+str(numExpectedRegs)+")\n")
-    resetBarrier()
+	Test.fPCI().write("00000004 // BARRIER \n")
+	Test.fPCI().write(str(numExpectedRegs)+" // ("+str(numExpectedRegs)+")\n")
+	resetBarrier()
 
 MSB_MASK = (0xFFFFFFFF00000000)
 LSB_MASK = (0x00000000FFFFFFF)
@@ -110,9 +112,9 @@ LSB_MASK = (0x00000000FFFFFFF)
 # Writes
 ############################
 def regDelay(nanoSeconds):
-    Test.fPCI().write("00000005 // DELAY \n");
-    Test.fPCI().write("%08x"%(MSB_MASK & nanoSeconds) + " // Delay (MSB) "+str(nanoSeconds)+" ns\n")
-    Test.fPCI().write("%08x"%(LSB_MASK & nanoSeconds) + " // Delay (LSB) "+str(nanoSeconds)+" ns\n")
+	Test.fPCI().write("00000005 // DELAY \n");
+	Test.fPCI().write("%08x"%(MSB_MASK & nanoSeconds) + " // Delay (MSB) "+str(nanoSeconds)+" ns\n")
+	Test.fPCI().write("%08x"%(LSB_MASK & nanoSeconds) + " // Delay (LSB) "+str(nanoSeconds)+" ns\n")
 
 ############################
 # from old...
