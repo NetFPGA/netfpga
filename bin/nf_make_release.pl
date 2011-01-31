@@ -625,7 +625,7 @@ sub getCopyList {
 
 		# Return the projects
 		if (defined($release->{'copy'})) {
-			return @{$release->{'copy'}};
+			return keys(%{$release->{'copy'}});
 		}
 	}
 }
