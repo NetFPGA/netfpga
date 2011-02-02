@@ -60,8 +60,8 @@ def regDMA(queue, length):
 ############################
 def regRead(reg, value):
 	f = Test.fPCI()
-	f.write("// Read:  Address: "+hex(reg)+" Expected Data: "+hex(value)+"\n")
-	f.write("00000001 // DMA\n")
+	f.write("// READ:  Address: "+hex(reg)+" Expected Data: "+hex(value)+"\n")
+	f.write("00000001 // READ\n")
 	f.write("%08x"%reg+" // Address ("+hex(reg)+")\n")
 	f.write("%08x"%value+" // Data ("+hex(value)+")\n")
 	f.write("FFFFFFFF"+" // Mask (0xFFFFFFFF)\n")

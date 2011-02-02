@@ -22,7 +22,7 @@ my %config = (
 	'extra_files' => '',
 	'extra_checks' => '',
 	'log' => 'my_sim.log',
-	'finish' => 1000000,
+	'finish' => '', #1000000,
 );
 
 # Configuration file
@@ -32,7 +32,7 @@ my $configFile = 'config.txt';
 my $finishFile = 'config.sim';
 
 # Name of the script to create packets
-my $makePkts = 'make_pkts.pl';
+my $makePkts = 'make_pkts.py';
 
 # Location of PCI simulation data file
 my $pciSimDataFile = 'packet_data/pci_sim_data';
@@ -121,7 +121,7 @@ if ($good) {
 
 	# Run the script
 	my $makePktsOut;
-	$makePktsOut = `perl $makePkts 2>&1`;
+	$makePktsOut = `python $makePkts 2>&1`;
 	print $makePktsOut;
 
 	# Verify the return code
@@ -463,13 +463,15 @@ sub printError {
 # createFinishFile
 #   create the file that instructs the simulator when to finish
 sub createFinishFile {
-	if (open FINISH, ">$finishFile") {
-		print FINISH "FINISH=$config{'finish'}\n";
-		close FINISH;
+	if ( $config{'finish'} ne '' ) {
+		if (open FINISH, ">$finishFile") {
+			print FINISH "FINISH=$config{'finish'}\n";
+			close FINISH;
+		}
+		else {
+			&printError("Unable to open finish time file '$finishFile' for writing");
+			return 0;
+		}
 	}
-	else {
-		&printError("Unable to open finish time file '$finishFile' for writing");
-		return 0;
-	}
-
+	return 1;
 }

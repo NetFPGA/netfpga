@@ -36,13 +36,18 @@ def pktSendPHY(toPort, pkt):
 	strpktHdr = ""
 	count = 1
 	for x in str(pkt):
-			strpkt +="%02x"%ord(x)
 			strpktHdr +="%02x "%ord(x)
+			strpkt +="%02x"%ord(x)
 			if count<4:
 					count += 1
 			else:
 					strpkt += "\n"
 					count = 1
+	if pkt.len%4 != 0:
+		count += -1
+		while count != 4:
+			strpkt += '00'
+			count += 1
 	DA=str.replace(strpktHdr[0:17], ' ', ':')
 	SA=str.replace(strpktHdr[18:35], ' ', ':')
 	ethType=str.replace(strpktHdr[36:41], ' ','')
@@ -87,6 +92,11 @@ def pktSendDMA(toPort, pkt):
 			else:
 					strpkt += "\n"
 					count = 1
+	if pkt.len%4 != 0:
+		count += -1
+		while count != 4:
+			strpkt += '00'
+			count += 1
 	f.write(str.rstrip(strpkt))
 	f.write('\neeeeffff // End of pkt marker for pkt '+str(SentPktsDMAcount[toPort-1])+' (this is not sent).\n')
 
