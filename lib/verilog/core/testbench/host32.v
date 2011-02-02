@@ -166,11 +166,12 @@ module host32 (
                   exp_pkts[i] = pci_cmds[pci_ptr + 1 + i];
             delay = {pci_cmds[pci_ptr+1], pci_cmds[pci_ptr+2]};
 
+            // Service any pending interrupts
+            while (~INTR_A)
+               service_interrupt;
+
             // Wait appropriately if the command is a PCI transaction
             if (pci_cmd != `PCI_BARRIER && pci_cmd != `PCI_DELAY) begin
-                // Service any interrupts
-                while (~INTR_A)
-                   service_interrupt;
                 while (dma_in_progress ||
                    (pci_cmd == `PCI_DMA && !dma_can_wr_pkt[pci_addr - 1])) begin
 
