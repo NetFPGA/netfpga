@@ -208,7 +208,7 @@ module host32 (
                `PCI_BARRIER: begin
 	          $display("%t %m: Info: PCI barrier", $time);
                   for (i = 0; i < `NUM_DMA_PORTS; i = i + 1)
-	             $display("%t %m: Info:   DMA port %d: expecting %d pkts, seen %d pkts",
+	             $display("%t %m: Info:   DMA port %1d: expecting %1d pkts, seen %1d pkts",
                         $time, i, exp_pkts[i], dma_rx_pkts[i]);
                end
 
