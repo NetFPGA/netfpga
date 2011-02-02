@@ -500,7 +500,7 @@ module host32 (
          end
 
          // Handle packets available
-         if (pkt_avail) begin
+         if (pkt_avail && !dma_in_progress) begin
             $display("%t %m: Packet available. Starting DMA ingress transfer", $time);
 
             dma_in_progress = 1;
@@ -516,6 +516,9 @@ module host32 (
 
             // Start the transfer
             PCI_DW_WR({`CPCI_DMA_CTRL_I, 2'b0}, 4'h7, 32'h00000001, success);
+         end
+         else if (pkt_avail && dma_in_progress) begin
+            $display("%t %m: Packet available. Ignoring as DMA transaction already in progress...", $time);
          end
 
          // Handle CNET read timeouts
