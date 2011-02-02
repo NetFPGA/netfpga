@@ -28,9 +28,24 @@ for i in range(10):
     testPkt.pktSendDMA(in_port, pkt)
     testPkt.pktExpectPHY(in_port, pkt)
 
+  #testPkt.delay(1000)
+  testReg.regWrite(0x0000020,0xabcd)
+  testReg.regRead(0x0000020,0xabcd)
+  testReg.regWrite(0x0000020,0xdead)
+  testReg.regRead(0x0000020,0xdead)
+  testReg.regWrite(0x0000020,0xabcd)
+  testReg.regRead(0x0000020,0xabcd)
+  testReg.regWrite(0x0000020,0xdead)
+  testReg.regRead(0x0000020,0xdead)
+  testReg.regWrite(0x0000020,0xabcd)
+  testReg.regRead(0x0000020,0xabcd)
+  testReg.regWrite(0x0000020,0xdead)
+  testReg.regRead(0x0000020,0xdead)
+  #testPkt.delay(1000)
+
 #testPkt.delay(1000)
 testPkt.barrier()
 
 print  "--- make_pkts.py: Generated and sent all configuration packets.\n"
 Test.close()
-Test.modelSim("jhsi")
+#Test.modelSim("eric")
