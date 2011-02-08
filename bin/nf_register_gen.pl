@@ -21,6 +21,7 @@ use NF::RegSystem::VerilogOutput;
 use NF::RegSystem::LibModulesOutput;
 use NF::RegSystem::COutput;
 use NF::RegSystem::PerlOutput;
+use NF::RegSystem::PythonOutput;
 
 use strict;
 
@@ -32,6 +33,7 @@ my %validTargets = (
   'verilog'     => 1,
   'c'           => 1,
   'perl'        => 1,
+  'python'      => 1,
 );
 
 my $help = '';
@@ -80,6 +82,11 @@ for my $output (@output) {
     case 'perl'
     {
       genPerlOutput($project, $layout, $usedModules,
+        $constsHash, $constsArr, $typesHash, $typesArr);
+    }
+    case 'python'
+    {
+      genPythonOutput($project, $layout, $usedModules,
         $constsHash, $constsArr, $typesHash, $typesArr);
     }
   }
@@ -170,6 +177,7 @@ DESCRIPTION
      - Verilog defines
      - C include file
      - Perl module
+     - Python module
 
 OPTIONS
 
@@ -184,6 +192,7 @@ OPTIONS
         verilog       -- Verilog defines
         c             -- C header file
         perl          -- Perl module
+        python        -- Python module
 
    --list-modules
      Don't produce any output -- just list the modules. Used by the makefiles
