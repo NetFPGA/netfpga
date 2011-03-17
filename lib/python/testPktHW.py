@@ -1,11 +1,16 @@
-#1/usr/bin/env python
+#!/usr/bin/env python
 # Author: Eric Lo
-# Date: 2/9/2011
+# Date: 3/16/2011
 
 import sys
 from threading import Thread
 from threading import Lock
+from threading import Event
 import time
+import socket
+import os
+from collections import deque
+from select import select
 
 try:
    import scapy.all as scapy
@@ -16,7 +21,7 @@ except:
       sys.exit("Error: need to install scapy for packet handling")
 
 # Override sniff from scapy to implement custom stopper
-def sniff(count=0, store=1, offline=None, prn = None, lfilter=None, L2socket=None, timeout=None, stopperTimeout=None, stopper = None, *arg, **karg):
+def sniff(count=0, store=1, offline=None, prn = None, lfilter=None, L2socket=None, timeout=None, stopperTimeout=None, stopper = None, lst = [], *arg, **karg):
     """Sniff packets
 sniff([count=0,] [prn=None,] [store=1,] [offline=None,] [lfilter=None,] + L2ListenSocket args) -> list of packets
 
@@ -44,7 +49,7 @@ L2socket: use the provided L2socket
     else:
         s = PcapReader(offline)
 
-    lst = []
+    #lst = []
     if timeout is not None:
         stoptime = time.time()+timeout
     remain = None
@@ -94,8 +99,6 @@ L2socket: use the provided L2socket
     s.close()
     return scapy.plist.PacketList(lst,"Sniffed")
 
-
-
 class pktExpect(Thread):
     ############################
     # Function: __init__
@@ -105,41 +108,48 @@ class pktExpect(Thread):
     ############################
     def __init__ (self, device):
         Thread.__init__(self)
+        self.daemon = True
         self.device = device
-        self.pkts = []
         self.done = False
-        self.exp_pkts = []
-        self.unexp_pkts = []
-        self.missing_pkts = []
-        self.matched =[]
         self.ready = False
-        self.verbose = True # default should be false
+        self.count = 0
+        self.pkts = []
+        self.exp_pkts = []
+        self.matched =[]
         self.lock = Lock()
         self.status = -1
+        self.compareEvent = Event()
+        self.compare = pktCompare(self)
+        self.barrierEvent = Event()
 
     ############################
     # Function: run
     # Arguments: calling object
-    # Description: runs sniff
+    # Description: starts background comparison thread, runs sniff
     ############################
     def run(self):
+        self.compare.start()
         while not self.done:
             try:
                 sniff(prn=self.addPkt,iface=self.device, store=0, stopperTimeout=1, stopper=self.isDone)
             except(KeyboardInterrupt):
                 self.finish()
-        else:
-            sys.exit(0)
 
     ############################
     # Function: addPkt
     # Arguments: calling object
     #            packet to add to pkts
     # Description: adds packet to either matched or received packets list
+    #              notifies background thread to compare packet lists
     ############################
     def addPkt(self,pkt):
         self.pkts.append(pkt)
-        self.resolvePkts()
+        self.count += 1
+        self.barrierEvent.clear()
+        if self.compareEvent.is_set():
+            pass
+        else:
+            self.compareEvent.set()
 
     ############################
     # Function: isDone
@@ -163,29 +173,31 @@ class pktExpect(Thread):
     # Function: expectPkt
     # Arguments: calling object
     #            packet to expect
-    # Description: adds packet to list of packets to expect, rechecks packet lists
+    # Description: adds packet to list of packets to expect
     ############################
     def expectPkt(self, pkt):
         self.exp_pkts.append(pkt)
-        self.resolvePkts()
+        self.barrierEvent.clear()
 
     ############################
     # Function: resolvePkts
     # Arguments: calling object
     # Description: checks unmatched received packets against unmatched expected packets
+    #              notifies barrierEvent if expected and received packet lists are empty
     ############################
     def resolvePkts(self):
         self.lock.acquire()
-        self.pkts == None
-        self.exp_pkts == None
-        if (len(self.pkts) != 0) and  (len(self.exp_pkts) != 0):
+        if (len(self.pkts) > 0) and  (len(self.exp_pkts) > 0):
+            self.barrierEvent.clear()
             i = 0
             numPkts = len(self.pkts)
             while i < numPkts:
+                strpkt = str(self.pkts[i])
                 for exp in self.exp_pkts:
-                    matches = str(exp) == str(self.pkts[i])
-                    if not matches and self.pkts[i].haslayer(scapy.Padding):
-                        if str(exp/self.pkts[i][scapy.Padding]) == str(self.pkts[i]):
+                    strexp = str(exp)
+                    matches = (strexp == strpkt)
+                    if not matches and len(exp) < 60 and self.pkts[i].haslayer(scapy.Padding):
+                        if ''.join([strexp,str(self.pkts[i][scapy.Padding])]) == strpkt:
                             matches = True
                     if matches:
                         self.matched.append(self.pkts[i])
@@ -196,111 +208,127 @@ class pktExpect(Thread):
                         break
                 i += 1
         self.lock.release()
-        return True
-
-    ############################
-    # Function: barrier
-    # Arguments: calling object
-    #            timeout in seconds
-    # Description: pauses execution until expected packets arrive or timeout passes
-    ############################
-    def barrier(self, timeout):
-        self.resolvePkts()
-        start = time.clock()
-        # 10 sec timeout
-        while (len(self.exp_pkts) != 0) & ((time.clock() - start) < timeout):
-            pass
-        else:
-            if len(self.exp_pkts) == 0:
-                return True
-            else:
-                print '\nError: barrier timed out after ', str(timeout), ' seconds'
-                print 'Missing ', str(len(self.exp_pkts)), ' packet on device ', str(self.device), '\n'
+        if (len(self.pkts) is 0) and  (len(self.exp_pkts) is 0):
+            self.barrierEvent.set()
+            return True
         return False
 
     ############################
-    # Function: pktCmp
+    # Function: restart
     # Arguments: calling object
-    # Description: compares expected packets to received packets
-    #              prints differences and returns # of errors
+    # Description: resets all packet lists
     ############################
-    def pktCmp(self):
-        if len(self.pkts) == 0 and len(self.exp_pkts) == 0:
-            return 0
-        elif len(self.pkts) == 0:
-            return len(self.exp_pkts)
-        elif len(self.exp_pkts) == 0:
-            return len(self.pkts)
-        error = 0
-        exp_matched = []
-        # mark each egress packet as not matched
-        for pktNum in range(len(self.exp_pkts)):
-            exp_matched.append(0)
+    def restart(self):
+        self.lock.acquire()
+        self.exp_pkts = []
+        self.pkts = []
+        self.matched = []
+        self.lock.release()
 
-        # try to match expected pkt w/ egress pkt
-        for pktNum in range(len(self.pkts)):
-            pkt = self.pkts[pktNum] # pkt is packet to compare against
-            exp_index = 0 # will be index of matching exp_pkt
-            result = True
-            while ((exp_index < len(self.exp_pkts)) and result):
-                result = True # true - mismatch
-                if (exp_matched[exp_index] == 0):
-                    exp_pkt = self.exp_pkts[exp_index]
-                    result = (exp_pkt != pkt)
-                exp_index += 1
-
-            if result:
-                error += 1
-                str_exp_pkt = ''
-                str_pkt = ''
-                for x in str(exp_pkt):
-                    str_exp_pkt += "%02X"%ord(x)
-                for x in str(pkt):
-                    str_pkt += "%02X"%ord(x)
-                if self.verbose & (len(str_exp_pkt) != len(str_pkt)):
-                    print 'Packet lengths do not match, expecting ', str(len(exp_pkt)), ' but saw ', str(len(pkt))
-                else:
-                    for i in range(len(str_exp_pkt)):
-                        if self.verbose & (str_pkt[i] != str_exp_pkt[i]):
-                            print 'byte ', str(i/2), ' (starting from 0) not equivalent (EXP: ', str_exp_pkt[i:i+2], ', ACTUAL: ', str_pkt[i:i+2], ')'
-                            break
-            else:
-                exp_index -= 1
-        return error
 
     ############################
     # Function: finish
     # Arguments: calling object
-    # Description: calls pktCmp and prints results
-    #              tells sniff to stop sniffing
-    #              returns received packets
+    # Description: tells sniff to stop sniffing
+    #              returns packets
     ############################
     def finish(self):
         print self.device, 'finishing up'
-        #time.sleep(1) # make sure last few packets get in - DEPRECATED: barrier
-        #print self.pktCmp(), ' errors\n'
         self.done = True
-        #self.barrier(10)
-        print 'matched ', str(len(self.matched)), ' packets'
-        if len(self.exp_pkts) != 0:
-            if not (len(self.exp_pkts) is 1 and self.exp_pkts[0] is None):
-                print str(len(self.exp_pkts)), ' missing packets'
-                scapy.wrpcap(self.device+"_missing.pcap",self.exp_pkts)
-        if len(self.pkts) != 0:
-            if not (len(self.pkts) is 1 and self.pkts[0] is None):
-                print str(len(self.pkts)), ' extra packets'
-                scapy.wrpcap(self.device+"_extra.pcap",self.pkts)
-        print ''
-        self.pktCmp()
-        return self.pkts
+        self.lock.acquire()
+        return (self.matched, self.pkts, self.exp_pkts)
 
+class pktSend(Thread):
+    ############################
+    # Function: __init__
+    # Arguments: calling object
+    #            device name
+    #            socket configuration options
+    # Description: overrides Thread.__init__, initializes vars, opens socket
+    ############################
+    def __init__(self, device, family = socket.AF_PACKET, type = socket.SOCK_RAW, proto = socket.htons(3)):
+        Thread.__init__(self)
+        self.daemon = True
+        self.lock = Lock()
+        self.closed = False
+        self.toSend = deque()
+        self.sock = socket.socket(family, type, proto)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 0)
+        while True:
+            r,w,x = select([self.sock.fileno()], [], [], 0)
+            if r:
+                os.read(self.sock.fileno(),1600)
+            else:
+                break
+        self.sock.bind((device,3))
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 2**30)
+        self.sentcount = 0
+        self.sendcount = 0
 
-############################
-# Function: pktSend
-# Arguments: calling object
-#            name of interface to sniff
-#            packet to send
-# Description: sends packet on an interface
-############################
-def pktSend(ifaceName, pkt):
-    scapy.sendp(pkt,iface=ifaceName)
+    ############################
+    # Function: run_
+    # Arguments: calling object
+    # Description: overrides Thread.run, sends packets in queue
+    ############################
+    def run(self):
+        while not self.closed:
+            try:
+                if len(self.toSend) > 0:
+                    self.lock.acquire()
+                    self.sock.send(self.toSend.popleft().__str__())
+                    self.sentcount += 1
+                    self.lock.release()
+            except(KeyboardInterrupt):
+                self.close()
+
+    ############################
+    # Function: sendPkt
+    # Arguments: calling object
+    #            packet to send
+    # Description: adds packets to queue to be sent
+    #              delays so scapy doesn't drop packets
+    ############################
+    def sendPkt(self, pkt):
+        self.lock.acquire()
+        self.toSend.append(pkt)
+        self.sendcount += 1
+        time.sleep(0.008)
+        self.lock.release()
+
+    ############################
+    # Function: close
+    # Arguments: calling object
+    # Description: waits for packets to drain, then closes socket
+    ############################
+    def close(self):
+        while len(self.toSend) > 0:
+            pass
+        if self.closed:
+            return
+        self.closed = True
+        self.sock.close()
+
+class pktCompare(Thread):
+    ############################
+    # Function: __init__
+    # Arguments: calling object
+    #            pktExpect object
+    # Description: overrides Thread.__init__, initializes vars
+    ############################
+    def __init__ (self, expect):
+        Thread.__init__(self)
+        self.daemon = True
+        self.done = False
+        self.compareEvent = expect.compareEvent
+        self.compare = expect.resolvePkts
+
+    ############################
+    # Function: run
+    # Arguments: calling object
+    # Description: waits until woken by addPkt, then calls resolvePkts
+    ############################
+    def run(self):
+        while not self.done:
+            self.compareEvent.wait()
+            self.compareEvent.clear()
+            self.compare()
