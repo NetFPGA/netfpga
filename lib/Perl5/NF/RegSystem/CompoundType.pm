@@ -17,6 +17,7 @@ use vars qw(@ISA);
 
 use Carp;
 use strict;
+use POSIX;
 our $AUTOLOAD;
 
 my %fields = (
@@ -55,12 +56,19 @@ sub new {
 #
 # Get the total width
 #
+# Note: Rounds all fields up with whole word widths
+#
 sub width {
   my $self = shift;
 
   my $width = 0;
   for my $field (@{$self->{fields}}) {
-    $width += $field->width();
+    my $fieldWidth = $field->width();
+    $fieldWidth /= NF::RegSystem::Type->wordSize();
+    $fieldWidth = ceil($fieldWidth);
+    $fieldWidth *= NF::RegSystem::Type->wordSize();
+
+    $width += $fieldWidth;
   }
   return $width;
 }
