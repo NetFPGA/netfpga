@@ -3,9 +3,7 @@
 # Date: 3/16/2011
 
 import sys
-from threading import Thread
-from threading import Lock
-from threading import Event
+from threading import Thread, Lock, Event
 import time
 import socket
 import os
@@ -21,6 +19,7 @@ except:
       sys.exit("Error: need to install scapy for packet handling")
 
 # Override sniff from scapy to implement custom stopper
+# from http://trac.secdev.org/scapy/wiki/PatchSelectStopperTimeout
 def sniff(count=0, store=1, offline=None, prn = None, lfilter=None, L2socket=None, timeout=None, stopperTimeout=None, stopper = None, lst = [], *arg, **karg):
     """Sniff packets
 sniff([count=0,] [prn=None,] [store=1,] [offline=None,] [lfilter=None,] + L2ListenSocket args) -> list of packets

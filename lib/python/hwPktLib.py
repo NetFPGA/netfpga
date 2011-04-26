@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import testPktHW
+import hwPkt
 import sys
 
 import time
@@ -21,25 +21,24 @@ packets = {}
 toIgnore = {}
 
 ############################
-# Function: nftest_init
+# Function: init
 # Arguments: arguments passed to script
 #            list of interfaces to sniff
 # Description: handles options, populates ifaceArray
 ############################
-def nftest_init(argv, active_ports):
-    # process argv
+def init(active_ports):
     for iface in active_ports:
         ifaceArray.append(iface)
 
 ############################
-# Function: nftest_start
+# Function: start
 # Arguments: none
 # Description: starts capture threads
 ############################
-def nftest_start():
+def start():
     for iface in ifaceArray:
-        captureThreads[iface] = testPktHW.pktExpect(iface)
-        openSockets[iface] = testPktHW.pktSend(iface)
+        captureThreads[iface] = hwPkt.pktExpect(iface)
+        openSockets[iface] = hwPkt.pktSend(iface)
         packets[iface] = {}
         toIgnore['layer'] = []
         toIgnore['method'] = []
@@ -53,47 +52,47 @@ def nftest_start():
             alive &= captureThreads[iface].isAlive()
 
 ############################
-# Function: nftest_restart
+# Function: restart
 # Arguments: none
 # Description: resets all packet lists
 ############################
-def nftest_restart():
+def restart():
     for pkts in packets:
         pkts = {}
     for iface in ifaceArray:
         captureThreads[iface].restart()
 
 ############################
-# Function: nftest_send
+# Function: send
 # Arguments: interface name
 #            packet to send
 #            (optional) expect packet
 # Description: sends packet on an interface, expect the packet if expect is True
 ############################
-def nftest_send(ifaceName, pkt, expect = True):
+def send(ifaceName, pkt, exp = True):
     try:
         openSockets[ifaceName].sendPkt(pkt)
     except(KeyError):
         print 'Error: invalid interface name'
-    if expect:
-        nftest_expect(ifaceName, pkt)
+    if exp:
+        expect(ifaceName, pkt)
 
 ############################
-# Function: nftest_expect
+# Function: expect
 # Arguments: interface name
 #            packet to expect
 # Description: expects a packet on an interface
 ############################
-def nftest_expect(ifaceName, pkt):
+def expect(ifaceName, pkt):
     captureThreads[ifaceName].expectPkt(pkt)
 
 ############################
-# Function: nftest_barrier
+# Function: barrier
 # Arguments: (optional) timeout in seconds
 # Description: blocks execution until all expected packets arrive, or times out
 #              returns False if timed out
 ############################
-def nftest_barrier(timeout = 10):
+def barrier(timeout = 10):
     start = time.clock()
     good = False
     while timeout + start - time.clock() > 0:
@@ -117,12 +116,12 @@ def nftest_barrier(timeout = 10):
     return good
 
 ############################
-# Function: nftest_compare
+# Function: compare
 # Arguments: list of expected packets
 #            list of unexpected packets
 # Description: compares expected packets to unexpected packets, enumerating differences
 ############################
-def nftest_compare(exp, unexp):
+def compare(exp, unexp):
     numExp = exp.__len__()
     numUnexp = unexp.__len__()
     # check if there is anything to compare
@@ -141,7 +140,7 @@ def nftest_compare(exp, unexp):
     for i in range(numExp):
         print 'Expected packet', str(i)
         for j in range(numUnexp):
-            if len(exp[i]) is not len(unexp[j]):
+            if len(exp[i]) != len(unexp[j]):
                 print '   Unexpected packet ' + str(j) + ': Packet lengths do not match, expecting', str(len(exp[i])), 'but saw', str(len(unexp[j]))
             else:
                 str_exp_pkt = ''
@@ -159,13 +158,15 @@ def nftest_compare(exp, unexp):
     return numExp + numUnexp
 
 ############################
-# Function: nftest_finish
+# Function: finish
 # Arguments: none
 # Description: closes capture threads, filters by toIgnore, calls pktCmp, writes pcap files, return # errors
 ############################
-def nftest_finish():
+def finish():
     pkts = ()
     ignored = []
+    from hwRegLib import get_bad_reads
+    bad_reads = get_bad_reads()
     error_count = 0
 
     for iface in ifaceArray:
@@ -177,12 +178,12 @@ def nftest_finish():
         packets[iface]['Matched'] = pkts[0]
         packets[iface]['Unexpected'] = pkts[1]
         packets[iface]['Expected'] = pkts[2]
-        nftest_filter(packets[iface]['Matched'], ignored)
-        nftest_filter(packets[iface]['Unexpected'], ignored)
-        nftest_filter(packets[iface]['Expected'], ignored)
+        filter(packets[iface]['Matched'], ignored)
+        filter(packets[iface]['Unexpected'], ignored)
+        filter(packets[iface]['Expected'], ignored)
 
         # show differences between packets
-        error_count += nftest_compare(packets[iface]['Expected'], packets[iface]['Unexpected'])
+        error_count += compare(packets[iface]['Expected'], packets[iface]['Unexpected'])
 
         # write pcap files - TO IMPLEMENT: write to tmp dir
         if packets[iface]['Matched'].__len__() > 0:
@@ -193,14 +194,20 @@ def nftest_finish():
             scapy.wrpcap(iface+"_extra.pcap", packets[iface]['Unexpected'])
         if ignored.__len__() > 0:
             scapy.wrpcap(iface+"_ignored.pcap", ignored)
+        # check for bad regread_expect
+        try:
+            num_bad_reads = bad_reads[iface].__len__()
+            error_count += num_bad_reads
+        except(KeyError):
+            pass
     return error_count
 
 ############################
-# Function: nftest_filter
+# Function: filter
 # Arguments: list of packets to filter, list to add ignored packets to
 # Description: removes packets to be ignored
 ############################
-def nftest_filter(pktlist, ignorelist):
+def filter(pktlist, ignorelist):
     if pktlist.__len__() <= 0:
         return
     ignored = []
@@ -227,13 +234,13 @@ def nftest_filter(pktlist, ignorelist):
     ignorelist.extend(ignored)
 
 ############################
-# Function: nftest_ignore
+# Function: ignore
 # Arguments: filter
 #            (optional) method
 # Description: adds string name of scapy layer to ignore
 #              or adds method to ignore if method is True
 ############################
-def nftest_ignore(filter, method = False):
+def ignore(filter, method = False):
     # filter by layer
     if not method:
         toIgnore['layer'].append(filter)
@@ -251,18 +258,3 @@ def len(pkt):
     if length < 60:
         return 60
     return length
-
-############################
-# Function: generate_load
-# Arguments: min_len
-#            (optional) max_len
-# Description: generates a random payload of min_len
-#              if max_len is specified, payload will be random length between min_len and max_len
-############################
-def generate_load(min_len, max_len = 0):
-    if max_len == 0:
-        max_len = min_len
-    load = ''
-    for i in range(random.randint(min_len,max_len)):
-        load += chr(random.randint(0,255))
-    return load
