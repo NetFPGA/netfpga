@@ -24,7 +24,7 @@
     core/io_queues/add_rm_hdr
     core/strip_headers/keep_length
     core/utils
-  </nf:use_modules>-
+  </nf:use_modules>
   <nf:memalloc layout="reference">
     <nf:group name="core1">
       <nf:instance name="device_id" />
