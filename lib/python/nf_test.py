@@ -119,6 +119,9 @@ def run_hw_test():
             # Actual test -- only run if both setups succeed
             if csResult and lsResult:
                 (testResult, testOutput) = runTest(project, test)
+                # move pcap files to work dir
+                for pcap in glob.glob(src_test_dir + '/' + test + '/*.pcap'):
+                    subprocess.call(['mv', pcap, proj_test_dir + '/' + test])
                 testResults[test] = testResult
                 passed &= testResult
 
@@ -198,7 +201,10 @@ def run_hw_test():
 def run_sim_test():
     verifyCI()
     prepareWorkDir()
-    buildSim()
+    if not args.no_compile:
+        buildSim()
+    if args.compile_only:
+        sys.exit(0)
 
     #set up test dirs
     passed = []; failed = []
@@ -287,6 +293,8 @@ def handleArgs():
     parser.add_argument('--vcs', action='store_true', help='Simulation only. If this option is present, vcs will run. Otherwise vsim will run.')
     parser.add_argument('--isim', action='store_true', help='Simulation only. If this option is present, ISIM will run. Otherwise vsim will run.')
     parser.add_argument('--gui', action='store_true', help='Simulation only. This will run the simulator in interactive mode (usually with a GUI).')
+    parser.add_argument('--no_compile', action='store_true', help='Simulation only. This will not compile the simulation binary.')
+    parser.add_argument('--compile_only', action='store_true', help='Simulation only.  This will only compile the simulation.')
 
     global args; args = parser.parse_args()
     if args.type == 'sim':
@@ -294,7 +302,7 @@ def handleArgs():
             print 'Error: --quiet, --common-setup, and --common-teardown are only compatible with hardware tests'
             sys.exit(1)
     else:
-        if args.make_file or args.make_opt or args.sim_opt or args.dump or args.vcs or args.isim or args.gui:
+        if args.make_file or args.make_opt or args.sim_opt or args.dump or args.vcs or args.isim or args.gui or args.no_compile or args.compile_only:
             print 'Error: --make_file, --make_opt, --sim_opt, --dump, --vcs, --isim, and --gui are only compatible with simulation tests'
             sys.exit(1)
 
@@ -344,6 +352,9 @@ def identifyWorkDir():
     else:
         work_test_dir = workDir + '/test'
     global proj_test_dir; global src_test_dir
+    global project; global projDir
+    project = os.path.basename(os.environ['NF_DESIGN_DIR'])
+    projDir = os.environ['NF_WORK_DIR'] + '/test/' + project
     proj_test_dir = work_test_dir + '/' + project
     if args.src_test_dir:
         src_test_dir = args.src_test_dir
@@ -376,8 +387,8 @@ def identifyTests():
 
 def prepareWorkDir():
     global project; global projDir
-    project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-    projDir = os.environ['NF_WORK_DIR'] + '/test/' + project
+    #project = os.path.basename(os.environ['NF_DESIGN_DIR'])
+    #projDir = os.environ['NF_WORK_DIR'] + '/test/' + project
 
     if not os.path.exists(projDir):
         try:
@@ -414,12 +425,12 @@ def buildSim():
         print 'Unable to find make file ' + make_file
         sys.exit(1)
     project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-    global proj_test_dir; global src_test_dir
-    proj_test_dir = work_test_dir + '/' + project
-    if args.src_test_dir:
-        src_test_dir = args.src_test_dir
-    else:
-        src_test_dir = os.environ['NF_DESIGN_DIR'] + '/test'
+    #global proj_test_dir; global src_test_dir
+    #proj_test_dir = work_test_dir + '/' + project
+    #if args.src_test_dir:
+    #    src_test_dir = args.src_test_dir
+    #else:
+    #    src_test_dir = os.environ['NF_DESIGN_DIR'] + '/test'
     subprocess.call(['cp', make_file, proj_test_dir + '/Makefile'])
 
     print '=== Work directory is ' + proj_test_dir

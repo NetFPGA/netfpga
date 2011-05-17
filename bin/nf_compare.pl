@@ -240,7 +240,7 @@ sub check_packets {
   my $egress_required = shift;
   my $rules = shift;
 
-  my $strict_ordering = 1; # flag for strict packet ordering (default is on)
+  my $strict_ordering = 0;#1; # flag for strict packet ordering (default is on)
 
   #if ($#$exp_pkts != $#$egress_pkts) {
   if ($#$egress_pkts < ($egress_required - 1) || $#$egress_pkts > $#$exp_pkts) {

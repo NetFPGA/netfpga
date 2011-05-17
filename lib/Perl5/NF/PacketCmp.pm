@@ -541,7 +541,7 @@ sub compare_2_pkts {
   if (scalar(@{$d1}) != scalar(@{$d2})) {
     #print (@{$d2});
     return (sprintf "Packet lengths do not match, expecting %d, saw %d\n",
-	    ($#{@{$d1}}+1), ($#{@{$d2}}+1));
+	    ($#{$d1}+1), ($#{$d2}+1));
   }
 
   for ($byte=0;$byte<scalar(@{$d1}); $byte++) {
