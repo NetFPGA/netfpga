@@ -48,8 +48,10 @@ def make_IP_hdr(src_IP = None, dst_IP = None, TTL = None, **kwargs):
 # Description: creates and returns a scapy ARP layer
 #              if keyword arguments are not specified, scapy defaults are used
 ############################
-def make_ARP_hdr(src_MAC = None, dst_MAC = None, src_IP = None, dst_IP = None, **kwargs):
+def make_ARP_hdr(op = None, src_MAC = None, dst_MAC = None, src_IP = None, dst_IP = None, **kwargs):
     hdr = scapy.ARP()
+    if op:
+        hdr.op = op
     if src_MAC:
         hdr.hwsrc = src_MAC
     if dst_MAC:
@@ -68,6 +70,8 @@ def make_ARP_hdr(src_MAC = None, dst_MAC = None, src_IP = None, dst_IP = None, *
 # Description: creates and returns a complete IP packet of length pkt_len
 ############################
 def make_IP_pkt(pkt_len = 60, **kwargs):
+    if pkt_len < 60:
+        pkt_len = 60
     pkt = make_MAC_hdr(**kwargs)/make_IP_hdr(**kwargs)/generate_load(pkt_len - 34)
     return pkt
 
@@ -77,9 +81,12 @@ def make_IP_pkt(pkt_len = 60, **kwargs):
 #                    src_IP, dst_IP, TTL
 # Description: creates and returns a complete ICMP reply packet
 ############################
-def make_ICMP_reply_pkt(**kwargs):
-    pkt = make_MAC_hdr(**kwargs)/make_IP_hdr(**kwargs)/scapy.ICMP(type="echo-reply", code=0, id=0x0, seq=0x0)
-    # do code, id, seq need to be set?
+def make_ICMP_reply_pkt(data = None, **kwargs):
+    pkt = make_MAC_hdr(**kwargs)/make_IP_hdr(**kwargs)/scapy.ICMP(type="echo-reply")
+    if data:
+        pkt = pkt/data
+    else:
+        pkt = pkt/("\x00"*56)
     return pkt
 
 ############################
@@ -89,7 +96,7 @@ def make_ICMP_reply_pkt(**kwargs):
 # Description: creates and returns a complete ICMP request packet
 ############################
 def make_ICMP_request_pkt(**kwargs):
-    pkt = make_MAC_hdr(**kwargs)/make_IP_hdr(**kwargs)/scapy.ICMP(type="echo-request", code=0, id=0x0, seq=0x0)
+    pkt = make_MAC_hdr(**kwargs)/make_IP_hdr(**kwargs)/scapy.ICMP(type="echo-request")/("\x00"*56)
     return pkt
 
 ############################
@@ -115,11 +122,11 @@ def make_ICMP_host_unreach_pkt(**kwargs):
 ############################
 # Function: make_ARP_request_pkt
 # Keyword Arguments: src_MAC, dst_MAC, EtherType
-#                    src_IP, dst_IP, TTL
+#                    src_IP, dst_IP
 # Description: creates and returns a complete ICMP reply packet
 ############################
 def make_ARP_request_pkt(**kwargs):
-    pkt = make_MAC_hdr(**kwargs)/make_ARP_hdr(op="who-has", **kwargs)
+    pkt = make_MAC_hdr(**kwargs)/make_ARP_hdr(op="who-has", **kwargs)/("\x00"*18)
     return pkt
 
 ############################
@@ -129,7 +136,7 @@ def make_ARP_request_pkt(**kwargs):
 # Description: creates and returns a complete ARP reply packet
 ############################
 def make_ARP_reply_pkt(**kwargs):
-    pkt = make_MAC_hdr(**kwargs)/make_ARP_hdr(op="is-at", **kwargs)
+    pkt = make_MAC_hdr(**kwargs)/make_ARP_hdr(op="is-at", **kwargs)/("\x00"*18)
     return pkt
 
 ############################
