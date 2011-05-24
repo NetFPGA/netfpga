@@ -17,7 +17,6 @@ run = 'run'
 GLOBAL_SETUP = 'global setup'
 GLOBAL_TEARDOWN = 'global teardown'
 
-####### from testBase
 args = None
 
 rootDir = ''
@@ -35,10 +34,6 @@ sim_opt = ''
 
 tests = []
 
-####### from testBase
-
-####### from hwTest
-
 REQUIRED = 1
 OPTIONAL = 0
 
@@ -50,8 +45,6 @@ globalDir = 'global'
 projectRoot = 'projects'
 testRoot = 'test'
 
-
-###### from hwTest
 
 def run_hw_test():
     print 'Root directory is ' + rootDir
@@ -244,7 +237,7 @@ def run_sim_test():
             failed.append(td)
         else:
             print 'Test ' + td + ' passed!'
-            passed.append(td) # questionable
+            passed.append(td)
 
     #print results
     summary = '------------SUMMARY---------------\n'
@@ -267,8 +260,6 @@ def run_sim_test():
         f.close()
     sys.exit(len(failed))
 
-
-####### from testBase
 
 def handleArgs():
     parser = argparse.ArgumentParser()
@@ -336,7 +327,7 @@ def identifyWorkDir():
     try:
         workDir = os.path.abspath(os.environ['NF_WORK_DIR'])
     except(KeyError):
-        login = os.getlogin() # or something else?
+        login = os.getlogin()
         workDir = '/tmp/' + login
     if not os.path.exists(workDir):
         try:
@@ -387,8 +378,6 @@ def identifyTests():
 
 def prepareWorkDir():
     global project; global projDir
-    #project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-    #projDir = os.environ['NF_WORK_DIR'] + '/test/' + project
 
     if not os.path.exists(projDir):
         try:
@@ -418,19 +407,12 @@ def prepareTestWorkDir(testName):
     if args.type == 'sim':
         for file in glob.glob(src_dir + '/*'):
             subprocess.call(['cp', '-r', '-p', file, dst_dir])
-        #status = subprocess.call(['cp', '-r', '-p', src_dir + '/*', dst_dir])
 
 def buildSim():
     if not os.path.exists(make_file):
         print 'Unable to find make file ' + make_file
         sys.exit(1)
     project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-    #global proj_test_dir; global src_test_dir
-    #proj_test_dir = work_test_dir + '/' + project
-    #if args.src_test_dir:
-    #    src_test_dir = args.src_test_dir
-    #else:
-    #    src_test_dir = os.environ['NF_DESIGN_DIR'] + '/test'
     subprocess.call(['cp', make_file, proj_test_dir + '/Makefile'])
 
     print '=== Work directory is ' + proj_test_dir
@@ -459,7 +441,7 @@ def buildSim():
         pass#if tcRunMake('', args.citest + tcGetTestSeparator() + 'make', '.', cmd) is not 0:
         #    sys.exit(1)
     else:
-        status = subprocess.call(cmd, shell=True) # DANGER!!
+        status = subprocess.call(cmd, shell=True)
         if status > 0:
             print "Error: "
             sys.exit(1)
@@ -475,8 +457,7 @@ def verifyCI():
     if args.ci is not 'teamcity':
         TeamCity.tcDisableOutput()
 
-
-##### from hwTest
+###### hw specific functions
 
 def runTest(project, test):
     testDir = rootDir + '/' + projectRoot + '/' + project + '/' + testRoot + '/' + test
@@ -555,7 +536,7 @@ def printScriptOutput(result, output):
             print 'Output was:'
             print output
 
-####### from hwTest
+####### method calls
 
 handleArgs()
 identifyRoot()

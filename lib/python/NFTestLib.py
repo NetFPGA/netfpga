@@ -13,11 +13,10 @@ CPCI_Control_reg = 0x08
 CPCI_Interrupt_Mask = 0x40
 
 ############################
-# Function: init
+# Function: nftest_init
 # Arguments: map file, connection file
-#            hw/sw/both
-# Description: takes a map file and connection file
-#              displays usage notes if --help is specified
+#            --hw
+# Description: parses a map file and connection file
 ############################
 def nftest_init(interfaces, connectionsfileName, *args, **kwargs):
     global sim
@@ -53,11 +52,9 @@ def nftest_init(interfaces, connectionsfileName, *args, **kwargs):
         hwPktLib.init(interfaces)
 
 ############################
-# Function: start
-# Arguments:
-#
-# Description: begins the test
-#
+# Function: nftest_start
+# Arguments: none
+# Description: performs initialization
 ############################
 def nftest_start():
     if sim:
@@ -70,11 +67,10 @@ def nftest_start():
         hwRegLib.fpga_reset()
 
 ############################
-# Function: pktSend
-# Arguments:
-#
-# Description:
-#
+# Function: nftest_send
+# Arguments: interface name
+#            packet to send
+# Description: send a packet on an interface
 ############################
 def nftest_send(ifaceName, pkt):
     if sim:
@@ -86,11 +82,10 @@ def nftest_send(ifaceName, pkt):
         hwPktLib.send(map[ifaceName], pkt)
 
 ############################
-# Function: pktExpect
-# Arguments:
-#
-# Description:
-#
+# Function: nftest_expect
+# Arguments: interface name
+#            packet to expect
+# Description: expect a packet on an interface
 ############################
 def nftest_expect(ifaceName, pkt):
     if sim:
@@ -104,11 +99,9 @@ def nftest_expect(ifaceName, pkt):
         hwPktLib.expect(map[ifaceName], pkt)
 
 ############################
-# Function: barrier
-# Arguments:
-#
-# Description:
-#
+# Function: nftest_barrier
+# Arguments: none
+# Description: pauses execution until expected packets arrive
 ############################
 def nftest_barrier():
     if sim:
@@ -117,11 +110,10 @@ def nftest_barrier():
         hwPktLib.barrier()
 
 ############################
-# Function: finish
-# Arguments:
-#
-# Description:
-#
+# Function: nftest_finish
+# Arguments: none
+# Description: (sim) finalizes simulation files
+#              (hw) performs finalization, writes pcap files
 ############################
 def nftest_finish():
     if sim:
@@ -131,11 +123,11 @@ def nftest_finish():
         return hwPktLib.finish()
 
 ############################
-# Function: regread_expect
-# Arguments:
-#
-# Description:
-#
+# Function: nftest_regread_expect
+# Arguments: address to read
+#            value expected
+# Description: reads the specified address and compares with passed value
+#              (hw) returns read data
 ############################
 def nftest_regread_expect(addr, val):
     if sim:
@@ -147,10 +139,9 @@ def nftest_regread_expect(addr, val):
 
 ############################
 # Function: regwrite
-# Arguments:
-#
-# Description:
-#
+# Arguments: address to write
+#            value to write
+# Description: writes a value to a register
 ############################
 def nftest_regwrite(addr, val):
     if sim:

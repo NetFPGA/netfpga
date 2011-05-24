@@ -130,7 +130,8 @@ class pktExpect(Thread):
         self.compare.start()
         while not self.done:
             try:
-                sniff(prn=self.addPkt,iface=self.device, store=0, stopperTimeout=1, stopper=self.isDone)
+                sniff(prn=self.addPkt,iface=self.device, store=0,
+                      stopperTimeout=1, stopper=self.isDone)
             except(KeyboardInterrupt):
                 self.finish()
 
@@ -245,7 +246,8 @@ class pktSend(Thread):
     #            socket configuration options
     # Description: overrides Thread.__init__, initializes vars, opens socket
     ############################
-    def __init__(self, device, family = socket.AF_PACKET, type = socket.SOCK_RAW, proto = socket.htons(3)):
+    def __init__(self, device, family = socket.AF_PACKET,
+                 type = socket.SOCK_RAW, proto = socket.htons(3)):
         Thread.__init__(self)
         self.daemon = True
         self.lock = Lock()
@@ -265,7 +267,7 @@ class pktSend(Thread):
         self.sendcount = 0
 
     ############################
-    # Function: run_
+    # Function: run
     # Arguments: calling object
     # Description: overrides Thread.run, sends packets in queue
     ############################

@@ -3,7 +3,7 @@
 import hwReg
 import time
 
-from hwPktLib import ifaceArray #import hwPktLib # for ifaceArray
+from hwPktLib import ifaceArray # for ifaceArray
 
 import sys
 import os
@@ -81,7 +81,10 @@ def phy_loopback(ifaceName):
     else:
         print 'Interface has to be an nf2cX interface\n'
         return
-    addr = (reg_defines.MDIO_PHY_0_CONTROL_REG(), reg_defines.MDIO_PHY_1_CONTROL_REG(), reg_defines.MDIO_PHY_2_CONTROL_REG(), reg_defines.MDIO_PHY_3_CONTROL_REG())
+    addr = (reg_defines.MDIO_PHY_0_CONTROL_REG(),
+            reg_defines.MDIO_PHY_1_CONTROL_REG(),
+            reg_defines.MDIO_PHY_2_CONTROL_REG(),
+            reg_defines.MDIO_PHY_3_CONTROL_REG())
     regwrite(ifaceName, addr[portNum], 0x5140)
 
 ############################
@@ -95,7 +98,10 @@ def phy_reset(ifaceName):
     else:
         print 'Interface has to be an nf2cX interface\n'
         return
-    addr = (reg_defines.MDIO_PHY_0_CONTROL_REG(), reg_defines.MDIO_PHY_1_CONTROL_REG(), reg_defines.MDIO_PHY_2_CONTROL_REG(), reg_defines.MDIO_PHY_3_CONTROL_REG())
+    addr = (reg_defines.MDIO_PHY_0_CONTROL_REG(),
+            reg_defines.MDIO_PHY_1_CONTROL_REG(),
+            reg_defines.MDIO_PHY_2_CONTROL_REG(),
+            reg_defines.MDIO_PHY_3_CONTROL_REG())
     regwrite(ifaceName, addr[portNum], 0x8000)
 
 ############################

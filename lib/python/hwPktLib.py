@@ -22,9 +22,8 @@ toIgnore = {}
 
 ############################
 # Function: init
-# Arguments: arguments passed to script
-#            list of interfaces to sniff
-# Description: handles options, populates ifaceArray
+# Arguments: list of interfaces to sniff
+# Description: populates ifaceArray
 ############################
 def init(active_ports):
     for iface in active_ports:
@@ -66,8 +65,8 @@ def restart():
 # Function: send
 # Arguments: interface name
 #            packet to send
-#            (optional) expect packet
-# Description: sends packet on an interface, expect the packet if expect is True
+#            (optional) expect packet, default is true
+# Description: sends packet on an interface, expect the packet if specified
 ############################
 def send(ifaceName, pkt, exp = True):
     try:
@@ -88,8 +87,8 @@ def expect(ifaceName, pkt):
 
 ############################
 # Function: barrier
-# Arguments: (optional) timeout in seconds
-# Description: blocks execution until all expected packets arrive, or times out
+# Arguments: (optional) timeout in seconds, default is 10 sec
+# Description: blocks execution until expected packets arrive, or times out
 #              returns False if timed out
 ############################
 def barrier(timeout = 10):
@@ -109,9 +108,11 @@ def barrier(timeout = 10):
             numUnexp = captureThreads[iface].pkts.__len__()
             numExp = captureThreads[iface].exp_pkts.__len__()
             if numUnexp > 0:
-                print 'Error: device', iface, 'saw', str(numUnexp), 'unexpected packets'
+                print 'Error: device', iface, 'saw',
+                print  str(numUnexp), 'unexpected packets'
             if numExp > 0:
-                print 'Error: device', iface, 'missed', str(numExp), 'expected packets'
+                print 'Error: device', iface, 'missed',
+                print str(numExp), 'expected packets'
         print ''
     return good
 
@@ -119,7 +120,8 @@ def barrier(timeout = 10):
 # Function: compare
 # Arguments: list of expected packets
 #            list of unexpected packets
-# Description: compares expected packets to unexpected packets, enumerating differences
+# Description: compares expected packets to unexpected packets
+#              prints comparison
 ############################
 def compare(exp, unexp):
     numExp = exp.__len__()
@@ -141,7 +143,9 @@ def compare(exp, unexp):
         print 'Expected packet', str(i)
         for j in range(numUnexp):
             if len(exp[i]) != len(unexp[j]):
-                print '   Unexpected packet ' + str(j) + ': Packet lengths do not match, expecting', str(len(exp[i])), 'but saw', str(len(unexp[j]))
+                print '   Unexpected packet ' + str(j),
+                print ': Packet lengths do not match, expecting',
+                print str(len(exp[i])), 'but saw', str(len(unexp[j]))
             else:
                 str_exp_pkt = ''
                 str_unexp_pkt = ''
@@ -152,7 +156,11 @@ def compare(exp, unexp):
                     str_unexp_pkt += "%02X"%ord(x)
                 for k in range(len(str_exp_pkt)):
                     if str_unexp_pkt[k] is not str_exp_pkt[k]:
-                        print '   Unexpected packet ' + str(j) + ': byte', str(k/2), '(starting from 0) not equivalent (EXP:', str_exp_pkt[i:i+2] + ', ACTUAL:', str_unexp_pkt[k:k+2] + ')'
+                        print '   Unexpected packet ' + str(j) + ': byte',
+                        print str(k/2),
+                        print '(starting from 0) not equivalent (EXP:',
+                        print str_exp_pkt[i:i+2] + ', ACTUAL:',
+                        print str_unexp_pkt[k:k+2] + ')'
                         break
 
     return numExp + numUnexp
@@ -160,7 +168,8 @@ def compare(exp, unexp):
 ############################
 # Function: finish
 # Arguments: none
-# Description: closes capture threads, filters by toIgnore, calls pktCmp, writes pcap files, return # errors
+# Description: closes capture threads, filters by toIgnore,
+#              calls pktCmp, writes pcap files, return # errors
 ############################
 def finish():
     pkts = ()
@@ -183,7 +192,8 @@ def finish():
         filter(packets[iface]['Expected'], ignored)
 
         # show differences between packets
-        error_count += compare(packets[iface]['Expected'], packets[iface]['Unexpected'])
+        error_count += compare(packets[iface]['Expected'],
+                               packets[iface]['Unexpected'])
 
         # write pcap files - TO IMPLEMENT: write to tmp dir
         if packets[iface]['Matched'].__len__() > 0:
