@@ -1,18 +1,17 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import hwPkt
 import sys
 
 import time
-import random
 
 try:
-   import scapy.all as scapy
+    import scapy.all as scapy
 except:
-   try:
-      import scapy as scapy
-   except:
-      sys.exit("Error: need to install scapy for packet handling")
+    try:
+        import scapy as scapy
+    except:
+        sys.exit("Error: need to install scapy for packet handling")
 
 ifaceArray = []
 captureThreads = {}

@@ -3,10 +3,6 @@
 from NFTestLib import *
 from PacketLib import *
 
-import hwRegLib
-
-import random
-
 import sys
 import os
 sys.path.append(os.environ['NF_DESIGN_DIR']+'/lib/Python')

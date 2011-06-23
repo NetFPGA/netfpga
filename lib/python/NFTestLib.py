@@ -14,11 +14,11 @@ CPCI_Interrupt_Mask = 0x40
 
 ############################
 # Function: nftest_init
-# Arguments: map file, connection file
-#            --hw
+# Arguments: list of interfaces, connection file
+#
 # Description: parses a map file and connection file
 ############################
-def nftest_init(interfaces, connectionsfileName, *args, **kwargs):
+def nftest_init(interfaces, connectionsfileName):
     global sim
     if isHW():
         sim = False

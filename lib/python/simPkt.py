@@ -1,8 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Author: James Hsi, Eric Lo
 # Date: 1/31/2011
 
-import os
 import simLib
 import simReg
 
@@ -16,11 +15,11 @@ CMD_PCI_BARRIER = 4
 CMD_PCI_DELAY = 5
 
 # Global counters for synchronization
-numExpectedPktsPHY = [0,0,0,0]; numExpectedPktsDMA = [0,0,0,0];
+numExpectedPktsPHY = [0, 0, 0, 0]; numExpectedPktsDMA = [0, 0, 0, 0]
 
 # Packet counters
-SentPktsPHYcount = [0,0,0,0]; SentPktsDMAcount = [0,0,0,0];
-ExpectedPktsPHYcount = [0,0,0,0]; ExpectedPktsDMAcount = [0,0,0,0];
+SentPktsPHYcount = [0, 0, 0, 0]; SentPktsDMAcount = [0, 0, 0, 0]
+ExpectedPktsPHYcount = [0, 0, 0, 0]; ExpectedPktsDMAcount = [0, 0, 0, 0]
 
 
 ############################
@@ -37,36 +36,37 @@ def pktSendPHY(toPort, pkt):
     strpktHdr = ""
     count = 1
     for x in str(pkt):
-            strpktHdr +="%02x "%ord(x)
-            strpkt +="%02x"%ord(x)
-            if count<4:
-                    count += 1
-            else:
-                    strpkt += "\n"
-                    count = 1
+        strpktHdr += "%02x "%ord(x)
+        strpkt += "%02x"%ord(x)
+        if count < 4:
+            count += 1
+        else:
+            strpkt += "\n"
+            count = 1
     # pad if pkt ends in incomplete word
     if len(pkt)%4 != 0:
-        count += -1
+        count -= 1
         while count != 4:
             strpkt += '00'
             count += 1
     # format nicely
-    DA=str.replace(strpktHdr[0:17], ' ', ':')
-    SA=str.replace(strpktHdr[18:35], ' ', ':')
-    ethType=str.replace(strpktHdr[36:41], ' ','')
-    samplePkt=str.replace(strpktHdr[42:60], '\n', '')
+    DA = str.replace(strpktHdr[0:17], ' ', ':')
+    SA = str.replace(strpktHdr[18:35], ' ', ':')
+    ethType = str.replace(strpktHdr[36:41], ' ', '')
+    samplePkt = str.replace(strpktHdr[42:60], '\n', '')
 
     # increment counter
-    SentPktsPHYcount[toPort-1] = SentPktsPHYcount[toPort-1] + 1
+    SentPktsPHYcount[toPort-1] += 1
 
     # write packet
-    f.write("// Packet "+str(SentPktsPHYcount[toPort-1])+"\n")
-    f.write("// DA: "+DA+" SA: "+SA+" ["+ethType+"] "+samplePkt+"...\n")
-    f.write("%08d"%CMD_SEND+" // SEND\n")
+    f.write("// Packet " + str(SentPktsPHYcount[toPort-1]) + "\n")
+    f.write("// DA: " + DA + " SA: " + SA + " [" + ethType + "] " +
+            samplePkt + "...\n")
+    f.write("%08d"%CMD_SEND + " // SEND\n")
 
     pktLen = len(pkt)
-    f.write("%08x"%pktLen+" // Length without CRC\n")
-    f.write("%08d"%toPort+" // Port "+str(toPort)+"\n")
+    f.write("%08x"%pktLen + " // Length without CRC\n")
+    f.write("%08d"%toPort + " // Port " + str(toPort) + "\n")
 
     f.write(str.rstrip(strpkt))
 
@@ -88,27 +88,27 @@ def pktSendDMA(toPort, pkt):
     strpkt = ""
     count = 1
     for x in str(pkt):
-            strpkt +="%02x"%ord(x)
-            if count<4:
-                    count += 1
-            else:
-                    strpkt += "\n"
-                    count = 1
+        strpkt += "%02x"%ord(x)
+        if count < 4:
+            count += 1
+        else:
+            strpkt += "\n"
+            count = 1
     # pad packet if needed
     if len(pkt)%4 != 0:
-        count += -1
+        count -= 1
         while count != 4:
             strpkt += '00'
             count += 1
 
     # increment counter
-    SentPktsDMAcount[toPort-1] = SentPktsDMAcount[toPort-1]+1
+    SentPktsDMAcount[toPort-1] += 1
 
     # write packet
     f.write("// Packet " + str(SentPktsDMAcount[toPort-1]) + " at port " +
             str(toPort) + "\n")
 
-    f.write("%08x"%pktLen+" // Length without CRC\n")
+    f.write("%08x"%pktLen + " // Length without CRC\n")
     f.write(str.rstrip(strpkt))
     f.write('\neeeeffff // End of pkt marker for pkt ' +
             str(SentPktsDMAcount[toPort-1]) + ' (this is not sent).\n')
@@ -122,26 +122,26 @@ def pktSendDMA(toPort, pkt):
 #
 ############################
 def pktExpectPHY(atPort, pkt):
-    numExpectedPktsPHY[atPort-1] = numExpectedPktsPHY[atPort-1] + 1
+    numExpectedPktsPHY[atPort-1] += 1
     f = simLib.fExpectPHY(atPort)
 
     # convert packet to string
     strpkt = ""
     count = 1
     for x in str(pkt):
-        strpkt +="%02x "%ord(x)
-        if count<16:
-                count += 1
+        strpkt += "%02x "%ord(x)
+        if count < 16:
+            count += 1
         else:
-                strpkt += "\n"
-                count = 1
-    DA=str.replace(strpkt[0:17], ' ', ':')
-    SA=str.replace(strpkt[18:35], ' ', ':')
-    ethType=str.replace(strpkt[36:41], ' ','')
-    samplePkt=str.replace(strpkt[42:60], '\n', '')
+            strpkt += "\n"
+            count = 1
+    DA = str.replace(strpkt[0:17], ' ', ':')
+    SA = str.replace(strpkt[18:35], ' ', ':')
+    ethType = str.replace(strpkt[36:41], ' ', '')
+    samplePkt = str.replace(strpkt[42:60], '\n', '')
 
     # increment counter
-    ExpectedPktsPHYcount[atPort-1] = ExpectedPktsPHYcount[atPort-1] + 1
+    ExpectedPktsPHYcount[atPort-1] += 1
 
     # write packet
     f.write("\n<!-- Packet " + str(ExpectedPktsPHYcount[atPort-1]) + "-->")
@@ -161,26 +161,26 @@ def pktExpectPHY(atPort, pkt):
 #
 ############################
 def pktExpectDMA(atPort, pkt):
-    numExpectedPktsDMA[atPort-1] = numExpectedPktsDMA[atPort-1]+1
+    numExpectedPktsDMA[atPort-1] += 1
     f = simLib.fExpectDMA(atPort)
 
     # convert packet to string
     strpkt = ""
     count = 1
     for x in str(pkt):
-        strpkt +="%02x "%ord(x)
-        if count<16:
-                count += 1
+        strpkt += "%02x "%ord(x)
+        if count < 16:
+            count += 1
         else:
-                strpkt += "\n"
-                count = 1
-    DA=str.replace(strpkt[0:17], ' ', ':')
-    SA=str.replace(strpkt[18:35], ' ', ':')
-    ethType=str.replace(strpkt[36:41], ' ','')
-    samplePkt=str.replace(strpkt[42:60], '\n', '')
+            strpkt += "\n"
+            count = 1
+    DA = str.replace(strpkt[0:17], ' ', ':')
+    SA = str.replace(strpkt[18:35], ' ', ':')
+    ethType = str.replace(strpkt[36:41], ' ', '')
+    samplePkt = str.replace(strpkt[42:60], '\n', '')
 
     # increment counter
-    ExpectedPktsDMAcount[atPort-1] = ExpectedPktsDMAcount[atPort-1] + 1
+    ExpectedPktsDMAcount[atPort-1] += 1
 
     # write packet
     f.write("\n<!-- Packet " + str(ExpectedPktsDMAcount[atPort-1]) + "-->")
@@ -200,8 +200,9 @@ def pktExpectDMA(atPort, pkt):
 #  Private function to be called by pktBarrier
 ############################
 def resetBarrier():
-    numExpectedPktsPHY = [0,0,0,0];
-    numExpectedPktsDMA = [0,0,0,0];
+    global numExpectedPktsPHY; global numExpectedPktsDMA
+    numExpectedPktsPHY = [0, 0, 0, 0]
+    numExpectedPktsDMA = [0, 0, 0, 0]
 
 
 ############################

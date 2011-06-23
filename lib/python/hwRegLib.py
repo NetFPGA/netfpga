@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import hwReg
 import time
@@ -55,9 +55,7 @@ def regread_expect(ifaceName, reg, exp, mask = 0xffffffff):
 # Description: resets the fpga
 ############################
 def fpga_reset():
-    for iface in ifaceArray:
-        if iface.startswith('nf2c'):
-            hwReg.resetNETFPGA(iface)
+    hwReg.resetNETFPGA('nf2c0')
 
 ############################
 # Function: reset_phy

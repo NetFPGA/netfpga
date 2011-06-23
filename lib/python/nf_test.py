@@ -1,11 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import sys
 import argparse
-import shutil
 import glob
-import hwRegLib
 import subprocess
 import TeamCity
 
@@ -182,7 +180,7 @@ def run_hw_test():
 
     if args.quiet and not passed:
         print 'Regression test suite failed\n'
-        print 'Project failing tests: ' + project # needs fixing
+        print 'Project failing tests: ' + project
         print 'Tests failing within each project'
         for testSummary in results:
             if not testSummary[1]:

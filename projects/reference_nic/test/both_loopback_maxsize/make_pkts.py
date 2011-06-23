@@ -10,8 +10,6 @@ import reg_defines_reference_nic as reg_defines
 
 import scapy.all as scapy
 
-import random
-
 NUM_PKTS = 500
 
 # set parameters

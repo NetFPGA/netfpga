@@ -1,20 +1,18 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Author: James Hsi, Eric Lo
 # Date: 1/31/2011
 
 import simLib
 
-connectedSockets = {};
-
 # IOCTL Commands
-SIOCREGREAD = 0x89F0;
-SIOCREGWRITE = 0x89F1;
+SIOCREGREAD = 0x89F0
+SIOCREGWRITE = 0x89F1
 
 # Register Constants
-CPCI_REG_CTRL = 0x008;
+CPCI_REG_CTRL = 0x008
 
 # Register Values
-CPCI_REG_CTRL_RESET = 0x00010100;
+CPCI_REG_CTRL_RESET = 0x00010100
 
 CMD_READ = 1
 CMD_WRITE = 2
@@ -22,7 +20,7 @@ CMD_DMA = 3
 CMD_BARRIER = 4
 CMD_DELAY = 5
 
-NUM_PORTS = 4;
+NUM_PORTS = 4
 
 ############################
 # Function: regDMA
@@ -74,7 +72,7 @@ LSB_MASK = (0x00000000FFFFFFF)
 # Writes
 ############################
 def regDelay(nanoSeconds):
-    simLib.fPCI().write("00000005 // DELAY \n");
+    simLib.fPCI().write("00000005 // DELAY \n")
     simLib.fPCI().write("%08x"%(MSB_MASK & nanoSeconds) + " // Delay (MSB) "
                         + str(nanoSeconds) + " ns\n")
     simLib.fPCI().write("%08x"%(LSB_MASK & nanoSeconds) + " // Delay (LSB) "

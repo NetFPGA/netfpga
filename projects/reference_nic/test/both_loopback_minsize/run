@@ -1,0 +1,10 @@
+#!/bin/bash
+
+hw="--hw"
+
+./make_pkts.py
+if [ "$@" == "$hw" ]; then
+	./run_test.py $@;
+else
+	./run_sim_test.py $@;
+fi;

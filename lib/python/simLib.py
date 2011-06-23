@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Author: James Hsi, Eric Lo
 # Date: 1/31/2011
 #
@@ -9,14 +9,14 @@
 
 import os
 
-NUM_PORTS = 4;
-NF2_MAX_PORTS = 4;
-DMA_QUEUES = 4;
+NUM_PORTS = 4
+NF2_MAX_PORTS = 4
+DMA_QUEUES = 4
 
 #instantiation
-f_ingress = [];
-f_expectPHY = [];
-f_expectDMA = [];
+f_ingress = []
+f_expectPHY = []
+f_expectDMA = []
 
 directory = 'packet_data'
 dma_filename = 'ingress_dma'
@@ -33,7 +33,7 @@ def init():
     if not os.path.isdir(directory):
         os.mkdir(directory)
     try:
-        global f_dma; global f_pci;
+        global f_pci; global f_dma
         f_pci = open(directory+'/'+pci_filename,'w')
         f_dma = open(directory+'/'+dma_filename,'w')
     except IOError:
