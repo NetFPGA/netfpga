@@ -1,16 +1,7 @@
 #!/usr/bin/python
 
-from NFTestLib import *
 from PacketLib import *
-
-import sys
-import os
-sys.path.append(os.environ['NF_DESIGN_DIR']+'/lib/Python')
-import reg_defines_reference_nic as reg_defines
-
-import scapy.all as scapy
-
-import random
+from NFTestHeader import scapy
 
 NUM_PKTS_PER_PORT = 500
 PKT_SIZE  = 1514

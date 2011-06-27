@@ -1,21 +1,13 @@
 #!/bin/env python
 
 from NFTestLib import *
-from PacketLib import *
+from NFTestHeader import reg_defines, scapy
 
 import hwRegLib
 import hwPktLib
 
-import random
-import time
-
 import sys
-import os
-sys.path.append(os.environ['NF_DESIGN_DIR']+'/lib/Python')
-project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-reg_defines = __import__('reg_defines_'+project)
-
-import scapy.all as scapy
+import time
 
 interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3")
 
