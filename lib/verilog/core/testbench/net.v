@@ -80,6 +80,7 @@ module net
    reg [31:0] ingress_file [0:`INGRESS_MAX_WORD];
 
    integer    tx_count;
+   integer    barrier_count;
    integer    rx_count;
    integer    packet_length;
    integer    inter_packet_gap;
@@ -118,6 +119,7 @@ module net
 	rgmii_rx_ctl = 0;
 	gen_crc_table;
 	last_activity = 0;
+	barrier_count = 0;
 	tx_count = 0;
 	rx_count = 0;
         barrier_req = 0;
@@ -232,10 +234,10 @@ begin
             exp_pkts = ingress_file[packet_index + 1];
 
             $display($time," %m Info: barrier request: expecting %0d pkts, seen %0d pkts",
-               exp_pkts, tx_count);
+               exp_pkts, barrier_count);
 
             // Wait until we've seen the requested number of packets
-            wait (tx_count >= exp_pkts)
+            wait (barrier_count >= exp_pkts)
 
             // Assert barrier request and wait for barrier proceed
             barrier_req = 1;
@@ -244,6 +246,7 @@ begin
             barrier_req = 0;
             wait (!barrier_proceed);
             $display($time," %m Info: barrier complete");
+	    barrier_count = 0;
 
             packet_index = packet_index + 2;
          end
@@ -387,6 +390,7 @@ task handle_tx_packet;
       begin
 
 	 tx_count = tx_count + 1;
+	 barrier_count = barrier_count + 1;
 
 	 // We're not going to put the transmitted CRC in the packet, but tell the user what
 	 // it was in case they need to know. (So put it in an XML comment)
