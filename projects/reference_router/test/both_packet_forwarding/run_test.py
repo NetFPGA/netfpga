@@ -1,22 +1,9 @@
 #!/usr/bin/python
 
 from NFTestLib import *
-
-import hwPktLib
+from NFTestHeader import reg_defines, scapy
 
 from RegressRouterLib import *
-
-import PacketLib
-
-import time
-
-import sys
-import os
-sys.path.append(os.environ['NF_DESIGN_DIR']+'/lib/Python')
-project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-reg_defines = __import__('reg_defines_'+project)
-
-import scapy.all as scapy
 
 interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
 
@@ -110,7 +97,6 @@ for i in range(20):
     # send packet out of eth1->nf2c0
     nftest_send('eth1', sent_pkt);
     nftest_expect('eth2', exp_pkt);
-    #`usleep 500`;
 
 precreated1 = scapy.rdpcap('precreated1.pcap')
 precreated1_exp = scapy.rdpcap('precreated1_exp.pcap')
@@ -122,10 +108,6 @@ for i in range(20):
     # send packet out of eth1->nf2c0
     nftest_send('eth2', sent_pkt)
     nftest_expect('eth1', exp_pkt)
-    #`usleep 500`;
-
-time.sleep(1);
-#total_errors += nftest_finish();
 
 nftest_barrier()
 

@@ -1,21 +1,9 @@
 #!/bin/env python
 
-from NFTestLib import *
 from PacketLib import *
-
-from hwRegLib import *
-
-from RegressRouterLib import *
+from NFTestHeader import reg_defines, scapy
 
 import random
-
-import sys
-import os
-sys.path.append(os.environ['NF_DESIGN_DIR']+'/lib/Python')
-project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-reg_defines = __import__('reg_defines_'+project)
-
-import scapy.all as scapy
 
 NUM_PKTS = 100
 

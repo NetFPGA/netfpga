@@ -1,19 +1,9 @@
 #!/bin/env python
 
 from NFTestLib import *
-from PacketLib import *
+from NFTestHeader import reg_defines, scapy
 
 from RegressRouterLib import *
-
-import random
-
-import sys
-import os
-sys.path.append(os.environ['NF_DESIGN_DIR']+'/lib/Python')
-project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-reg_defines = __import__('reg_defines_'+project)
-
-import scapy.all as scapy
 
 interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
 
@@ -78,8 +68,6 @@ TTL = 64
 DST_IP = "192.168.1.1"
 SRC_IP = "192.168.0.1"
 nextHopMAC = "dd:55:dd:66:dd:77"
-
-hdr = scapy.Ether(dst=DA, src=SA, type=0x800)/scapy.IP(dst=DST_IP, src=SRC_IP, ttl=TTL)
 
 precreated0 = scapy.rdpcap('precreated0.pcap')
 precreated1 = scapy.rdpcap('precreated1.pcap')
@@ -166,13 +154,6 @@ for i in range(NUM_PKTS):
 
 nftest_barrier()
 
-for i in range(4):
-    for pkt in sent[i]:
-        if i > 1:
-            nftest_expect('nf2c'+str(i), pkt)
-        else:
-            nftest_expect('eth'+str(i+1), pkt)
-
 print "Verifying dropped pkts counter."
 nftest_regread_expect(reg_defines.OQ_QUEUE_0_NUM_PKTS_DROPPED_REG(), NUM_PKTS)
 nftest_regread_expect(reg_defines.OQ_QUEUE_2_NUM_PKTS_DROPPED_REG(), NUM_PKTS)
@@ -184,6 +165,17 @@ nftest_regwrite(reg_defines.OQ_QUEUE_0_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SE
 nftest_regwrite(reg_defines.OQ_QUEUE_2_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
 nftest_regwrite(reg_defines.OQ_QUEUE_4_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
 nftest_regwrite(reg_defines.OQ_QUEUE_6_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
+
+nftest_barrier()
+
+for i in range(4):
+    for pkt in sent[i]:
+        if i > 1:
+            nftest_expect('nf2c'+str(i), pkt)
+        else:
+            nftest_expect('eth'+str(i+1), pkt)
+
+nftest_barrier()
 
 print "Reset max number of pkts in queues."
 nftest_regwrite(reg_defines.OQ_QUEUE_0_MAX_PKTS_IN_Q_REG(), 0xffffffff)
