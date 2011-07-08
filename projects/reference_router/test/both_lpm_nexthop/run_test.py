@@ -66,8 +66,10 @@ total_errors = 0
 pkts = scapy.rdpcap('eth1_pkts.pcap')
 exp_pkts = scapy.rdpcap('eth2_pkts.pcap')
 for i in range(100):
-    nftest_send('eth1', pkts[i])
-    nftest_expect('eth2', exp_pkts[i])
+    #nftest_send('eth1', pkts[i])
+    nftest_send_phy('nf2c0', pkts[i])
+    #nftest_expect('eth2', exp_pkts[i])
+    nftest_expect_phy('nf2c1', exp_pkts[i])
 
 nftest_barrier()
 

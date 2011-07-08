@@ -99,6 +99,54 @@ def nftest_expect(ifaceName, pkt):
         hwPktLib.expect(map[ifaceName], pkt)
 
 ############################
+# Function: nftest_send_phy
+# Arguments: interface name
+#            packet to send
+# Description: send a packet from the phy
+############################
+def nftest_send_phy(ifaceName, pkt):
+    if sim:
+        simPkt.pktSendPHY(int(ifaceName[4:5])+1, pkt)
+    else:
+        hwPktLib.send(map[connections[ifaceName]], pkt)
+
+############################
+# Function: nftest_send_dma
+# Arguments: interface name
+#            packet to send
+# Description: send a packet from the dma
+############################
+def nftest_send_dma(ifaceName, pkt):
+    if sim:
+        simPkt.pktSendDMA(int(ifaceName[4:5])+1, pkt)
+    else:
+        hwPktLib.send(map[ifaceName], pkt)
+
+############################
+# Function: nftest_expect_phy
+# Arguments: interface name
+#            packet to expect
+# Description: expect a packet on the phy
+############################
+def nftest_expect_phy(ifaceName, pkt):
+    if sim:
+        simPkt.pktExpectPHY(int(ifaceName[4:5])+1, pkt)
+    else:
+        hwPktLib.expect(map[connections[ifaceName]], pkt)
+
+############################
+# Function: nftest_expect_dma
+# Arguments: interface name
+#            packet to expect
+# Description: expect a packet on dma
+############################
+def nftest_expect_dma(ifaceName, pkt):
+    if sim:
+        simPkt.pktExpectDMA(int(ifaceName[4:5])+1, pkt)
+    else:
+        hwPktLib.expect(map[ifaceName], pkt)
+
+############################
 # Function: nftest_barrier
 # Arguments: none
 # Description: pauses execution until expected packets arrive

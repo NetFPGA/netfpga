@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys
+import os
 from random import randint
+from random import seed
 
 try:
     import scapy.all as scapy
@@ -9,6 +11,8 @@ except:
         import scapy as scapy
     except:
         sys.exit("Error: Need to install scapy for packet handling")
+
+SEED = 0
 
 ############################
 # Function: make_MAC_hdr
@@ -149,3 +153,16 @@ def generate_load(length):
     for i in range(length):
         load += chr(randint(0,255))
     return load
+
+############################
+# Function: print_seed
+# Description: returns the seed used by the random number generator
+############################
+def print_seed():
+    f = open('./seed', 'w')
+    f.write(SEED)
+    f.close()
+
+SEED = os.urandom(32)
+seed(SEED)
+print_seed()
