@@ -160,15 +160,9 @@ def generate_load(length):
 def set_seed():
     global SEED
     if '--seed' in sys.argv:
-        try:
-            seed_file = open(sys.argv[sys.argv.index('--seed')+1])
-            SEED = seed_file.readline()[0:-1]
-            seed_file.close()
-        except(IOError):
-            print "Error accessing seed file %s"%sys.argv[sys.argv.index('--seed')+1]
-            raise
+            SEED = int(sys.argv[sys.argv.index('--seed')+1])
     else:
-        SEED = os.urandom(32)
+        SEED = hash(os.urandom(32))
     seed(SEED)
 
 ############################
@@ -177,7 +171,7 @@ def set_seed():
 ############################
 def print_seed():
     f = open('./seed', 'w')
-    f.write(SEED)
+    f.write(str(SEED))
     f.close()
 
 set_seed()

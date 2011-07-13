@@ -286,7 +286,7 @@ def handleArgs():
     parser.add_argument('--gui', action='store_true', help='Simulation only. This will run the simulator in interactive mode (usually with a GUI).')
     parser.add_argument('--no_compile', action='store_true', help='Simulation only. This will not compile the simulation binary.')
     parser.add_argument('--compile_only', action='store_true', help='Simulation only.  This will only compile the simulation.')
-    parser.add_argument('--seed', nargs=1, help='Specify a file with a seed for the random number generator to replay a previous run.')
+    parser.add_argument('--seed', nargs=1, help='Specify a seed for the random number generator to replay a previous run.')
 
     global args; args = parser.parse_args()
     if args.type == 'sim':
