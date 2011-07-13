@@ -12,8 +12,6 @@ except:
     except:
         sys.exit("Error: Need to install scapy for packet handling")
 
-SEED = 0
-
 ############################
 # Function: make_MAC_hdr
 # Keyword Arguments: src_MAC, dst_MAC, EtherType
@@ -155,6 +153,25 @@ def generate_load(length):
     return load
 
 ############################
+# Function: set_seed
+# Description: sets the seed for the random number generator if specified
+#              enables reproducibility in tests
+############################
+def set_seed():
+    global SEED
+    if '--seed' in sys.argv:
+        try:
+            seed_file = open(sys.argv[sys.argv.index('--seed')+1])
+            SEED = seed_file.readline()[0:-1]
+            seed_file.close()
+        except(IOError):
+            print "Error accessing seed file %s"%sys.argv[sys.argv.index('--seed')+1]
+            raise
+    else:
+        SEED = os.urandom(32)
+    seed(SEED)
+
+############################
 # Function: print_seed
 # Description: returns the seed used by the random number generator
 ############################
@@ -163,6 +180,5 @@ def print_seed():
     f.write(SEED)
     f.close()
 
-SEED = os.urandom(32)
-seed(SEED)
+set_seed()
 print_seed()

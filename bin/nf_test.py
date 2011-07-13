@@ -113,6 +113,8 @@ def run_hw_test():
                 # move pcap files to work dir
                 for pcap in glob.glob(src_test_dir + '/' + test + '/*.pcap'):
                     subprocess.call(['mv', pcap, proj_test_dir + '/' + test])
+                # move seed to work dir
+                subprocess.call(['mv', src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test])
                 testResults[test] = testResult
                 passed &= testResult
 
@@ -284,6 +286,7 @@ def handleArgs():
     parser.add_argument('--gui', action='store_true', help='Simulation only. This will run the simulator in interactive mode (usually with a GUI).')
     parser.add_argument('--no_compile', action='store_true', help='Simulation only. This will not compile the simulation binary.')
     parser.add_argument('--compile_only', action='store_true', help='Simulation only.  This will only compile the simulation.')
+    parser.add_argument('--seed', nargs=1, help='Specify a file with a seed for the random number generator to replay a previous run.')
 
     global args; args = parser.parse_args()
     if args.type == 'sim':
@@ -460,11 +463,18 @@ def verifyCI():
 def runTest(project, test):
     testDir = rootDir + '/' + projectRoot + '/' + project + '/' + testRoot + '/' + test
     if os.path.exists(testDir) and os.path.isdir(testDir):
-        return runScript(project, test, run + ' --hw', REQUIRED)
+        if args.seed:
+            return runScript(project, test, run + ' --hw --seed ' + str(args.seed[0]), REQUIRED)
+        else:
+            return runScript(project, test, run + ' --hw', REQUIRED)
     else:
         match = re.search(r'/(.*)\/([^\/]*)/', test)
         if match:
-            return runScript(project, match.group(1), match.group(2) + ' --hw', REQUIRED)
+            if args.seed:
+                return runScript(project, match.group(1), match.group(2) +
+                                 ' --hw --seed ' + str(args.seed[0]), REQUIRED)
+            else:
+                return runScript(project, match.group(1), match.group(2) + ' --hw', REQUIRED)
         else:
             print 'Error finding test file: ' + test
             sys.exit(1)
