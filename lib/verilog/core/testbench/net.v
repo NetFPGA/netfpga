@@ -23,6 +23,8 @@
 `define EGRESS_FILE_LEN 25
 `define EGRESS_FILE_BITS 8*`EGRESS_FILE_LEN
 
+`define PORTCONFIG_FILE "portconfig.sim"
+
 `define DEFAULT_FINISH_TIME 1000000
 
 `define INGRESS_MAX_WORD 1000000
@@ -86,6 +88,7 @@ module net
    integer    inter_packet_gap;
    integer    i;
    time       last_activity; // when we last saw packet on ingress or egress
+   reg        loopback;      // should this port run in loopback mode
 
 
    reg [`INGRESS_FILE_BITS-1:0] ingress_file_name;
@@ -126,7 +129,8 @@ module net
         activity = 0;
         done = 0;
 
-	// get info such as finish time from the config.txt file
+	// get info such as loopback config
+	read_portconfig;
 	gen_crc_table;
 
 	#1 initialize_ingress;
@@ -142,6 +146,8 @@ module net
 	fork
 	   handle_ingress;
 	   handle_egress;
+	   handle_loopback_ingress;
+	   handle_loopback_egress;
 	   handle_finish;
 	join
 
@@ -364,7 +370,8 @@ endtask // handle_ingress
 
 		end // while (rgmii_tx_en)
 
-	      handle_tx_packet(i);
+	      if (!loopback)
+                 handle_tx_packet(i);
 	      last_activity = $time;
               activity = 0;
 
@@ -372,6 +379,60 @@ endtask // handle_ingress
       end
 
 endtask // handle_egress
+
+
+////////////////////////////////////////////////////////////
+// Perform loopback if the port is in loopback mode
+
+reg rgmii_tx_ctl_d1;
+reg rgmii_tx_ctl_d2;
+reg [3:0] rgmii_tx_d_d1;
+reg [3:0] rgmii_tx_d_d2;
+
+task handle_loopback_egress;
+   begin
+      if (loopback) begin
+         while (1) begin
+            @(posedge rgmii_tx_clk)
+            begin
+               rgmii_tx_ctl_d1 <= rgmii_tx_ctl;
+               rgmii_tx_d_d1 <= rgmii_tx_d;
+            end
+            @(negedge rgmii_tx_clk)
+            begin
+               rgmii_tx_ctl_d2 <= rgmii_tx_ctl;
+               rgmii_tx_d_d2 <= rgmii_tx_d;
+            end
+         end
+      end
+   end
+endtask // handle_loopback_egress
+
+
+task handle_loopback_ingress;
+   begin
+      if (loopback) begin
+         while (1) begin
+            @(posedge rgmii_rx_clk)
+            begin
+               if (rgmii_tx_ctl_d2 === 1'b1 || rgmii_tx_ctl_d2 === 1'b0)
+                  #1 rgmii_rx_ctl <= rgmii_tx_ctl_d2;
+               else
+                  #1 rgmii_rx_ctl <= 1'b0;
+               rgmii_rx_d <= rgmii_tx_d_d2;
+            end
+            @(negedge rgmii_rx_clk)
+            begin
+               if (rgmii_tx_ctl_d1 === 1'b1 || rgmii_tx_ctl_d1 === 1'b0)
+                  #1 rgmii_rx_ctl <= rgmii_tx_ctl_d1;
+               else
+                  #1 rgmii_rx_ctl <= 1'b0;
+               rgmii_rx_d <= rgmii_tx_d_d1;
+            end
+         end
+      end
+   end
+endtask // handle_loopback_ingress
 
 
 ///////////////////////////////////////////////////////////////////
@@ -643,6 +704,41 @@ begin
 end
 endtask // initialize_egress
 
+
+
+
+///////////////////////////////////////////////////////////////
+// Process a portconfiguration file (portconfig.sim).
+
+task read_portconfig;
+   integer fd_pc, tmp, loopback_all;
+   begin
+      #1;
+
+      fd_pc = $fopen(`PORTCONFIG_FILE, "r");
+
+      if (fd_pc == 0) begin
+         if (my_port_number == 1)
+         begin
+            $display("No port configuration file %s", `PORTCONFIG_FILE);
+            $display("    Loopback is %4b.", loopback_all);
+         end
+         loopback = 0;
+      end
+      else begin
+         tmp = $fscanf(fd_pc, "LOOPBACK=%b", loopback_all);
+
+         if (my_port_number == 1)
+         begin
+            $display("Read port configuration file %s", `PORTCONFIG_FILE);
+            $display("    Loopback is %4b.", loopback_all);
+         end
+         loopback = loopback_all[my_port_number - 1];
+      end
+
+      $fclose(fd_pc);
+   end
+endtask // read_portconfig
 
 
 
