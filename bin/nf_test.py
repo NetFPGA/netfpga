@@ -114,7 +114,8 @@ def run_hw_test():
                 for pcap in glob.glob(src_test_dir + '/' + test + '/*.pcap'):
                     subprocess.call(['mv', pcap, proj_test_dir + '/' + test])
                 # move seed to work dir
-                subprocess.call(['mv', src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test])
+                if glob.glob(src_test_dir + '/' + test + '/seed'):
+                    subprocess.call(['mv', src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test])
                 testResults[test] = testResult
                 passed &= testResult
 

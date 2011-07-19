@@ -2,8 +2,13 @@
 
 from NFTestLib import *
 from NFTestHeader import reg_defines, scapy
+from PacketLib import *
+
+import random
 
 from RegressRouterLib import *
+
+import simReg
 
 interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
 
@@ -99,10 +104,39 @@ nftest_regwrite(reg_defines.OQ_QUEUE_5_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_S
 nftest_regwrite(reg_defines.OQ_QUEUE_6_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
 nftest_regwrite(reg_defines.OQ_QUEUE_7_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
 
-precreated0 = scapy.rdpcap('precreated0.pcap')
-precreated1 = scapy.rdpcap('precreated1.pcap')
-precreated2 = scapy.rdpcap('precreated2.pcap')
-precreated3 = scapy.rdpcap('precreated3.pcap')
+NUM_PKTS_IN_CPU_OQ = 8
+
+DA = routerMAC0
+SA = "aa:bb:cc:dd:ee:ff"
+TTL = 64
+DST_IP = "192.168.101.2"
+SRC_IP = "192.168.100.2"
+nextHopMAC = "dd:55:dd:66:dd:77"
+
+precreated0 = []
+for i in range(NUM_PKTS_IN_CPU_OQ + 1):
+    precreated0.append(make_IP_pkt(dst_MAC=routerMAC0, src_MAC=SA,
+                                   EtherType=0x800, dst_IP=DST_IP,
+                                   src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
+
+precreated1 = []
+for i in range(NUM_PKTS_IN_CPU_OQ + 1):
+    precreated1.append(make_IP_pkt(dst_MAC=routerMAC1, src_MAC=SA,
+                                   EtherType=0x800, dst_IP=DST_IP,
+                                   src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
+
+precreated2 = []
+for i in range(NUM_PKTS_IN_CPU_OQ + 1):
+    precreated2.append(make_IP_pkt(dst_MAC=routerMAC2, src_MAC=SA,
+                                   EtherType=0x800, dst_IP=DST_IP,
+                                   src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
+
+precreated3 = []
+for i in range(NUM_PKTS_IN_CPU_OQ + 1):
+    precreated3.append(make_IP_pkt(dst_MAC=routerMAC3, src_MAC=SA,
+                                   EtherType=0x800, dst_IP=DST_IP,
+                                   src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
+
 
 print "Start testing CPU OQ sizes"
 
@@ -123,8 +157,6 @@ nftest_regwrite(reg_defines.OQ_QUEUE_3_NUM_PKTS_REMOVED_REG(), 0)
 nftest_regwrite(reg_defines.OQ_QUEUE_5_NUM_PKTS_REMOVED_REG(), 0)
 nftest_regwrite(reg_defines.OQ_QUEUE_7_NUM_PKTS_REMOVED_REG(), 0)
 
-NUM_PKTS_IN_CPU_OQ = 8
-
 import time; time.sleep(1)
 
 nftest_barrier()
@@ -132,34 +164,34 @@ nftest_barrier()
 sent = [[],[],[],[]]
 for i in range(NUM_PKTS_IN_CPU_OQ):
     pkt = precreated0[i]
-    nftest_send('eth1', pkt)
+    nftest_send_phy('nf2c0', pkt)
     sent[0].append(pkt)
 
     pkt = precreated1[i]
-    nftest_send('eth2', pkt)
+    nftest_send_phy('nf2c1', pkt)
     sent[1].append(pkt)
 
     pkt = precreated2[i]
-    nftest_send('nf2c2', pkt)
+    nftest_send_dma('nf2c2', pkt)
     sent[2].append(pkt)
 
     pkt = precreated3[i]
-    nftest_send('nf2c3', pkt)
+    nftest_send_dma('nf2c3', pkt)
     sent[3].append(pkt)
 
 print "CPU OQs should be full. Start to drop received pkts"
 
 pkt = precreated0[NUM_PKTS_IN_CPU_OQ]
-nftest_send('eth1', pkt)
+nftest_send_phy('nf2c0', pkt)
 
 pkt = precreated1[NUM_PKTS_IN_CPU_OQ]
-nftest_send('eth2', pkt)
+nftest_send_phy('nf2c1', pkt)
 
 pkt = precreated2[NUM_PKTS_IN_CPU_OQ]
-nftest_send('nf2c2', pkt)
+nftest_send_dma('nf2c2', pkt)
 
 pkt = precreated3[NUM_PKTS_IN_CPU_OQ]
-nftest_send('nf2c3', pkt)
+nftest_send_dma('nf2c3', pkt)
 
 nftest_barrier()
 
@@ -173,6 +205,8 @@ print "Verifying dropped pkts counter."
 nftest_regread_expect(reg_defines.OQ_QUEUE_1_NUM_PKTS_DROPPED_REG(), 1)
 nftest_regread_expect(reg_defines.OQ_QUEUE_3_NUM_PKTS_DROPPED_REG(), 1)
 nftest_regread_expect(reg_defines.OQ_QUEUE_5_NUM_PKTS_DROPPED_REG(), 1)
+if not isHW():
+    simReg.regDelay(10000)
 nftest_regread_expect(reg_defines.OQ_QUEUE_7_NUM_PKTS_DROPPED_REG(), 1)
 
 print "Start servicing the output queues again. Packets should be sent out."
@@ -181,9 +215,11 @@ nftest_regwrite(reg_defines.OQ_QUEUE_3_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SE
 nftest_regwrite(reg_defines.OQ_QUEUE_5_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
 nftest_regwrite(reg_defines.OQ_QUEUE_7_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
 
+nftest_barrier()
+
 for i in range(4):
     for pkt in sent[i]:
-        nftest_expect('nf2c'+str(i), pkt)
+        nftest_expect_dma('nf2c'+str(i), pkt)
 
 nftest_barrier()
 

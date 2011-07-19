@@ -3,7 +3,7 @@ import hwRegLib
 import simLib
 import simReg
 import simPkt
-from sys import argv
+import sys
 
 sim = True # default, pass an argument if hardware is needed
 map = {} # key is interface specified by test, value is physical interface to use
@@ -25,8 +25,8 @@ def nftest_init(interfaces, connectionsfileName):
 
     global map
     # populate map
-    if '--map' in argv:
-        mapfile = open(argv[argv.index('--map')+1], 'r')
+    if '--map' in sys.argv:
+        mapfile = open(sys.argv[sys.argv.index('--map')+1], 'r')
         lines = mapfile.readlines()
         for line in lines:
             mapping = line.strip().split(':')
@@ -36,6 +36,7 @@ def nftest_init(interfaces, connectionsfileName):
             map[iface] = iface
 
     global connections
+    looped = [False, False, False, False]
     # populate connections, line = "iface1:iface2"
     connfile = open(connectionsfileName, 'r')
     lines = connfile.readlines()
@@ -43,11 +44,27 @@ def nftest_init(interfaces, connectionsfileName):
         conn = line.strip().split(':')
         connections[conn[0]] = conn[1]
         connections[conn[1]] = conn[0]
-        if conn[1] == conn[0] and isHW():
-            hwRegLib.phy_loopback(conn[0])
+        if conn[1] == conn[0]:
+            if not conn[0].startswith('nf2c'):
+                print "Error: malformed connections file"
+                print "Only nf2cX interfaces can be put in loopback"
+                sys.exit(1)
+            looped[int(conn[0][4:5])] = True
+            if isHW():
+                hwRegLib.phy_loopback(conn[0])
 
     if sim:
-        pass
+        simLib.init()
+        portcfgfile = 'portconfig.sim'
+        from simLib import directory
+        portcfg = open(portcfgfile, 'w')
+        portcfg.write('LOOPBACK=')
+        for loop_state in reversed(looped):
+            if loop_state:
+                portcfg.write('1')
+            else:
+                portcfg.write('0')
+        portcfg.close()
     else:
         hwPktLib.init(interfaces)
 
@@ -58,7 +75,6 @@ def nftest_init(interfaces, connectionsfileName):
 ############################
 def nftest_start():
     if sim:
-        simLib.init()
         simReg.regWrite(CPCI_Control_reg, 0)
         simReg.regWrite(CPCI_Interrupt_Mask, 0)
         nftest_barrier()
@@ -203,6 +219,6 @@ def nftest_regwrite(addr, val):
 # Description: helper for HW specific tasks in tests supporting hw and sim
 ############################
 def isHW():
-    if '--hw' in argv:
+    if '--hw' in sys.argv:
         return True
     return False
