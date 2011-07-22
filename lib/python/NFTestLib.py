@@ -18,10 +18,58 @@ CPCI_Interrupt_Mask = 0x40
 #
 # Description: parses a map file and connection file
 ############################
-def nftest_init(interfaces, connectionsfileName):
+def nftest_init(valid_conn_files, looped_ifaces):
     global sim
     if isHW():
         sim = False
+
+    # validate connections
+    portConfig = 0
+    global connections
+    if '--conn' in sys.argv:
+        specified_connections = {}
+        # read specified connections
+        lines = open(sys.argv[sys.argv.index('--conn')+1], 'r').readlines()
+        for line in lines:
+            conn = line.strip().split(':')
+            if not isHW() and conn[0].beginswith('nf2c') and  conn[1].beginswith('nf2c'):
+                print "Error: nf2cX interfaces cannot be interconnected in simulation"
+                sys.exit(1)
+            specified_connections[conn[0]] = conn[1]
+
+        # find matching configuration
+        for portConfig in range(len(valid_conn_files)):
+            conns = {}
+            lines = open(valid_conn_files[portConfig]).readlines()
+            match = True
+            for line in lines:
+                conn = line.strip().split(':')
+                conns[conn[0]] = conn[1]
+            if conns == specified_connections:
+                connections = specified_connections
+                break
+            elif portConfig == len(valid_conn_files) - 1:
+                print "Specified connections file incompatible with this test."
+                sys.exit(1)
+    else:
+        # use the first valid_conn_file if not specified
+        lines = open(valid_conn_files[0], 'r').readlines()
+        for line in lines:
+            conn = line.strip().split(':')
+            connections[conn[0]] = conn[1]
+
+    # specify loopback
+    looped = [False, False, False, False]
+    if len(looped_ifaces) > 0:
+        for iface in looped_ifaces:
+            if iface.startswith('nf2c'):
+                if isHW():
+                    hwRegLib.phy_loopback(iface)
+                else:
+                    looped[int(iface[4:5])] = True
+            else:
+                print "Error: Only nf2cX interfaces can be put in loopback"
+                sys.exit(1)
 
     global map
     # populate map
@@ -32,31 +80,12 @@ def nftest_init(interfaces, connectionsfileName):
             mapping = line.strip().split(':')
             map[mapping[0]] = mapping[1]
     else:
-        for iface in interfaces:
+        for iface in (connections.keys() + connections.values() + list(looped_ifaces)):
             map[iface] = iface
-
-    global connections
-    looped = [False, False, False, False]
-    # populate connections, line = "iface1:iface2"
-    connfile = open(connectionsfileName, 'r')
-    lines = connfile.readlines()
-    for line in lines:
-        conn = line.strip().split(':')
-        connections[conn[0]] = conn[1]
-        connections[conn[1]] = conn[0]
-        if conn[1] == conn[0]:
-            if not conn[0].startswith('nf2c'):
-                print "Error: malformed connections file"
-                print "Only nf2cX interfaces can be put in loopback"
-                sys.exit(1)
-            looped[int(conn[0][4:5])] = True
-            if isHW():
-                hwRegLib.phy_loopback(conn[0])
 
     if sim:
         simLib.init()
         portcfgfile = 'portconfig.sim'
-        from simLib import directory
         portcfg = open(portcfgfile, 'w')
         portcfg.write('LOOPBACK=')
         for loop_state in reversed(looped):
@@ -66,7 +95,9 @@ def nftest_init(interfaces, connectionsfileName):
                 portcfg.write('0')
         portcfg.close()
     else:
-        hwPktLib.init(interfaces)
+        hwPktLib.init(connections.keys() + connections.values() + list(looped_ifaces))
+
+    return portConfig
 
 ############################
 # Function: nftest_start
@@ -77,10 +108,10 @@ def nftest_start():
     if sim:
         simReg.regWrite(CPCI_Control_reg, 0)
         simReg.regWrite(CPCI_Interrupt_Mask, 0)
-        nftest_barrier()
     else:
         hwPktLib.start()
         hwRegLib.fpga_reset()
+    nftest_barrier()
 
 ############################
 # Function: nftest_send
@@ -121,6 +152,9 @@ def nftest_expect(ifaceName, pkt):
 # Description: send a packet from the phy
 ############################
 def nftest_send_phy(ifaceName, pkt):
+    if connections[ifaceName] == ifaceName:
+        print "Error: cannot send on phy of a port in loopback"
+        sys.exit(1)
     if sim:
         simPkt.pktSendPHY(int(ifaceName[4:5])+1, pkt)
     else:
@@ -145,6 +179,9 @@ def nftest_send_dma(ifaceName, pkt):
 # Description: expect a packet on the phy
 ############################
 def nftest_expect_phy(ifaceName, pkt):
+    if connections[ifaceName] == ifaceName:
+        print "Error: cannot expect on phy of a port in loopback"
+        sys.exit(1)
     if sim:
         simPkt.pktExpectPHY(int(ifaceName[4:5])+1, pkt)
     else:
@@ -179,12 +216,19 @@ def nftest_barrier():
 # Description: (sim) finalizes simulation files
 #              (hw) performs finalization, writes pcap files
 ############################
-def nftest_finish():
+def nftest_finish(total_errors = 0):
+    nftest_barrier()
     if sim:
         simLib.close()
         return 0
     else:
-        return hwPktLib.finish()
+        total_errors += hwPktLib.finish()
+        if total_errors == 0:
+            print 'SUCCESS!'
+            sys.exit(0)
+        else:
+            print 'FAIL: ' + str(total_errors) + ' errors'
+            sys.exit(1)
 
 ############################
 # Function: nftest_regread_expect

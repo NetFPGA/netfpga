@@ -6,12 +6,10 @@ from PacketLib import *
 
 import sys
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3")
+looped_ifaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3")
 
-nftest_init(interfaces, 'conn')
+nftest_init(['../connections/conn'], looped_ifaces)
 nftest_start()
-
-nftest_barrier()
 
 # set parameters
 DA = "00:ca:fe:00:00:01"
@@ -64,7 +62,6 @@ print ""
 
 nftest_barrier()
 
-total_errors = 0
 
 print "Checking pkt errors"
 # check counter values
@@ -73,14 +70,12 @@ for i in range(4):
     reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_RX_QUEUE_NUM_PKTS_STORED_REG() + i*0x40000, NUM_PKTS)
 
     if isHW() and reg_data != NUM_PKTS:
-        total_errors += 1
         print "ERROR: MAC Queue ", str(i), " counters are wrong"
         print "   Rx pkts stored: ", str(reg_data), "     expected: ", str(NUM_PKTS)
 
     reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_PKTS_SENT_REG() + i*0x40000, NUM_PKTS)
 
     if isHW() and reg_data != NUM_PKTS:
-        total_errors += 1
         print "ERROR: MAC Queue ", str(i), " counters are wrong"
         print "   Tx pkts sent: ", str(reg_data), "     expected: ", str(NUM_PKTS)
 
@@ -88,7 +83,6 @@ for i in range(4):
     reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_RX_QUEUE_NUM_BYTES_PUSHED_REG() + i*0x40000, totalPktLengths[i])
 
     if isHW() and reg_data != totalPktLengths[i]:
-        total_errors += 1
         print "ERROR: MAC Queue ", str(i), " counters are wrong"
         print "   Rx pkts pushed: ", str(reg_data), "     expected: ", str(totalPktLengths[i])
 
@@ -96,18 +90,8 @@ for i in range(4):
     reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_BYTES_PUSHED_REG() + i*0x40000, totalPktLengths[i])
 
     if isHW() and reg_data != totalPktLengths[i]:
-        total_errors += 1
         print "ERROR: MAC Queue ", str(i), " counters are wrong"
         print "   Tx pkts pushed: ", str(reg_data), "     expected: ", str(totalPktLengths[i])
 
 
-nftest_barrier()
-
-total_errors += nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish()

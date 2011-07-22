@@ -9,9 +9,6 @@ import TeamCity
 
 import re
 
-
-run = 'run'
-
 GLOBAL_SETUP = 'global setup'
 GLOBAL_TEARDOWN = 'global teardown'
 
@@ -37,7 +34,7 @@ OPTIONAL = 0
 
 teardown = 'teardown'
 setup = 'setup'
-run = 'run'
+run = 'run.py'
 commonDir = 'common'
 globalDir = 'global'
 projectRoot = 'projects'
@@ -268,6 +265,7 @@ def handleArgs():
     parser.add_argument('--quiet', action='store_true', help='Hardware only. Run in quiet mode; don\'t output anything unless there are errors.', default = False)
     parser.add_argument('--major', help='Specify the string to match on the first part of the test directory name.', metavar='<string>', default='')
     parser.add_argument('--minor', help='Specify the string to match on the last part of the test directory name.', metavar='<string>', default='')
+    parser.add_argument('--conn', help='Specify the conn file specifying the physical connections of the nf2cX ports.  Formatting is one connection per line, nf2cX:ethY.', metavar='<connections file>')
     parser.add_argument('--map', help='Remap interfaces per mapfile, which is a list of two interfaces per line.', metavar='<map_file>')
     parser.add_argument('--ci', choices=['teamcity'], help='For use when using a continuout integration tool.  Instructs the system to print out extra debugging information used by the CI tool.', metavar='<test_tool>')
     parser.add_argument('--citest', help='The name of the top-level test to print error messages in when using the \'ci\' option.', metavar='<test_name>', default='')
@@ -276,7 +274,7 @@ def handleArgs():
     parser.add_argument('--common-setup', help='Hardware only.  Run a custom setup script for each test', metavar='<local common setup file name>')
     parser.add_argument('--common-teardown', help='Hardware only.  Run a custom teardown script for each test.', metavar='<local common teardown file name>')
     parser.add_argument('--work_test_dir', help='Specify the directory where the compiled binary should be placed. Each test will have its own directory created beneath this directory.', metavar='<work_dir>')
-    parser.add_argument('--src_test_dir', help='Specify the directory where the test directories are located. Each directory should be named type_<major>_<minor>(where type is \'hw\', \'sw\'. or \'both\') and should contain an executable script called \'run\' that will perform the actual simulation and check the results if necessary.')
+    parser.add_argument('--src_test_dir', help='Specify the directory where the test directories are located. Each directory should be named type_<major>_<minor>(where type is \'hw\', \'sw\'. or \'both\') and should contain an executable script called \'run.py\' that will perform the actual simulation and check the results if necessary.')
     parser.add_argument('--make_file', help='Simulation only.  Specify the makefile to be used to compile the simulation binary.', metavar='<makefile>')
     parser.add_argument('--make_opt', help='Simulation only. Specify a single string to be passed to make (e.g. to invoke a different make rule). Make is invoked using \'make -f <makefile> <option_string>', default = '')
     parser.add_argument('--sim_opt', help='Simulation only. This option allows the string to be passed to the HDL simulator. For example, a macro definition which is checked by the HDL testbench, a post-processing option, or a simulation delay model option.', default = '')
@@ -464,18 +462,21 @@ def verifyCI():
 def runTest(project, test):
     testDir = rootDir + '/' + projectRoot + '/' + project + '/' + testRoot + '/' + test
     if os.path.exists(testDir) and os.path.isdir(testDir):
+        script = run + ' --hw'
         if args.seed:
-            return runScript(project, test, run + ' --hw --seed ' + str(args.seed[0]), REQUIRED)
-        else:
-            return runScript(project, test, run + ' --hw', REQUIRED)
+            script += ' --seed ' + str(args.seed[0])
+        if args.conn:
+            script += ' --conn ' + str(args.conn)
+        return runScript(project, test, script, REQUIRED)
     else:
         match = re.search(r'/(.*)\/([^\/]*)/', test)
         if match:
+            script = match.group(2) + ' --hw'
             if args.seed:
-                return runScript(project, match.group(1), match.group(2) +
-                                 ' --hw --seed ' + str(args.seed[0]), REQUIRED)
-            else:
-                return runScript(project, match.group(1), match.group(2) + ' --hw', REQUIRED)
+                script += ' --seed ' + str(args.seed[0])
+            if args.conn:
+                script += ' --conn ' + str(args.conn)
+            return runScript(project, match.group(1), script, REQUIRED)
         else:
             print 'Error finding test file: ' + test
             sys.exit(1)
