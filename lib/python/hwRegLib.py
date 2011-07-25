@@ -47,10 +47,10 @@ def regread_expect(ifaceName, reg, exp, mask = 0xffffffff):
         print 'ERROR: Register read expected 0x%08x but found 0x%08x at address 0x%08x (%s)'%(exp, val, reg, name)
         print ''
         try:
-            badReads[ifaceName].append({'Expected':exp, 'Value':val, 'Register':reg})
+            badReads[ifaceName].append({'Expected':exp, 'Value':val, 'Register':reg, 'RegName':name})
         except(KeyError):
             badReads[ifaceName] = []
-            badReads[ifaceName].append({'Expected':exp, 'Value':val, 'Register':reg})
+            badReads[ifaceName].append({'Expected':exp, 'Value':val, 'Register':reg, 'RegName':name})
     return val
 
 ############################
