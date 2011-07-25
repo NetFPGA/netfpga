@@ -1,9 +1,6 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
+from NFTest import *
 import sys
 
 phy0loop4 = ('../connections/conn', ["nf2c0", "nf2c1", "nf2c2", "nf2c3"])
