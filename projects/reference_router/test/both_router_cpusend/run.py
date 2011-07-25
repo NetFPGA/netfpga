@@ -1,19 +1,13 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
+from NFTest import *
 import random
-
 from RegressRouterLib import *
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
+phy2loop2 = ('../connections/2phy', ['nf2c2', 'nf2c3'])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy2loop2])
 nftest_start()
-
-nftest_barrier()
 
 if isHW():
     NUM_PKTS = 20
@@ -141,25 +135,16 @@ nftest_regread_expect(reg_defines.MAC_GRP_1_TX_QUEUE_NUM_BYTES_PUSHED_REG(), tot
 
 nftest_regread_expect(reg_defines.MAC_GRP_2_TX_QUEUE_NUM_PKTS_SENT_REG(), NUM_PKTS)
 nftest_regread_expect(reg_defines.MAC_GRP_2_TX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[2])
-#if isHW():
+
 nftest_regread_expect(reg_defines.MAC_GRP_2_RX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[2])
 nftest_regread_expect(reg_defines.MAC_GRP_2_RX_QUEUE_NUM_PKTS_STORED_REG(), NUM_PKTS)
 
 nftest_regread_expect(reg_defines.MAC_GRP_3_TX_QUEUE_NUM_PKTS_SENT_REG(), NUM_PKTS)
 nftest_regread_expect(reg_defines.MAC_GRP_3_TX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[3])
-#if isHW():
+
 nftest_regread_expect(reg_defines.MAC_GRP_3_RX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[3])
 nftest_regread_expect(reg_defines.MAC_GRP_3_RX_QUEUE_NUM_PKTS_STORED_REG(), NUM_PKTS)
 
 nftest_regread_expect(reg_defines.ROUTER_OP_LUT_NUM_CPU_PKTS_SENT_REG(), 4*NUM_PKTS)
 
-nftest_barrier()
-
-total_errors = nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish()

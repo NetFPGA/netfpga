@@ -1,19 +1,13 @@
 #!/usr/bin/python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
+from NFTest import *
 import random
-
 from RegressRouterLib import *
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
+phy2loop0 = ('../connections/2phy', [])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy2loop0])
 nftest_start()
-
-nftest_barrier()
 
 routerMAC0 = "00:ca:fe:00:00:01"
 routerMAC1 = "00:ca:fe:00:00:02"
@@ -83,9 +77,6 @@ nftest_add_ARP_table_entry('nf2c0',
                nextHopIP2,
                nextHopMAC)
 
-total_errors = 0
-temp_error_val = 0
-
 #clear the num pkts forwarded reg
 nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_PKTS_FORWARDED_REG(), 0)
 
@@ -153,11 +144,4 @@ nftest_barrier()
 
 nftest_regread_expect(reg_defines.ROUTER_OP_LUT_NUM_PKTS_FORWARDED_REG(), 40);
 
-total_errors = nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish()

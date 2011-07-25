@@ -1,19 +1,13 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
+from NFTest import *
 import random
-
 from RegressRouterLib import *
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
+phy2loop0 = ('../connections/2phy', [])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy2loop0])
 nftest_start()
-
-nftest_barrier()
 
 routerMAC0 = "00:ca:fe:00:00:01"
 routerMAC1 = "00:ca:fe:00:00:02"
@@ -60,9 +54,6 @@ nftest_set_router_MAC ('nf2c1', routerMAC1)
 nftest_set_router_MAC ('nf2c2', routerMAC2)
 nftest_set_router_MAC ('nf2c3', routerMAC3)
 
-total_errors = 0
-temp_val = 0
-
 for portid in range(2):
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_WRONG_DEST_REG(), 0)
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_NON_IP_RCVD_REG(), 0)
@@ -87,21 +78,8 @@ for portid in range(2):
     nftest_barrier()
 
     # Read the counters
-    temp_val = nftest_regread_expect(reg_defines.ROUTER_OP_LUT_NUM_BAD_CHKSUMS_REG(), 30)
-    if isHW():
-        if temp_val != 30:
-            print 'Expected 30 Wrong mac destination packets.  Received ' + str(temp_val)
-            total_errors += 1
+    nftest_regread_expect(reg_defines.ROUTER_OP_LUT_NUM_BAD_CHKSUMS_REG(), 30)
 
     nftest_barrier()
 
-nftest_barrier()
-
-total_errors += nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish()

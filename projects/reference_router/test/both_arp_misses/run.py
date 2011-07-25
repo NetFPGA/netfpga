@@ -1,19 +1,15 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
+from NFTest import *
 
 import random
 
 from RegressRouterLib import *
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
+phy2loop0 = ('../connections/2phy', [])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy2loop0])
 nftest_start()
-
-nftest_barrier()
 
 routerMAC0 = "00:ca:fe:00:00:01"
 routerMAC1 = "00:ca:fe:00:00:02"
@@ -57,8 +53,6 @@ nftest_regwrite(reg_defines.ROUTER_OP_LUT_ARP_NUM_MISSES_REG(), 0)
 
 nftest_barrier()
 
-total_errors = 0
-
 routerMAC0 = "00:ca:fe:00:00:01"
 DA = routerMAC0
 SA = "aa:bb:cc:dd:ee:ff"
@@ -67,16 +61,12 @@ DST_IP = "192.168.1.1"
 SRC_IP = "192.168.0.1"
 nextHopMAC = "dd:55:dd:66:dd:77"
 
-portPkts = []
-for i in range(30):
-    portPkts.append(make_IP_pkt(src_MAC=SA, dst_MAC=DA, EtherType=0x800,
-                                dst_IP=DST_IP, src_IP=SRC_IP, TTL=TTL,
-                                pkt_len=random.randint(60,1514)))
-
 print "Sending packets"
 
 for i in range(30):
-    sent_pkt = portPkts[i]
+    sent_pkt = make_IP_pkt(src_MAC=SA, dst_MAC=DA, EtherType=0x800,
+                           dst_IP=DST_IP, src_IP=SRC_IP, TTL=TTL,
+                           pkt_len=random.randint(60,1514))
     nftest_send_phy('nf2c0', sent_pkt)
     nftest_expect_dma('nf2c0', sent_pkt)
 
@@ -84,19 +74,6 @@ temp_error_val = 0
 
 nftest_barrier()
 
-temp_error_val = nftest_regread_expect(reg_defines.ROUTER_OP_LUT_ARP_NUM_MISSES_REG(), 30)
-if isHW():
-    if temp_error_val != 30:
-        print "Expected 30 ARP misses.  Received " + str(temp_error_val)
-        total_errors += 1
+nftest_regread_expect(reg_defines.ROUTER_OP_LUT_ARP_NUM_MISSES_REG(), 30)
 
-nftest_barrier()
-
-total_errors += nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish()

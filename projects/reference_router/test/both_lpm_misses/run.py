@@ -1,19 +1,13 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
+from NFTest import *
 import random
-
 from RegressRouterLib import *
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
+phy2loop0 = ('../connections/2phy', [])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy2loop0])
 nftest_start()
-
-nftest_barrier()
 
 routerMAC0 = "00:ca:fe:00:00:01"
 routerMAC1 = "00:ca:fe:00:00:02"
@@ -54,33 +48,16 @@ nftest_add_ARP_table_entry('nf2c0', index, nextHopIP, nextHopMAC)
 
 nftest_barrier()
 
-total_errors = 0
-
-pkts = []
 for i in range(100):
     pkt = make_IP_pkt(src_MAC="aa:bb:cc:dd:ee:ff", dst_MAC=routerMAC0,
                       EtherType=0x800, src_IP="192.168.0.1",
                       dst_IP="192.168.2.1", TTL=64)
 
-    pkts.append(pkt)
-
-for i in range(100):
-    nftest_send_phy('nf2c0', pkts[i])
-    nftest_expect_dma('nf2c0', pkts[i])
+    nftest_send_phy('nf2c0', pkt)
+    nftest_expect_dma('nf2c0', pkt)
 
 nftest_barrier()
 
-temp_error_val = nftest_regread_expect(reg_defines.ROUTER_OP_LUT_LPM_NUM_MISSES_REG(), 100)
-if isHW():
-    if temp_error_val != 100:
-        print 'Expected 100 LPM misses. Received ' + str(temp_error_val)
-        total_errors += 1
+nftest_regread_expect(reg_defines.ROUTER_OP_LUT_LPM_NUM_MISSES_REG(), 100)
 
-total_errors += nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish()

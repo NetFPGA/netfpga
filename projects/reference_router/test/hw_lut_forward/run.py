@@ -1,19 +1,14 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
-from hwPktLib import *
-from hwRegLib import *
-
+from NFTest import *
+from NFTest.hwPktLib import *
+from NFTest.hwRegLib import *
 from RegressRouterLib import *
-
 import time
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
+phy4loop0 = ('../connections/4phy', [])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy4loop0])
 nftest_start()
 
 NUM_PKTS_PER_PORT = 500
@@ -168,13 +163,4 @@ for i in range(4):
         print "Bytes Stored: " + str(bytesStored) + "   Removed: " + str(bytesRemoved)
         total_errors += 1
 
-nftest_barrier()
-
-total_errors += nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish(total_errors = total_errors)

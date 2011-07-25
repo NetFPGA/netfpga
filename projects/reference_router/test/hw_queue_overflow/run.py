@@ -1,21 +1,14 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
-from hwPktLib import *
-
+from NFTest import *
+from NFTest.hwPktLib import *
 from RegressRouterLib import *
-
 import time
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
+phy4loop0 = ('../connections/4phy', [])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy4loop0])
 nftest_start()
-
-nftest_barrier()
 
 NUM_PKTS_PER_PORT = 500
 PKT_SIZE = 1514
@@ -112,13 +105,4 @@ for i in range(2):
         nftest_send_dma('nf2c'+str(i), pkt)
         nftest_expect_phy('nf2c'+str(i), pkt)
 
-nftest_barrier()
-
-total_errors += nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish()

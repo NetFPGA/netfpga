@@ -1,21 +1,14 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
+from NFTest import *
 import random
-
-from hwRegLib import *
-
+from NFTest.hwRegLib import *
 from RegressRouterLib import *
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
+phy2loop2 = ('../connections/2phy', ['nf2c2', 'nf2c3'])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy2loop2])
 nftest_start()
-
-nftest_barrier()
 
 NUM_PKTS = 100
 
@@ -46,11 +39,6 @@ nftest_set_router_MAC ('nf2c0', routerMAC0);
 nftest_set_router_MAC ('nf2c1', routerMAC1);
 nftest_set_router_MAC ('nf2c2', routerMAC2);
 nftest_set_router_MAC ('nf2c3', routerMAC3);
-
-# Put the two ports in loopback mode. Pkts going out will come back in on
-# the same port
-phy_loopback('nf2c2');
-phy_loopback('nf2c3');
 
 DA = routerMAC0
 SA = "aa:bb:cc:dd:ee:ff"
@@ -248,10 +236,3 @@ if check_value != totalPktLengths[3]:
 nftest_barrier()
 
 total_errors += nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)

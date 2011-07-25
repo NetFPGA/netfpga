@@ -1,19 +1,13 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
+from NFTest import *
 import random
-
 from RegressRouterLib import *
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
+phy2loop0 = ('../connections/2phy', [])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy2loop0])
 nftest_start()
-
-nftest_barrier()
 
 routerMAC0 = "00:ca:fe:00:00:01"
 routerMAC1 = "00:ca:fe:00:00:02"
@@ -36,10 +30,6 @@ nftest_set_router_MAC ('nf2c1', routerMAC1)
 nftest_set_router_MAC ('nf2c2', routerMAC2)
 nftest_set_router_MAC ('nf2c3', routerMAC3)
 
-total_errors = 0
-temp_val = 0
-
-pkts = []
 for portid in range(2):
     # set parameters
     if portid == 0:
@@ -47,24 +37,15 @@ for portid in range(2):
     else:
         DA = routerMAC1
     SA = "aa:bb:cc:dd:ee:ff"
+    EtherType = 0x800
     TTL = 64
     DST_IP = "192.168.2.1";   #not in the lpm table
     SRC_IP = "192.168.0.1"
-    VERSION = 0x4
     nextHopMAC = "dd:55:dd:66:dd:77"
 
-    # Non IP packets
-    EtherType = 0x802
+    # Non IP option or ip_ver not 4
+    VERSION = 5
 
-    # precreate random packets
-    portPkts = []
-    for i in range(30):
-        portPkts.append(make_IP_pkt(dst_MAC=DA, src_MAC=SA,
-                                    EtherType=EtherType, dst_IP=DST_IP,
-                                    TTL=TTL, pkt_len=random.randint(60,1514)))
-    pkts.append(portPkts)
-
-for portid in range(2):
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_WRONG_DEST_REG(), 0)
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_NON_IP_RCVD_REG(), 0)
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_BAD_OPTS_VER_REG(), 0)
@@ -74,9 +55,28 @@ for portid in range(2):
 
     nftest_barrier()
 
-    # loop for 30 packets
+    # set parameters
+    if portid == 0:
+        DA = routerMAC0
+    else:
+        DA = routerMAC1
+    SA = "aa:bb:cc:dd:ee:ff"
+    EtherType = 0x800
+    TTL = 64
+    DST_IP = "192.168.2.1";   #not in the lpm table
+    SRC_IP = "192.168.0.1"
+    VERSION = 0x4
+    nextHopMAC = "dd:55:dd:66:dd:77"
+
+    # Non IP option or ip_ver not 4
+    VERSION = 5
+
+    # loop for 100 packets
     for i in range(30):
-        sent_pkt = pkts[portid][i]
+        sent_pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA, EtherType=EtherType,
+                          src_IP=SRC_IP, dst_IP=DST_IP, TTL=TTL,
+                          pkt_len=random.randint(60,1514))
+        sent_pkt.version = VERSION
         if portid == 0:
             # send packet out of eth1->nf2c0
             nftest_send_phy('nf2c0', sent_pkt)
@@ -90,21 +90,8 @@ for portid in range(2):
     nftest_barrier()
 
     # Read the counters
-    temp_val = nftest_regread_expect(reg_defines.ROUTER_OP_LUT_NUM_NON_IP_RCVD_REG(), 30)
-    if isHW():
-        if temp_val != 30:
-            print 'Expected 30 non IP packets.  Received ' + str(temp_val)
-            total_errors += 1
+    temp_val = nftest_regread_expect(reg_defines.ROUTER_OP_LUT_NUM_BAD_OPTS_VER_REG(), 30)
 
     nftest_barrier()
 
-nftest_barrier()
-
-total_errors += nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish()

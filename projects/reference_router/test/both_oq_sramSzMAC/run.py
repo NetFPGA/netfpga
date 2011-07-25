@@ -1,21 +1,12 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
-import random
-
+from NFTest import *
 from RegressRouterLib import *
 
-import simReg
+phy2loop2 = ('../connections/2phy', ['nf2c2', 'nf2c3'])
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
-
-nftest_init(interfaces, 'conn')
+nftest_init([phy2loop2])
 nftest_start()
-
-nftest_barrier()
 
 NUM_TBL_ENTRIES = 32
 
@@ -104,8 +95,6 @@ nftest_regwrite(reg_defines.OQ_QUEUE_5_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_S
 nftest_regwrite(reg_defines.OQ_QUEUE_6_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
 nftest_regwrite(reg_defines.OQ_QUEUE_7_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
 
-NUM_PKTS_IN_CPU_OQ = 8
-
 DA = routerMAC0
 SA = "aa:bb:cc:dd:ee:ff"
 TTL = 64
@@ -113,62 +102,61 @@ DST_IP = "192.168.101.2"
 SRC_IP = "192.168.100.2"
 nextHopMAC = "dd:55:dd:66:dd:77"
 
+NUM_PKTS_IN_MAC_OQ = 4
+
 precreated0 = []
-for i in range(NUM_PKTS_IN_CPU_OQ + 1):
+for i in range(NUM_PKTS_IN_MAC_OQ + 1):
     precreated0.append(make_IP_pkt(dst_MAC=routerMAC0, src_MAC=SA,
                                    EtherType=0x800, dst_IP=DST_IP,
                                    src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
 
 precreated1 = []
-for i in range(NUM_PKTS_IN_CPU_OQ + 1):
+for i in range(NUM_PKTS_IN_MAC_OQ + 1):
     precreated1.append(make_IP_pkt(dst_MAC=routerMAC1, src_MAC=SA,
                                    EtherType=0x800, dst_IP=DST_IP,
                                    src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
 
 precreated2 = []
-for i in range(NUM_PKTS_IN_CPU_OQ + 1):
+for i in range(NUM_PKTS_IN_MAC_OQ + 1):
     precreated2.append(make_IP_pkt(dst_MAC=routerMAC2, src_MAC=SA,
                                    EtherType=0x800, dst_IP=DST_IP,
                                    src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
 
 precreated3 = []
-for i in range(NUM_PKTS_IN_CPU_OQ + 1):
+for i in range(NUM_PKTS_IN_MAC_OQ + 1):
     precreated3.append(make_IP_pkt(dst_MAC=routerMAC3, src_MAC=SA,
                                    EtherType=0x800, dst_IP=DST_IP,
                                    src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
 
+print "Start testing MAC OQ sizes"
 
-print "Start testing CPU OQ sizes"
-
-print "Disabling servicing output queues"
-nftest_regwrite(reg_defines.OQ_QUEUE_1_CTRL_REG(), 0)
-nftest_regwrite(reg_defines.OQ_QUEUE_3_CTRL_REG(), 0)
-nftest_regwrite(reg_defines.OQ_QUEUE_5_CTRL_REG(), 0)
-nftest_regwrite(reg_defines.OQ_QUEUE_7_CTRL_REG(), 0)
+print "Disabling servicing MAC output queues"
+nftest_regwrite(reg_defines.OQ_QUEUE_0_CTRL_REG(), 0)
+nftest_regwrite(reg_defines.OQ_QUEUE_2_CTRL_REG(), 0)
+nftest_regwrite(reg_defines.OQ_QUEUE_4_CTRL_REG(), 0)
+nftest_regwrite(reg_defines.OQ_QUEUE_6_CTRL_REG(), 0)
 
 # clear counter values for CPU output queues only
-nftest_regwrite(reg_defines.OQ_QUEUE_1_NUM_PKTS_DROPPED_REG(), 0)
-nftest_regwrite(reg_defines.OQ_QUEUE_3_NUM_PKTS_DROPPED_REG(), 0)
-nftest_regwrite(reg_defines.OQ_QUEUE_5_NUM_PKTS_DROPPED_REG(), 0)
-nftest_regwrite(reg_defines.OQ_QUEUE_7_NUM_PKTS_DROPPED_REG(), 0)
+nftest_regwrite(reg_defines.OQ_QUEUE_0_NUM_PKTS_DROPPED_REG(), 0)
+nftest_regwrite(reg_defines.OQ_QUEUE_2_NUM_PKTS_DROPPED_REG(), 0)
+nftest_regwrite(reg_defines.OQ_QUEUE_4_NUM_PKTS_DROPPED_REG(), 0)
+nftest_regwrite(reg_defines.OQ_QUEUE_6_NUM_PKTS_DROPPED_REG(), 0)
 
-nftest_regwrite(reg_defines.OQ_QUEUE_1_NUM_PKTS_REMOVED_REG(), 0)
-nftest_regwrite(reg_defines.OQ_QUEUE_3_NUM_PKTS_REMOVED_REG(), 0)
-nftest_regwrite(reg_defines.OQ_QUEUE_5_NUM_PKTS_REMOVED_REG(), 0)
-nftest_regwrite(reg_defines.OQ_QUEUE_7_NUM_PKTS_REMOVED_REG(), 0)
-
-import time; time.sleep(1)
+nftest_regwrite(reg_defines.OQ_QUEUE_0_NUM_PKTS_REMOVED_REG(), 0)
+nftest_regwrite(reg_defines.OQ_QUEUE_2_NUM_PKTS_REMOVED_REG(), 0)
+nftest_regwrite(reg_defines.OQ_QUEUE_4_NUM_PKTS_REMOVED_REG(), 0)
+nftest_regwrite(reg_defines.OQ_QUEUE_6_NUM_PKTS_REMOVED_REG(), 0)
 
 nftest_barrier()
 
 sent = [[],[],[],[]]
-for i in range(NUM_PKTS_IN_CPU_OQ):
+for i in range(NUM_PKTS_IN_MAC_OQ):
     pkt = precreated0[i]
-    nftest_send_phy('nf2c0', pkt)
+    nftest_send_dma('nf2c0', pkt)
     sent[0].append(pkt)
 
     pkt = precreated1[i]
-    nftest_send_phy('nf2c1', pkt)
+    nftest_send_dma('nf2c1', pkt)
     sent[1].append(pkt)
 
     pkt = precreated2[i]
@@ -179,65 +167,55 @@ for i in range(NUM_PKTS_IN_CPU_OQ):
     nftest_send_dma('nf2c3', pkt)
     sent[3].append(pkt)
 
-print "CPU OQs should be full. Start to drop received pkts"
+print "MAC OQs should be full. Start to drop received pkts"
 
-pkt = precreated0[NUM_PKTS_IN_CPU_OQ]
-nftest_send_phy('nf2c0', pkt)
+pkt = precreated0[NUM_PKTS_IN_MAC_OQ]
+nftest_send_dma('nf2c0', pkt)
 
-pkt = precreated1[NUM_PKTS_IN_CPU_OQ]
-nftest_send_phy('nf2c1', pkt)
+pkt = precreated1[NUM_PKTS_IN_MAC_OQ]
+nftest_send_dma('nf2c1', pkt)
 
-pkt = precreated2[NUM_PKTS_IN_CPU_OQ]
+pkt = precreated2[NUM_PKTS_IN_MAC_OQ]
 nftest_send_dma('nf2c2', pkt)
 
-pkt = precreated3[NUM_PKTS_IN_CPU_OQ]
+pkt = precreated3[NUM_PKTS_IN_MAC_OQ]
 nftest_send_dma('nf2c3', pkt)
 
 nftest_barrier()
 
 print "\nVerifying that the packets are stored in the output queues"
-nftest_regread_expect(reg_defines.OQ_QUEUE_1_NUM_PKTS_IN_Q_REG(), NUM_PKTS_IN_CPU_OQ)
-nftest_regread_expect(reg_defines.OQ_QUEUE_3_NUM_PKTS_IN_Q_REG(), NUM_PKTS_IN_CPU_OQ)
-nftest_regread_expect(reg_defines.OQ_QUEUE_5_NUM_PKTS_IN_Q_REG(), NUM_PKTS_IN_CPU_OQ)
-nftest_regread_expect(reg_defines.OQ_QUEUE_7_NUM_PKTS_IN_Q_REG(), NUM_PKTS_IN_CPU_OQ)
+nftest_regread_expect(reg_defines.OQ_QUEUE_0_NUM_PKTS_IN_Q_REG(), NUM_PKTS_IN_MAC_OQ)
+nftest_regread_expect(reg_defines.OQ_QUEUE_2_NUM_PKTS_IN_Q_REG(), NUM_PKTS_IN_MAC_OQ)
+nftest_regread_expect(reg_defines.OQ_QUEUE_4_NUM_PKTS_IN_Q_REG(), NUM_PKTS_IN_MAC_OQ)
+nftest_regread_expect(reg_defines.OQ_QUEUE_6_NUM_PKTS_IN_Q_REG(), NUM_PKTS_IN_MAC_OQ)
 
 print "Verifying dropped pkts counter."
-nftest_regread_expect(reg_defines.OQ_QUEUE_1_NUM_PKTS_DROPPED_REG(), 1)
-nftest_regread_expect(reg_defines.OQ_QUEUE_3_NUM_PKTS_DROPPED_REG(), 1)
-nftest_regread_expect(reg_defines.OQ_QUEUE_5_NUM_PKTS_DROPPED_REG(), 1)
-if not isHW():
-    simReg.regDelay(10000)
-nftest_regread_expect(reg_defines.OQ_QUEUE_7_NUM_PKTS_DROPPED_REG(), 1)
+nftest_regread_expect(reg_defines.OQ_QUEUE_0_NUM_PKTS_DROPPED_REG(), 1)
+nftest_regread_expect(reg_defines.OQ_QUEUE_2_NUM_PKTS_DROPPED_REG(), 1)
+nftest_regread_expect(reg_defines.OQ_QUEUE_4_NUM_PKTS_DROPPED_REG(), 1)
+nftest_regread_expect(reg_defines.OQ_QUEUE_6_NUM_PKTS_DROPPED_REG(), 1)
 
 print "Start servicing the output queues again. Packets should be sent out."
-nftest_regwrite(reg_defines.OQ_QUEUE_1_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
-nftest_regwrite(reg_defines.OQ_QUEUE_3_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
-nftest_regwrite(reg_defines.OQ_QUEUE_5_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
-nftest_regwrite(reg_defines.OQ_QUEUE_7_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
-
-nftest_barrier()
+nftest_regwrite(reg_defines.OQ_QUEUE_0_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
+nftest_regwrite(reg_defines.OQ_QUEUE_2_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
+nftest_regwrite(reg_defines.OQ_QUEUE_4_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
+nftest_regwrite(reg_defines.OQ_QUEUE_6_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM())
 
 for i in range(4):
     for pkt in sent[i]:
-        nftest_expect_dma('nf2c'+str(i), pkt)
+        if i < 2:
+            nftest_expect_phy('nf2c'+str(i), pkt)
+        else:
+            nftest_expect_dma('nf2c'+str(i), pkt)
 
 nftest_barrier()
 
 print "Verifying that the packets are drained in the output queues"
-nftest_regread_expect(reg_defines.OQ_QUEUE_1_NUM_PKTS_REMOVED_REG(), NUM_PKTS_IN_CPU_OQ)
-nftest_regread_expect(reg_defines.OQ_QUEUE_3_NUM_PKTS_REMOVED_REG(), NUM_PKTS_IN_CPU_OQ)
-nftest_regread_expect(reg_defines.OQ_QUEUE_5_NUM_PKTS_REMOVED_REG(), NUM_PKTS_IN_CPU_OQ)
-nftest_regread_expect(reg_defines.OQ_QUEUE_7_NUM_PKTS_REMOVED_REG(), NUM_PKTS_IN_CPU_OQ)
+nftest_regread_expect(reg_defines.OQ_QUEUE_0_NUM_PKTS_REMOVED_REG(), NUM_PKTS_IN_MAC_OQ)
+nftest_regread_expect(reg_defines.OQ_QUEUE_2_NUM_PKTS_REMOVED_REG(), NUM_PKTS_IN_MAC_OQ)
+nftest_regread_expect(reg_defines.OQ_QUEUE_4_NUM_PKTS_REMOVED_REG(), NUM_PKTS_IN_MAC_OQ)
+nftest_regread_expect(reg_defines.OQ_QUEUE_6_NUM_PKTS_REMOVED_REG(), NUM_PKTS_IN_MAC_OQ)
 
-print "Done testing CPU OQ sizes"
+print "Done testing MAC OQ sizes"
 
-nftest_barrier()
-
-total_errors = nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish()

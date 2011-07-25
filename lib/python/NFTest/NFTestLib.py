@@ -84,7 +84,8 @@ def nftest_init(configurations):
                     print "Error: Only nf2cX interfaces can be put in loopback"
                     sys.exit(1)
 
-    ifaces = connections.keys() + connections.values() + list(configurations[portConfig][1])
+    # avoid duplicating interfaces
+    ifaces = list(set(connections.keys() + connections.values() + list(configurations[portConfig][1])))
 
     global map
     # populate map

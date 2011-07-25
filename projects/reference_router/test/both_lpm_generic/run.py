@@ -1,19 +1,13 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
+from NFTest import *
 import random
-
 from RegressRouterLib import *
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
+phy2loop0 = ('../connections/2phy', [])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy2loop0])
 nftest_start()
-
-nftest_barrier()
 
 routerMAC0 = "00:ca:fe:00:00:01"
 routerMAC1 = "00:ca:fe:00:00:02"
@@ -24,12 +18,6 @@ routerIP0 = "192.168.0.40"
 routerIP1 = "192.168.1.40"
 routerIP2 = "192.168.2.40"
 routerIP3 = "192.168.3.40"
-
-for i in range(32):
-    nftest_invalidate_LPM_table_entry('nf2c0', i)
-
-for i in range(32):
-    nftest_invalidate_ARP_table_entry('nf2c0', i)
 
 # Write the mac and IP addresses
 nftest_add_dst_ip_filter_entry ('nf2c0', 0, routerIP0)
@@ -42,6 +30,12 @@ nftest_set_router_MAC ('nf2c1', routerMAC1)
 nftest_set_router_MAC ('nf2c2', routerMAC2)
 nftest_set_router_MAC ('nf2c3', routerMAC3)
 
+for i in range(32):
+    nftest_invalidate_LPM_table_entry('nf2c0', i)
+
+for i in range(32):
+    nftest_invalidate_ARP_table_entry('nf2c0', i)
+
 
 index = 0
 subnetIP = "192.168.1.0"
@@ -49,7 +43,7 @@ subnetIP2 = "192.168.1.1"
 subnetMask = "255.255.255.0"
 subnetMask2 = "255.255.255.225"
 nextHopIP = "192.168.1.54"
-nextHopIP2 = "0.0.0.0"
+nextHopIP2 = "192.168.3.12"
 outPort = 0x1
 outPort2 = 0x4
 nextHopMAC = "dd:55:dd:66:dd:77"
@@ -60,14 +54,10 @@ nftest_add_LPM_table_entry('nf2c0', 0, subnetIP2, subnetMask2, nextHopIP2, outPo
 
 nftest_add_ARP_table_entry('nf2c0', index, nextHopIP, nextHopMAC)
 
-nftest_add_ARP_table_entry('nf2c0', 1, subnetIP2, nextHopMAC)
+nftest_add_ARP_table_entry('nf2c0', index, nextHopIP2, nextHopMAC)
 
 nftest_barrier()
 
-total_errors = 0
-
-pkts = []
-exp_pkts = []
 for i in range(100):
     hdr = make_MAC_hdr(src_MAC="aa:bb:cc:dd:ee:ff", dst_MAC=routerMAC0,
                        EtherType=0x800)/scapy.IP(src="192.168.0.1",
@@ -79,20 +69,7 @@ for i in range(100):
     pkt = hdr/load
     exp_pkt = exp_hdr/load
 
-    pkts.append(pkt)
-    exp_pkts.append(exp_pkt)
+    nftest_send_phy('nf2c0', pkt)
+    nftest_expect_phy('nf2c1', exp_pkt)
 
-for i in range(100):
-    nftest_send_phy('nf2c0', pkts[i])
-    nftest_expect_phy('nf2c1', exp_pkts[i])
-
-nftest_barrier()
-
-total_errors += nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish()

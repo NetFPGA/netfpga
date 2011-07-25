@@ -1,22 +1,16 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-
-from hwRegLib import *
-
+from NFTest import *
+from NFTest.hwRegLib import *
 from RegressRouterLib import *
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3", "eth1", "eth2")
+phy2loop0 = ('../connections/2phy', [])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy2loop0])
 nftest_start()
-
-nftest_barrier()
 
 internal_loopback = 0
 print_all_stats = 0
-run_lenght = 100 # seconds
 print_interval = 1
 load_timeout = 5.0
 expect = 0
@@ -275,13 +269,4 @@ for i in range(31):
 
 print total_errors
 
-nftest_barrier()
-
-total_errors += nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish()
