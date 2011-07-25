@@ -67,27 +67,27 @@ print "Checking pkt errors"
 # check counter values
 for i in range(4):
     reg_data = 0
-    reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_RX_QUEUE_NUM_PKTS_STORED_REG() + i*0x40000, NUM_PKTS)
+    reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_RX_QUEUE_NUM_PKTS_STORED_REG() + i*reg_defines.MAC_GRP_OFFSET(), NUM_PKTS)
 
     if isHW() and reg_data != NUM_PKTS:
         print "ERROR: MAC Queue ", str(i), " counters are wrong"
         print "   Rx pkts stored: ", str(reg_data), "     expected: ", str(NUM_PKTS)
 
-    reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_PKTS_SENT_REG() + i*0x40000, NUM_PKTS)
+    reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_PKTS_SENT_REG() + i*reg_defines.MAC_GRP_OFFSET(), NUM_PKTS)
 
     if isHW() and reg_data != NUM_PKTS:
         print "ERROR: MAC Queue ", str(i), " counters are wrong"
         print "   Tx pkts sent: ", str(reg_data), "     expected: ", str(NUM_PKTS)
 
 
-    reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_RX_QUEUE_NUM_BYTES_PUSHED_REG() + i*0x40000, totalPktLengths[i])
+    reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_RX_QUEUE_NUM_BYTES_PUSHED_REG() + i*reg_defines.MAC_GRP_OFFSET(), totalPktLengths[i])
 
     if isHW() and reg_data != totalPktLengths[i]:
         print "ERROR: MAC Queue ", str(i), " counters are wrong"
         print "   Rx pkts pushed: ", str(reg_data), "     expected: ", str(totalPktLengths[i])
 
 
-    reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_BYTES_PUSHED_REG() + i*0x40000, totalPktLengths[i])
+    reg_data = nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_BYTES_PUSHED_REG() + i*reg_defines.MAC_GRP_OFFSET(), totalPktLengths[i])
 
     if isHW() and reg_data != totalPktLengths[i]:
         print "ERROR: MAC Queue ", str(i), " counters are wrong"
