@@ -45,12 +45,9 @@ def regread_expect(ifaceName, reg, exp, mask = 0xffffffff):
     if (val & mask) != (exp & mask):
         name = __main__.nf_regmap.get(reg, "unknown")
         print 'ERROR: Register read expected 0x%08x but found 0x%08x at address 0x%08x (%s)'%(exp, val, reg, name)
-        print ''
-        try:
-            badReads[ifaceName].append({'Expected':exp, 'Value':val, 'Register':reg, 'RegName':name})
-        except(KeyError):
+        if ifaceName not in badReads:
             badReads[ifaceName] = []
-            badReads[ifaceName].append({'Expected':exp, 'Value':val, 'Register':reg, 'RegName':name})
+        badReads[ifaceName].append({'Expected':exp, 'Value':val, 'Register':reg, 'RegName':name})
     return val
 
 ############################
