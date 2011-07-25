@@ -32,7 +32,7 @@ for i in range(NUM_PKTS):
         DA = "00:ca:fe:00:00:%02x"%port
         pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA, dst_IP=DST_IP,
                              src_IP=SRC_IP, TTL=TTL,
-                             pkt_len=1514))
+                             pkt_len=1514)
         totalPktLengths[port] += len(pkt)
 
         nftest_send_dma('nf2c' + str(port), pkt)

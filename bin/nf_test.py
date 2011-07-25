@@ -53,7 +53,7 @@ def run_hw_test():
         try:
             mapfile = open(args.map)
             mapfile.close()
-        except IOError as exc:
+        except IOError,  exc:
             print 'Error opening mapfile ' + args.map
             print exc.strerror
             sys.exit(1)
@@ -387,12 +387,15 @@ def prepareWorkDir():
             if not os.path.exists(os.environ['NF_WORK_DIR'] + '/test/'):
                 os.mkdir(os.environ['NF_WORK_DIR'] + '/test')
             os.mkdir(projDir)
-        except OSError as exc:
+        except OSError, exc:
             print 'Error: Unable to create project directory ' + projDir
             print exc.strerror, exc.filename
             sys.exit(1)
     # copy the connections directory
-    shutil.rmtree(projDir + '/connections')
+    try:
+        shutil.rmtree(projDir + '/connections')
+    except OSError:
+        pass # doesn't exist, nothing to do
     shutil.copytree(src_test_dir + '/connections', projDir + '/connections')
 
 def prepareTestWorkDir(testName):
@@ -405,7 +408,7 @@ def prepareTestWorkDir(testName):
     if not os.path.exists(dst_dir):
         try:
             os.mkdir(dst_dir)
-        except OSError as exc:
+        except OSError, exc:
             print 'Error: Unable to create test directory ' + dst_dir
             print exc.strerror, exc.filename
             sys.exit(1)
@@ -531,7 +534,7 @@ def runScript(project, subdir, script, required):
         process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output = process.communicate()[0]
         status = process.returncode
-    except OSError as exc:
+    except OSError, exc:
         if required == REQUIRED:
             print 'Unable to run test ' + script + ' for project ' + project
             print exc.strerror, exc.filename
