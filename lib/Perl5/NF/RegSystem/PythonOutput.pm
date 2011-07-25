@@ -29,7 +29,6 @@ use strict;
 my $LIB_PYTHON = $LIB_DIR . '/Python';
 my $PYTHON_PREFIX = 'reg_defines';
 
-my $buf;
 my @exports;
 
 #
@@ -52,30 +51,28 @@ sub genPythonOutput {
   my $memalloc = $layout->getMemAlloc();
   my $verilogOnlyMemalloc = $layout->getVerilogOnlyMemAlloc();
 
-  # Output the version
-  outputVersion($project, $layout);
-
-  # Output the constants
-  outputConstants($constsArr);
-
-  # Output the modules
-  outputMemAlloc($memalloc, $verilogOnlyMemalloc);
-
-  # Output the registers
-  outputRegisters($memalloc);
-
-  # Output the bitmasks associated with the types
-  outputBitmasks($typesArr);
-
   # Get a file handle
   my $moduleName = "${PYTHON_PREFIX}_${projDir}";
   $moduleName =~ s/\./_/g;
-
-
   my $fh = openRegFile("$PROJECTS_DIR/$projDir/$LIB_PYTHON/${moduleName}.py");
 
   outputHeader($fh, $moduleName, $project);
-  outputBody($fh);
+
+  # Output the version
+  outputVersion($fh, $project, $layout);
+
+  # Output the constants
+  outputConstants($fh, $constsArr);
+
+  # Output the modules
+  outputMemAlloc($fh, $memalloc, $verilogOnlyMemalloc);
+
+  # Output the registers
+  outputRegisters($fh, $memalloc);
+
+  # Output the bitmasks associated with the types
+  outputBitmasks($fh, $typesArr);
+
   outputFooter($fh);
 
   # Finally close the file
@@ -86,11 +83,12 @@ sub genPythonOutput {
 #   Output version information
 #
 # Params:
+#   fh        -- file handle
 #   project   -- project object
 #   layout    -- layout object
 #
 sub outputVersion {
-  my ($project, $layout) = @_;
+  my ($fh, $project, $layout) = @_;
 
   my $dir = $project->dir();
   my $name = $project->name();
@@ -100,7 +98,7 @@ sub outputVersion {
   my $verRevision = $project->verRevision();
   my $devId = $project->devId();
 
-  $buf .= <<VERSION_TITLE;
+  print $fh <<VERSION_TITLE;
 # -------------------------------------
 #   Version Information
 # -------------------------------------
@@ -111,7 +109,7 @@ VERSION_TITLE
     my $verStr = sprintf('%06x', $verMajor);
     my $revStr = sprintf('%02x', $verMinor);
 
-    $buf .= <<VERSION_CPCI;
+    print $fh <<VERSION_CPCI;
 # CPCI version number (major number)
 def CPCI_VERSION_ID ():
     return 0x$verStr
@@ -125,7 +123,7 @@ VERSION_CPCI
   }
   elsif ($type eq 'NF::RegSystem::ReferenceLayout') {
 
-    $buf .= <<VERSION_REFERENCE;
+    print $fh <<VERSION_REFERENCE;
 def DEVICE_ID ():
     return $devId
 
@@ -164,11 +162,11 @@ VERSION_REFERENCE
 #   constsArr  -- Array of constant names
 #
 sub outputConstants {
-  my ($constants) = @_;
+  my ($fh, $constants) = @_;
 
   return if (length(@$constants) == 0);
 
-  $buf .= <<CONSTANTS_HEADER;
+  print $fh <<CONSTANTS_HEADER;
 # -------------------------------------
 #   Constants
 # -------------------------------------
@@ -192,15 +190,15 @@ CONSTANTS_HEADER
     my $file = $constant->file();
 
     if ($file ne $currFile) {
-      $buf .= "\n" if ($currFile ne '');
-      $buf .= "# ===== File: $file =====\n\n";
+      print $fh "\n" if ($currFile ne '');
+      print $fh "# ===== File: $file =====\n\n";
       $currFile = $file;
     }
 
     my $pad = (' ') x ($maxStrLen - length($name));
 
     if (defined($desc) && $desc ne '') {
-      $buf .= "# $desc\n";
+      print $fh "# $desc\n";
     }
 
     if ($wantHex) {
@@ -212,21 +210,21 @@ CONSTANTS_HEADER
       # Print the constant split up over multiple 32-bit values if it's
       # wider than 32 bits
       if ($width > 32) {
-        outputWideConstant($name, $value, $width, $pad);
+        outputWideConstant($fh, $name, $value, $width, $pad);
       }
       else {
-        $buf .= sprintf("def $name (): $pad\n");
-        $buf .= sprintf("\t return 0x%0${hexWidth}s\n", $hexStr);
+        printf($fh "def $name (): $pad\n");
+        printf($fh "\t return 0x%0${hexWidth}s\n", $hexStr);
       }
 
     }
     else {
-      $buf .= sprintf("def $name (): $pad\n");
-      $buf .= sprintf("\t return $value\n");
+      printf($fh "def $name (): $pad\n");
+      printf($fh "\t return $value\n");
     }
-    $buf .= "\n";
+    print $fh "\n";
   }
-  $buf .= "\n\n";
+  print $fh "\n\n";
 
 }
 
@@ -235,9 +233,10 @@ CONSTANTS_HEADER
 #   Split a wide constant and output it as multiple small constants
 #
 # Params:
+#   fh        -- file handle
 #
 sub outputWideConstant {
-  my ($name, $value, $width, $pad) = @_;
+  my ($fh, $name, $value, $width, $pad) = @_;
 
   my $bigVal = Math::BigInt->new($value);
 
@@ -269,9 +268,9 @@ sub outputWideConstant {
     if ($numSubConsts == 2) {
       $suffix = $i == 0 ? 'HI' : 'LO';
     }
-    $buf .= sprintf("def ${name}_${suffix} (): $pad\n");
-    $buf .= sprintf("\t return 0x%0${hexWidth}s\n", $hexStr);
-    $buf .= "\n";
+    printf($fh "def ${name}_${suffix} (): $pad\n");
+    printf($fh "\t return 0x%0${hexWidth}s\n", $hexStr);
+    print $fh "\n";
   }
 }
 
@@ -280,15 +279,16 @@ sub outputWideConstant {
 #   Output the module allocations
 #
 # Params:
+#   fh        -- file handle
 #   memalloc    -- memory allocations
 #   voMemalloc  -- Verilog only memory allocations
 #
 sub outputMemAlloc {
-  my ($memalloc, $voMemalloc) = @_;
+  my ($fh, $memalloc, $voMemalloc) = @_;
 
   return if (scalar(@$memalloc) == 0 && scalar(@$voMemalloc) == 0);
 
-  $buf .= <<MEMALLOC_HEADER;
+  print $fh <<MEMALLOC_HEADER;
 ## -------------------------------------
 ##   Modules
 ## -------------------------------------
@@ -334,18 +334,18 @@ MEMALLOC_HEADER
   }
 
   # Walk through the list of memory allocations and print them
-  $buf .= "# Module tags\n";
+  print $fh "# Module tags\n";
   for my $memallocObj (@localMemalloc) {
     my $prefix = uc($memallocObj->name());
     my $start = $memallocObj->start();
 
     my $pad = (' ') x ($maxMemAllocLen - length($prefix));
 
-    $buf .= sprintf("def ${prefix}_BASE_ADDR (): $pad\n");
-    $buf .= sprintf("\t return 0x%07x\n", $start);
-    $buf .= "\n";
+    printf($fh "def ${prefix}_BASE_ADDR (): $pad\n");
+    printf($fh "\t return 0x%07x\n", $start);
+    print $fh "\n";
   }
-  $buf .= "\n";
+  print $fh "\n";
 
   # Walk through the list of memory allocations and print offsets
   for my $prefix (sort(keys(%moduleAddrs))) {
@@ -362,13 +362,13 @@ MEMALLOC_HEADER
       if ($offset != -1) {
         my $ucPrefix = uc($prefix);
         my $pad = (' ') x ($maxModuleLen - length($prefix));
-        $buf .= sprintf("def ${ucPrefix}_OFFSET (): $pad\n");
-        $buf .= sprintf("\t return 0x%07x\n", $offset);
-        $buf .= "\n";
+        printf($fh "def ${ucPrefix}_OFFSET (): $pad\n");
+        printf($fh "\t return 0x%07x\n", $offset);
+        print $fh "\n";
       }
     }
   }
-  $buf .= "\n\n";
+  print $fh "\n\n";
 }
 
 #
@@ -376,14 +376,15 @@ MEMALLOC_HEADER
 #   Output the registers associated with each module
 #
 # Params:
+#   fh        -- file handle
 #   memalloc  -- memory allocation
 #
 sub outputRegisters {
-  my ($memalloc) = @_;
+  my ($fh, $memalloc) = @_;
 
   return if (length(@$memalloc) == 0);
 
-  $buf .= <<REGISTER_HEADER;
+  print $fh <<REGISTER_HEADER;
 # -------------------------------------
 #   Registers
 # -------------------------------------
@@ -403,20 +404,20 @@ REGISTER_HEADER
     my $tag = $memallocObj->tag();
     my $tagWidth = $memallocObj->{module}->tagWidth();
 
-    $buf .= "# Name: $name ($prefix)\n";
-    $buf .= "# Description: $desc\n" if (defined($desc));
-    $buf .= "# File: $file\n" if (defined($file));
+    print $fh "# Name: $name ($prefix)\n";
+    print $fh "# Description: $desc\n" if (defined($desc));
+    print $fh "# File: $file\n" if (defined($file));
 
     my $regs = $module->getRegDump();
-    outputModuleRegisters($prefix, $start, $module, $regs);
-    $buf .= "\n";
+    outputModuleRegisters($fh, $prefix, $start, $module, $regs);
+    print $fh "\n";
 
     if ($module->hasRegisterGroup()) {
       my $regGroup = $module->getRegGroup();
-      outputModuleRegisterGroupSummary($prefix, $start, $module, $regGroup);
+      outputModuleRegisterGroupSummary($fh, $prefix, $start, $module, $regGroup);
     }
   }
-  $buf .= "\n\n";
+  print $fh "\n\n";
 }
 
 #
@@ -424,13 +425,14 @@ REGISTER_HEADER
 #   Output the registers associated with a module (non register group)
 #
 # Params:
+#   fh        -- file handle
 #   prefix    -- prefix
 #   start     -- start address
 #   module    -- module
 #   regs      -- register array dump
 #
 sub outputModuleRegisters {
-  my ($prefix, $start, $module, $regs) = @_;
+  my ($fh, $prefix, $start, $module, $regs) = @_;
 
   #my $prefix = uc($module->prefix());
 
@@ -446,9 +448,9 @@ sub outputModuleRegisters {
 
     my $pad = (' ') x ($maxStrLen - length($regName));
 
-    $buf .= sprintf("def ${prefix}_${regName}_REG (): $pad\n");
-    $buf .= sprintf("\t return 0x%07x\n", $addr + $start);
-    $buf .= "\n";
+    printf($fh "def ${prefix}_${regName}_REG (): $pad\n");
+    printf($fh "\t return 0x%07x\n", $addr + $start);
+    print $fh "\n";
   }
 }
 
@@ -457,26 +459,27 @@ sub outputModuleRegisters {
 #   Output the register group summary associated with a module
 #
 # Params:
+#   fh        -- file handle
 #   prefix    -- prefix
 #   start     -- start address
 #   module    -- module
 #   regGroup  -- hash of used modules
 #
 sub outputModuleRegisterGroupSummary {
-  my ($prefix, $start, $module, $regGroup) = @_;
+  my ($fh, $prefix, $start, $module, $regGroup) = @_;
 
   my $grpName = uc($regGroup->name());
   my $instSize = $regGroup->instSize();
   my $offset = $regGroup->offset();
 
-  $buf .= sprintf("def ${prefix}_${grpName}_GROUP_BASE_ADDR ():\n");
-  $buf .= sprintf("\t return 0x%07x\n", $start + $offset);
+  printf($fh "def ${prefix}_${grpName}_GROUP_BASE_ADDR ():\n");
+  printf($fh "\t return 0x%07x\n", $start + $offset);
 
-  $buf .= "\n";
+  print $fh "\n";
 
-  $buf .= sprintf("def ${prefix}_${grpName}_GROUP_INST_OFFSET():\n");
-  $buf .= sprintf("\t return 0x%07x\n", $instSize);
-  $buf .= "\n";
+  printf($fh "def ${prefix}_${grpName}_GROUP_INST_OFFSET():\n");
+  printf($fh "\t return 0x%07x\n", $instSize);
+  print $fh "\n";
 }
 
 #
@@ -516,20 +519,6 @@ END_HEADER_DESC
 
 REGISTER_HEADER_2
 
-}
-
-#
-# outputBody
-#   Output the body of the module
-#
-# Params:
-#   fh        -- file handle
-#
-sub outputBody {
-  my $fh = shift;
-
-  # Output the content to the file
-  print $fh $buf;
 }
 
 #
@@ -577,10 +566,11 @@ sub trimString {
 #   Output the bitmasks associated with types
 #
 # Params:
+#   fh        -- file handle
 #   types       -- array of all types
 #
 sub outputBitmasks {
-  my ($types) = @_;
+  my ($fh, $types) = @_;
 
   my @bitmaskTypes;
 
@@ -596,7 +586,7 @@ sub outputBitmasks {
   # Work out whether we have any bitmasks
   return if (scalar(@bitmaskTypes) == 0);
 
-  $buf .= <<BITMASK_HEADER;
+  print $fh <<BITMASK_HEADER;
 # -------------------------------------
 #   Bitmasks
 # -------------------------------------
@@ -614,10 +604,10 @@ BITMASK_HEADER
     my $desc = $type->desc();
     my $file = $type->file();
 
-    $buf .= "# Type: $typeName\n";
-    $buf .= "# Description: $desc\n" if (defined($desc));
-    $buf .= "# File: $file\n";
-    $buf .= "\n";
+    print $fh "# Type: $typeName\n";
+    print $fh "# Description: $desc\n" if (defined($desc));
+    print $fh "# File: $file\n";
+    print $fh "\n";
 
     $typeName = uc($typeName);
 
@@ -637,7 +627,7 @@ BITMASK_HEADER
     # Print the bitmasks
     #
     # Part 1: Print positions
-    $buf .= "# Part 1: bit positions\n";
+    print $fh "# Part 1: bit positions\n";
     my $width = $type->width();
     for my $bitmask (@{$type->bitmasks()}) {
       my $bitmaskName = uc($bitmask->name());
@@ -646,10 +636,10 @@ BITMASK_HEADER
       if ($bitmask->posLo() == $bitmask->posHi()) {
         my $pos = $bitmask->pos();
         my $pad = (' ') x ($maxStrLen - length($bitmaskName) - $posLen);
-        #$buf .= "def ${typeName}_${bitmaskName}_POS$pad ():\n";
-        $buf .= "def ${typeName}_${bitmaskName}_POS():\n";
-        $buf .= "\t return $pos\n";
-        $buf .= "\n";
+        #print $fh "def ${typeName}_${bitmaskName}_POS$pad ():\n";
+        print $fh "def ${typeName}_${bitmaskName}_POS():\n";
+        print $fh "\t return $pos\n";
+        print $fh "\n";
       }
       else {
         my $posLo = $bitmask->posLo();
@@ -658,28 +648,28 @@ BITMASK_HEADER
         my $pad;
 
         $pad = (' ') x ($maxStrLen - length($bitmaskName) - $posHiLen);
-        #$buf .= "def ${typeName}_${bitmaskName}_POS_LO$pad ():\n";
-        $buf .= "def ${typeName}_${bitmaskName}_POS_LO():\n";
-        $buf .= "\t return $posLo\n";
-        $buf .= "\n";
+        #print $fh "def ${typeName}_${bitmaskName}_POS_LO$pad ():\n";
+        print $fh "def ${typeName}_${bitmaskName}_POS_LO():\n";
+        print $fh "\t return $posLo\n";
+        print $fh "\n";
 
-        #$buf .= "def ${typeName}_${bitmaskName}_POS_HI$pad ():\n";
-        $buf .= "def ${typeName}_${bitmaskName}_POS_HI():\n";
-        $buf .= "\t return $posHi\n";
-        $buf .= "\n";
+        #print $fh "def ${typeName}_${bitmaskName}_POS_HI$pad ():\n";
+        print $fh "def ${typeName}_${bitmaskName}_POS_HI():\n";
+        print $fh "\t return $posHi\n";
+        print $fh "\n";
 
         $pad = (' ') x ($maxStrLen - length($bitmaskName) - $widthLen);
 
-        #$buf .= "def ${typeName}_${bitmaskName}_WIDTH$pad ():\n";
-        $buf .= "def ${typeName}_${bitmaskName}_WIDTH():\n";
-        $buf .= "\t return $width\n";
-        $buf .= "\n";
+        #print $fh "def ${typeName}_${bitmaskName}_WIDTH$pad ():\n";
+        print $fh "def ${typeName}_${bitmaskName}_WIDTH():\n";
+        print $fh "\t return $width\n";
+        print $fh "\n";
       }
     }
-    $buf .= "\n";
+    print $fh "\n";
 
     # Part 2: Masks/values
-    $buf .= "# Part 2: masks/values\n";
+    print $fh "# Part 2: masks/values\n";
     my $nibbles = ceil($width / 4);
     for my $bitmask (@{$type->bitmasks()}) {
       my $bitmaskName = uc($bitmask->name());
@@ -689,10 +679,10 @@ BITMASK_HEADER
         my $pos = $bitmask->pos();
         my $pad = (' ') x ($maxStrLen - length($bitmaskName));
         my $mask = 1 << $pos;
-        #$buf .= sprintf "def ${typeName}_${bitmaskName}$pad ():\n";
-        $buf .= sprintf "def ${typeName}_${bitmaskName}():\n";
-        $buf .= sprintf "\t return 0x%0${nibbles}x; \n", $mask;
-        $buf .= "\n";
+        #print $fh sprintf "def ${typeName}_${bitmaskName}$pad ():\n";
+        print $fh sprintf "def ${typeName}_${bitmaskName}():\n";
+        print $fh sprintf "\t return 0x%0${nibbles}x; \n", $mask;
+        print $fh "\n";
       }
       else {
         my $posLo = $bitmask->posLo();
@@ -704,15 +694,15 @@ BITMASK_HEADER
         $mask ^= (2 ** $posLo) - 1;
 
         $pad = (' ') x ($maxStrLen - length($bitmaskName) - $maskLen);
-        #$buf .= sprintf "def ${typeName}_${bitmaskName}_MASK$pad ():\n";
-        $buf .= sprintf "def ${typeName}_${bitmaskName}_MASK():\n";
-        $buf .= sprintf "\t return 0x%0${nibbles}x\n", $mask;
-        $buf .= "\n";
+        #print $fh sprintf "def ${typeName}_${bitmaskName}_MASK$pad ():\n";
+        print $fh sprintf "def ${typeName}_${bitmaskName}_MASK():\n";
+        print $fh sprintf "\t return 0x%0${nibbles}x\n", $mask;
+        print $fh "\n";
       }
     }
-    $buf .= "\n";
+    print $fh "\n";
   }
-  $buf .= "\n\n";
+  print $fh "\n\n";
 }
 1;
 __END__
