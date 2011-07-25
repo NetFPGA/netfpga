@@ -110,12 +110,23 @@ def run_hw_test():
                 (testResult, testOutput) = runTest(project, test)
                 # move pcap files to work dir
                 for pcap in glob.glob(src_test_dir + '/' + test + '/*.pcap'):
-                    #subprocess.call(['mv', pcap, proj_test_dir + '/' + test])
-                    shutil.move(pcap, proj_test_dir + '/' + test)
+                    try:
+                        shutil.copy(pcap, proj_test_dir + '/' + test)
+                        os.remove(pcap)
+                    except shutil.Error:
+                        if os.path.exists(pcap):
+                            os.remove(pcap)
+                            shutil.move(pcap, proj_test_dir + '/' + test)
+                            print 'yay'
                 # move seed to work dir
                 if glob.glob(src_test_dir + '/' + test + '/seed'):
-                    #subprocess.call(['mv', src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test])
-                    shutil.move(src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test)
+                    try:
+                        shutil.copy(src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test)
+                        os.remove(src_test_dir + '/' + test + '/seed')
+                    except shutil.Error:
+                        if os.path.exists(proj_test_dir + '/' + test + '/seed'):
+                            os.remove(proj_test_dir + '/' + test + '/seed')
+                            shutil.move(src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test)
                 testResults[test] = testResult
                 passed &= testResult
 
@@ -391,12 +402,13 @@ def prepareWorkDir():
             print 'Error: Unable to create project directory ' + projDir
             print exc.strerror, exc.filename
             sys.exit(1)
-    # copy the connections directory
-    try:
-        shutil.rmtree(projDir + '/connections')
-    except OSError:
-        pass # doesn't exist, nothing to do
-    shutil.copytree(src_test_dir + '/connections', projDir + '/connections')
+    # copy the connections directory for sim
+    if args.type == 'sim':
+        try:
+            shutil.rmtree(projDir + '/connections')
+        except OSError:
+            pass # doesn't exist, nothing to do
+        shutil.copytree(src_test_dir + '/connections', projDir + '/connections')
 
 def prepareTestWorkDir(testName):
     dst_dir = proj_test_dir + '/' + testName

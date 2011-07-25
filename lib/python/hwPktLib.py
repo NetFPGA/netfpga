@@ -98,7 +98,8 @@ def barrier(timeout = 10):
         for iface in ifaceArray:
             captureThreads[iface].compareEvent.set()
         for iface in ifaceArray:
-            good &= captureThreads[iface].barrierEvent.wait(timeout-start)
+            captureThreads[iface].barrierEvent.wait(timeout-start)
+            good &= captureThreads[iface].barrierEvent.is_set()
         if good:
             break
     if not good:
