@@ -39,8 +39,10 @@ def regread(ifaceName, reg):
 def regread_expect(ifaceName, reg, exp, mask = 0xffffffff):
     val = hwReg.readReg(reg,ifaceName)
     if (val & mask) != (exp & mask):
+        import __main__
+        name = __main__.nf_regmap.get(reg, "unknown")
         print 'ERROR: Register read expected 0x', "%08X"%exp
-        print 'but found 0x', "%08X"%val, ' at address 0x', "%08X"%reg
+        print 'but found 0x', "%08X"%val, ' at address 0x', "%08X"%reg, " (%s)"%name
         print ''
         try:
             badReads[ifaceName].append({'Expected':exp, 'Value':val, 'Register':reg})
