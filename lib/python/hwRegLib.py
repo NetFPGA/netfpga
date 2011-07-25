@@ -7,6 +7,10 @@ from hwPktLib import ifaceArray # for ifaceArray
 
 import sys
 import os
+
+# Import __main__ to access the reverse register map...
+import __main__
+
 sys.path.append(os.environ['NF_DESIGN_DIR']+'/lib/Python')
 project = os.path.basename(os.environ['NF_DESIGN_DIR'])
 reg_defines = __import__('reg_defines_'+project)
@@ -39,7 +43,6 @@ def regread(ifaceName, reg):
 def regread_expect(ifaceName, reg, exp, mask = 0xffffffff):
     val = hwReg.readReg(reg,ifaceName)
     if (val & mask) != (exp & mask):
-        import __main__
         name = __main__.nf_regmap.get(reg, "unknown")
         print 'ERROR: Register read expected 0x', "%08X"%exp
         print 'but found 0x', "%08X"%val, ' at address 0x', "%08X"%reg, " (%s)"%name
