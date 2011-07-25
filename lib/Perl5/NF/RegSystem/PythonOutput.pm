@@ -73,6 +73,9 @@ sub genPythonOutput {
   # Output the bitmasks associated with the types
   outputBitmasks($fh, $typesArr);
 
+  # Output the reverse register map
+  outputRegMap($fh, $memalloc);
+
   outputFooter($fh);
 
   # Finally close the file
@@ -704,5 +707,69 @@ BITMASK_HEADER
   }
   print $fh "\n\n";
 }
+
+#
+# outputRegMap
+#   Output the reverse register map
+#
+# Params:
+#   fh        -- file handle
+#   memalloc  -- memory allocation
+#
+sub outputRegMap {
+  my ($fh, $memalloc) = @_;
+
+  return if (length(@$memalloc) == 0);
+
+  print $fh <<REGMAP_HEADER;
+# -------------------------------------
+#   Register map
+# -------------------------------------
+
+import __main__;
+if 'nf_regmap' not in dir(__main__):
+    __main__.nf_regmap = {}
+
+__main__.nf_regmap.update({
+REGMAP_HEADER
+
+  # Walk through the list of memory allocations and print them
+  for my $memallocObj (@$memalloc) {
+    my $module = $memallocObj->module();
+
+    my $prefix = uc($memallocObj->name());
+    my $start = $memallocObj->start();
+
+    my $regs = $module->getRegDump();
+    outputModuleRegMap($fh, $prefix, $start, $module, $regs);
+  }
+  print $fh "})\n\n\n";
+}
+
+#
+# outputModuleRegMap
+#   Output the register map associated with a module (non register group)
+#
+# Params:
+#   fh        -- file handle
+#   prefix    -- prefix
+#   start     -- start address
+#   module    -- module
+#   regs      -- register array dump
+#
+sub outputModuleRegMap {
+  my ($fh, $prefix, $start, $module, $regs) = @_;
+
+  my $needNewLine = 0;
+  for my $reg (@$regs) {
+    my $regName = uc($reg->{name});
+    my $addr = $reg->{addr};
+
+    printf($fh "    0x%07x : \"${prefix}_${regName}_REG\",\n", $addr + $start);
+    $needNewLine = 1;
+  }
+  print $fh "\n" if $needNewLine;
+}
+
 1;
 __END__
