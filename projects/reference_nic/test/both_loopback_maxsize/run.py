@@ -6,9 +6,9 @@ from PacketLib import *
 
 import sys
 
-looped_ifaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3")
+phy0loop4 = ('../connections/conn', ["nf2c0", "nf2c1", "nf2c2", "nf2c3"])
 
-nftest_init(['../connections/conn'], looped_ifaces)
+port_config = nftest_init([phy0loop4])
 nftest_start()
 
 # set parameters

@@ -32,7 +32,7 @@ my $configFile = 'config.txt';
 my $finishFile = 'config.sim';
 
 # Name of the script to create packets
-my $makePkts = 'run'; # changed to accomodate new file naming
+my $makePkts = 'run.py'; # changed to accomodate new file naming
 
 # Location of PCI simulation data file
 my $pciSimDataFile = 'packet_data/pci_sim_data';

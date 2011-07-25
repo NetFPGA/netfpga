@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 import glob
+import shutil
 import subprocess
 import TeamCity
 
@@ -109,10 +110,12 @@ def run_hw_test():
                 (testResult, testOutput) = runTest(project, test)
                 # move pcap files to work dir
                 for pcap in glob.glob(src_test_dir + '/' + test + '/*.pcap'):
-                    subprocess.call(['mv', pcap, proj_test_dir + '/' + test])
+                    #subprocess.call(['mv', pcap, proj_test_dir + '/' + test])
+                    shutil.move(pcap, proj_test_dir + '/' + test)
                 # move seed to work dir
                 if glob.glob(src_test_dir + '/' + test + '/seed'):
-                    subprocess.call(['mv', src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test])
+                    #subprocess.call(['mv', src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test])
+                    shutil.move(src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test)
                 testResults[test] = testResult
                 passed &= testResult
 
@@ -388,6 +391,9 @@ def prepareWorkDir():
             print 'Error: Unable to create project directory ' + projDir
             print exc.strerror, exc.filename
             sys.exit(1)
+    # copy the connections directory
+    shutil.rmtree(projDir + '/connections')
+    shutil.copytree(src_test_dir + '/connections', projDir + '/connections')
 
 def prepareTestWorkDir(testName):
     dst_dir = proj_test_dir + '/' + testName
@@ -406,19 +412,21 @@ def prepareTestWorkDir(testName):
     # cp files to dst_dir
     if args.type == 'sim':
         for file in glob.glob(src_dir + '/*'):
-            subprocess.call(['cp', '-r', '-p', file, dst_dir])
+            #subprocess.call(['cp', '-r', '-p', file, dst_dir])
+            shutil.copy2(file, dst_dir)
 
 def buildSim():
     if not os.path.exists(make_file):
         print 'Unable to find make file ' + make_file
         sys.exit(1)
     project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-    subprocess.call(['cp', make_file, proj_test_dir + '/Makefile'])
+    #subprocess.call(['cp', make_file, proj_test_dir + '/Makefile'])
+    shutil.copy(make_file, proj_test_dir + '/Makefile')
 
     print '=== Work directory is ' + proj_test_dir
 
     if args.dump:
-        dumpfile = 'dump.v'
+        dumpile = 'dump.v'
     else:
         dumpfile = ''
     if args.isim:
@@ -550,7 +558,7 @@ def printScriptOutput(result, output):
 
 handleArgs()
 identifyRoot()
-global_run = rootDir + '/lib/scripts/verif_run/pyrun.pl' # fix
+global_run = rootDir + '/lib/scripts/verif_run/pyrun.pl'
 
 if args.common_setup:
     commonSetup = args.common_setup
