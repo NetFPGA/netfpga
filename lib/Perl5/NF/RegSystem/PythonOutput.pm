@@ -214,13 +214,13 @@ CONSTANTS_HEADER
       }
       else {
         printf($fh "def $name (): $pad\n");
-        printf($fh "\t return 0x%0${hexWidth}s\n", $hexStr);
+        printf($fh "    return 0x%0${hexWidth}s\n", $hexStr);
       }
 
     }
     else {
       printf($fh "def $name (): $pad\n");
-      printf($fh "\t return $value\n");
+      printf($fh "    return $value\n");
     }
     print $fh "\n";
   }
@@ -269,7 +269,7 @@ sub outputWideConstant {
       $suffix = $i == 0 ? 'HI' : 'LO';
     }
     printf($fh "def ${name}_${suffix} (): $pad\n");
-    printf($fh "\t return 0x%0${hexWidth}s\n", $hexStr);
+    printf($fh "    return 0x%0${hexWidth}s\n", $hexStr);
     print $fh "\n";
   }
 }
@@ -342,7 +342,7 @@ MEMALLOC_HEADER
     my $pad = (' ') x ($maxMemAllocLen - length($prefix));
 
     printf($fh "def ${prefix}_BASE_ADDR (): $pad\n");
-    printf($fh "\t return 0x%07x\n", $start);
+    printf($fh "    return 0x%07x\n", $start);
     print $fh "\n";
   }
   print $fh "\n";
@@ -363,7 +363,7 @@ MEMALLOC_HEADER
         my $ucPrefix = uc($prefix);
         my $pad = (' ') x ($maxModuleLen - length($prefix));
         printf($fh "def ${ucPrefix}_OFFSET (): $pad\n");
-        printf($fh "\t return 0x%07x\n", $offset);
+        printf($fh "    return 0x%07x\n", $offset);
         print $fh "\n";
       }
     }
@@ -449,7 +449,7 @@ sub outputModuleRegisters {
     my $pad = (' ') x ($maxStrLen - length($regName));
 
     printf($fh "def ${prefix}_${regName}_REG (): $pad\n");
-    printf($fh "\t return 0x%07x\n", $addr + $start);
+    printf($fh "    return 0x%07x\n", $addr + $start);
     print $fh "\n";
   }
 }
@@ -473,12 +473,12 @@ sub outputModuleRegisterGroupSummary {
   my $offset = $regGroup->offset();
 
   printf($fh "def ${prefix}_${grpName}_GROUP_BASE_ADDR ():\n");
-  printf($fh "\t return 0x%07x\n", $start + $offset);
+  printf($fh "    return 0x%07x\n", $start + $offset);
 
   print $fh "\n";
 
   printf($fh "def ${prefix}_${grpName}_GROUP_INST_OFFSET():\n");
-  printf($fh "\t return 0x%07x\n", $instSize);
+  printf($fh "    return 0x%07x\n", $instSize);
   print $fh "\n";
 }
 
@@ -638,7 +638,7 @@ BITMASK_HEADER
         my $pad = (' ') x ($maxStrLen - length($bitmaskName) - $posLen);
         #print $fh "def ${typeName}_${bitmaskName}_POS$pad ():\n";
         print $fh "def ${typeName}_${bitmaskName}_POS():\n";
-        print $fh "\t return $pos\n";
+        print $fh "    return $pos\n";
         print $fh "\n";
       }
       else {
@@ -650,19 +650,19 @@ BITMASK_HEADER
         $pad = (' ') x ($maxStrLen - length($bitmaskName) - $posHiLen);
         #print $fh "def ${typeName}_${bitmaskName}_POS_LO$pad ():\n";
         print $fh "def ${typeName}_${bitmaskName}_POS_LO():\n";
-        print $fh "\t return $posLo\n";
+        print $fh "    return $posLo\n";
         print $fh "\n";
 
         #print $fh "def ${typeName}_${bitmaskName}_POS_HI$pad ():\n";
         print $fh "def ${typeName}_${bitmaskName}_POS_HI():\n";
-        print $fh "\t return $posHi\n";
+        print $fh "    return $posHi\n";
         print $fh "\n";
 
         $pad = (' ') x ($maxStrLen - length($bitmaskName) - $widthLen);
 
         #print $fh "def ${typeName}_${bitmaskName}_WIDTH$pad ():\n";
         print $fh "def ${typeName}_${bitmaskName}_WIDTH():\n";
-        print $fh "\t return $width\n";
+        print $fh "    return $width\n";
         print $fh "\n";
       }
     }
@@ -681,7 +681,7 @@ BITMASK_HEADER
         my $mask = 1 << $pos;
         #print $fh sprintf "def ${typeName}_${bitmaskName}$pad ():\n";
         print $fh sprintf "def ${typeName}_${bitmaskName}():\n";
-        print $fh sprintf "\t return 0x%0${nibbles}x; \n", $mask;
+        print $fh sprintf "    return 0x%0${nibbles}x; \n", $mask;
         print $fh "\n";
       }
       else {
@@ -696,7 +696,7 @@ BITMASK_HEADER
         $pad = (' ') x ($maxStrLen - length($bitmaskName) - $maskLen);
         #print $fh sprintf "def ${typeName}_${bitmaskName}_MASK$pad ():\n";
         print $fh sprintf "def ${typeName}_${bitmaskName}_MASK():\n";
-        print $fh sprintf "\t return 0x%0${nibbles}x\n", $mask;
+        print $fh sprintf "    return 0x%0${nibbles}x\n", $mask;
         print $fh "\n";
       }
     }
