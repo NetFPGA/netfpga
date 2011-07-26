@@ -1,21 +1,13 @@
 #!/bin/env python
 
-from NFTestLib import *
-from NFTestHeader import reg_defines, scapy
-from PacketLib import *
-
-import hwRegLib
-import hwPktLib
-
+from NFTest import *
 import sys
 import time
 
-interfaces = ("nf2c0", "nf2c1", "nf2c2", "nf2c3")
+phy0loop4 = ('../connections/conn', ['nf2c0', 'nf2c1', 'nf2c2', 'nf2c3'])
 
-nftest_init(interfaces, 'conn')
+nftest_init([phy0loop4])
 nftest_start()
-
-nftest_barrier()
 
 NUM_PKTS_PER_PORT = 50
 PKT_SIZE  = 1514
@@ -113,11 +105,4 @@ nftest_barrier()
 
 hwRegLib.reset_phy()
 
-total_errors += nftest_finish()
-
-if total_errors == 0:
-    print 'SUCCESS!'
-    sys.exit(0)
-else:
-    print 'FAIL: ' + str(total_errors) + ' errors'
-    sys.exit(1)
+nftest_finish(total_errors = total_errors)
