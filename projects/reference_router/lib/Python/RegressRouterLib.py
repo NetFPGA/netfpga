@@ -87,6 +87,21 @@ def nftest_check_LPM_table_entry(ifaceName, entryIndex, subnetIP, subnetMask, ne
 	check_LPM_table_entry(entryIndex, subnetIP, subnetMask, nextHopIP, outputPort)
 
 ################################################################
+# Name: nftest_invalidate_LPM_table
+#
+# clears all entries in the routing table (by setting everything
+# to 0)
+#
+# Arguments: ifaceName   string
+#            depth       int
+#
+# Return:
+################################################################
+def nftest_invalidate_LPM_table(ifaceName, depth):
+	for i in range(depth):
+		invalidate_LPM_table_entry(i)
+
+################################################################
 # Name: nftest_invalidate_LPM_table_entry
 #
 # clears an entry in the routing table (by setting everything
@@ -142,6 +157,21 @@ def nftest_add_dst_ip_filter_entry(ifaceName, entryIndex, destIP):
 	add_dst_ip_filter_entry(entryIndex, destIP)
 
 ################################################################
+# Name: nftest_invalidate_dst_ip_filter
+#
+# Removes contents of the IP destination filtering table by
+# setting all entries to 0.
+#
+# Arguments: ifaceName   string
+#            depth       int
+#
+# Return:
+################################################################
+def nftest_invalidate_dst_ip_filter(ifaceName, depth):
+	for i in range(depth):
+	    invalidate_dst_ip_filter_entry(i)
+
+################################################################
 # Name: nftest_invalidate_dst_ip_filter_entry
 #
 # Removes an entry from the IP destination filtering table by
@@ -192,6 +222,21 @@ def nftest_contains_dst_ip_filter_entries(expected_ips):
 ################################################################
 def nftest_add_ARP_table_entry(ifaceName, entryIndex, nextHopIP, nextHopMAC):
 	add_ARP_table_entry(entryIndex, nextHopIP, nextHopMAC)
+
+################################################################
+# Name: nftest_invalidate_ARP_table
+#
+# clears all entries from the hardware's ARP table by setting to
+# all zeros.
+#
+# Arguments: ifaceName   string
+#            depth       int
+#
+# Return:
+################################################################
+def nftest_invalidate_ARP_table(ifaceName, depth):
+	for i in range(depth):
+		invalidate_ARP_table_entry(i)
 
 ################################################################
 # Name: nftest_invalidate_ARP_table_entry
