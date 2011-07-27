@@ -22,43 +22,16 @@ for port in range(4):
     nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
 
 # add an entry in the routing table:
-index = 0
-subnetIP = "192.168.2.0"
-subnetIP2 = "192.168.1.0"
-subnetMask = "255.255.255.0"
-subnetMask2 = "255.255.255.0"
-nextHopIP = "192.168.1.54"
-nextHopIP2 = "192.168.3.12"
-outPort = 0x1 # output on MAC0
-outPort2 = 0x4
+subnetIP = ["192.168.2.0", "192.168.1.0"]
+subnetMask = ["255.255.255.0", "255.255.255.0"]
+nextHopIP = ["192.168.1.54", "192.168.3.12"]
+outPort = [0x1, 0x4]
 nextHopMAC = "dd:55:dd:66:dd:77"
 
-nftest_add_LPM_table_entry (
-                1,
-                subnetIP,
-                subnetMask,
-                nextHopIP,
-                outPort)
-
-nftest_add_LPM_table_entry (
-                0,
-                subnetIP2,
-                subnetMask2,
-                nextHopIP2,
-                outPort2)
-
-
-# add an entry in the ARP table
-nftest_add_ARP_table_entry(
-               index,
-               nextHopIP,
-               nextHopMAC)
-
-# add an entry in the ARP table
-nftest_add_ARP_table_entry(
-               1,
-               nextHopIP2,
-               nextHopMAC)
+# add entries in the ARP and LPM tables
+for i in range(2):
+    nftest_add_LPM_table_entry (i, subnetIP[i], subnetMask[i], nextHopIP[i], outPort[i])
+    nftest_add_ARP_table_entry(i, nextHopIP[i], nextHopMAC)
 
 #clear the num pkts forwarded reg
 nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_PKTS_FORWARDED_REG(), 0)
