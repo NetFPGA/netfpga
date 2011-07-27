@@ -152,38 +152,6 @@ def nftest_start():
     nftest_barrier()
 
 ############################
-# Function: nftest_send - DEPRECATED
-# Arguments: interface name
-#            packet to send
-# Description: send a packet on an interface
-############################
-def nftest_send(ifaceName, pkt):
-    if sim:
-        if ifaceName.startswith('eth'):
-            simPkt.pktSendPHY(int(connections[ifaceName][4:5])+1, pkt)
-        else:
-            simPkt.pktSendDMA(int(ifaceName[4:5])+1, pkt)
-    else:
-        hwPktLib.send(map[ifaceName], pkt)
-
-############################
-# Function: nftest_expect - DEPRECATED
-# Arguments: interface name
-#            packet to expect
-# Description: expect a packet on an interface
-############################
-def nftest_expect(ifaceName, pkt):
-    if sim:
-        if ifaceName.startswith('eth'):
-            simPkt.pktExpectPHY(int(connections[ifaceName][4:5])+1, pkt)
-        elif ifaceName == connections[ifaceName]:
-            simPkt.pktExpectPHY(int(connections[ifaceName][4:5])+1, pkt)
-        else:
-            simPkt.pktExpectDMA(int(ifaceName[4:5])+1, pkt)
-    else:
-        hwPktLib.expect(map[ifaceName], pkt)
-
-############################
 # Function: nftest_send_phy
 # Arguments: interface name
 #            packet to send
