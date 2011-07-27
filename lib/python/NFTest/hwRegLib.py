@@ -87,6 +87,23 @@ def phy_loopback(ifaceName):
     regwrite(ifaceName, addr[portNum], 0x5140)
 
 ############################
+# Function: phy_isolate
+# Arguments: nf2 interface to isolate
+# Description: puts the specified nf2 interface in isolation
+############################
+def phy_isolate(ifaceName):
+    if ifaceName.startswith('nf2c') and ifaceName[4:5].isdigit():
+        portNum = int(ifaceName[4:5])
+    else:
+        print 'Interface has to be an nf2cX interface\n'
+        return
+    addr = (reg_defines.MDIO_PHY_0_CONTROL_REG(),
+            reg_defines.MDIO_PHY_1_CONTROL_REG(),
+            reg_defines.MDIO_PHY_2_CONTROL_REG(),
+            reg_defines.MDIO_PHY_3_CONTROL_REG())
+    regwrite(ifaceName, addr[portNum], 0x1540)
+
+############################
 # Function: phy_reset
 # Arguments: nf2 interface to reset
 # Description: resets the phy for the specified interface

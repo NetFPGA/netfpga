@@ -14,9 +14,10 @@ CPCI_Interrupt_Mask = 0x40
 
 ############################
 # Function: nftest_init
-# Arguments: list of interfaces, connection file
-#
-# Description: parses a map file and connection file
+# Arguments: list of valid configurations
+# Description: parses the configurations to find a valid configuration
+#              populates map and connections dictionaries
+#              configurations are formatted ('path/to/conn/file', ['looped', 'ifaces'])
 ############################
 def nftest_init(configurations):
     global sim
@@ -49,6 +50,14 @@ def nftest_init(configurations):
             # physical connections match
             if conns == specified_connections:
                 connections = specified_connections
+                # check if we've got disconnected interfaces
+                for connection in connections:
+                    if connections[connection] == '':
+                        if isHW():
+                            hwRegLib.phy_isolate(iface)
+                        else:
+                            print "Error: ports should not be isolated in simulation.  Should this be a hardware only test?"
+                            sys.exit(1)
                 # specify loopback
                 for iface in configurations[portConfig][1]:
                     if iface.startswith('nf2c'):
@@ -85,7 +94,7 @@ def nftest_init(configurations):
                     sys.exit(1)
 
     # avoid duplicating interfaces
-    ifaces = list(set(connections.keys() + connections.values() + list(configurations[portConfig][1])))
+    ifaces = list(set(connections.keys() + connections.values() + list(configurations[portConfig][1])) - set(['']))
 
     global map
     # populate map
@@ -116,11 +125,14 @@ def nftest_init(configurations):
     # print setup for inspection
     print 'Running test using the following physical connections:'
     for connection in connections.items():
-        print connection[0] + ':' + connection[1]
+        try:
+            print map[connection[0]] + ':' + map[connection[1]]
+        except KeyError:
+            print map[connection[0]] + ' initialized but not connected'
     if len(list(configurations[portConfig][1])) > 0:
         print 'Ports in loopback:'
         for iface in list(configurations[portConfig][1]):
-            print iface
+            print map[iface]
     print '------------------------------------------------------'
 
     return portConfig
@@ -140,7 +152,7 @@ def nftest_start():
     nftest_barrier()
 
 ############################
-# Function: nftest_send
+# Function: nftest_send - DEPRECATED
 # Arguments: interface name
 #            packet to send
 # Description: send a packet on an interface
@@ -155,7 +167,7 @@ def nftest_send(ifaceName, pkt):
         hwPktLib.send(map[ifaceName], pkt)
 
 ############################
-# Function: nftest_expect
+# Function: nftest_expect - DEPRECATED
 # Arguments: interface name
 #            packet to expect
 # Description: expect a packet on an interface
@@ -240,7 +252,7 @@ def nftest_barrier():
 # Function: nftest_finish
 # Arguments: none
 # Description: (sim) finalizes simulation files
-#              (hw) performs finalization, writes pcap files
+#              (hw) performs finalization, writes pcap files and prints success
 ############################
 def nftest_finish(total_errors = 0):
     nftest_barrier()
