@@ -3,9 +3,9 @@
 from NFTest import *
 import sys
 
-phy0loop4 = ('../connections/conn', ["nf2c0", "nf2c1", "nf2c2", "nf2c3"])
+phy0loop4 = ('../connections/conn', ['nf2c0', 'nf2c1', 'nf2c2', 'nf2c3'])
 
-port_config = nftest_init([phy0loop4])
+nftest_init([phy0loop4])
 nftest_start()
 
 # set parameters

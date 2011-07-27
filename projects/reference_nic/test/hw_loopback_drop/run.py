@@ -44,11 +44,11 @@ time.sleep(2)
 
 # Verify that the correct number of packets have been received
 for i in range(4):
-    pktsStored = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKTS_STORED_REG() + i * 0x400)
-    pktsDropped = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKTS_DROPPED_REG() + i * 0x400)
-    pktsRemoved = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKTS_REMOVED_REG() + i * 0x400)
-    bytesStored = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKT_BYTES_STORED_REG() + i * 0x400)
-    bytesRemoved = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKT_BYTES_REMOVED_REG() + i * 0x400)
+    pktsStored = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKTS_STORED_REG() + i * 2 * reg_defines.OQ_QUEUE_GROUP_INST_OFFSET())
+    pktsDropped = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKTS_DROPPED_REG() + i * 2 * reg_defines.OQ_QUEUE_GROUP_INST_OFFSET())
+    pktsRemoved = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKTS_REMOVED_REG() + i * 2 * reg_defines.OQ_QUEUE_GROUP_INST_OFFSET())
+    bytesStored = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKT_BYTES_STORED_REG() + i * 2 * reg_defines.OQ_QUEUE_GROUP_INST_OFFSET())
+    bytesRemoved = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKT_BYTES_REMOVED_REG() + i * 2 * reg_defines.OQ_QUEUE_GROUP_INST_OFFSET())
 
     if pktsStored + pktsDropped != NUM_PKTS_PER_PORT:
         print "Error: packets stored plus dropped not equal to number sent"
@@ -78,10 +78,10 @@ hwPktLib.restart()
 
 # Verify that the correct number of packets have been received
 for i in range(4):
-    pktsStored = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKTS_STORED_REG() + i * 0x400)
-    pktsRemoved = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKTS_REMOVED_REG() + i * 0x400)
-    bytesStored = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKT_BYTES_STORED_REG() + i * 0x400)
-    bytesRemoved = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKT_BYTES_REMOVED_REG() + i * 0x400)
+    pktsStored = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKTS_STORED_REG() + i * 2 * reg_defines.OQ_QUEUE_GROUP_INST_OFFSET())
+    pktsRemoved = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKTS_REMOVED_REG() + i * 2 * reg_defines.OQ_QUEUE_GROUP_INST_OFFSET())
+    bytesStored = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKT_BYTES_STORED_REG() + i * 2 * reg_defines.OQ_QUEUE_GROUP_INST_OFFSET())
+    bytesRemoved = hwRegLib.regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_PKT_BYTES_REMOVED_REG() + i * 2 * reg_defines.OQ_QUEUE_GROUP_INST_OFFSET())
 
     if pktsStored != pktsRemoved:
         print "Error: packets stored not equal to packets removed"
