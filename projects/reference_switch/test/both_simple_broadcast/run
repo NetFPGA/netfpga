@@ -1,4 +1,0 @@
-#!/bin/bash
-
-./make_pkts.py $@
-./run_test.py $@
