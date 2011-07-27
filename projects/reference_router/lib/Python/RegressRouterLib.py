@@ -279,3 +279,27 @@ def nftest_contains_ARP_table_entries(expected_entries):
 		except(KeyError):
 			missing_entries.append(expected_entry)
 	return missing_entries
+
+################################################################
+# Name: nftest_invalidate_all_tables
+#
+# Invalidates the entries in the following tables:
+#  - ARP
+#  - LPM
+#  - dst IP filter
+#
+# Arguments: arp_depth             int
+#            lpm_depth             int
+#            dst_ip_filter_depth   int
+#
+# Default values taken from reg_defines.ROUTER_OP_LUT_*_TABLE_DEPTH
+#
+# Return:
+################################################################
+def nftest_invalidate_all_tables(
+		arp_depth = reg_defines.ROUTER_OP_LUT_ARP_TABLE_DEPTH(),
+		lpm_depth = reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_DEPTH(),
+		dst_ip_filter_depth = reg_defines.ROUTER_OP_LUT_DST_IP_FILTER_TABLE_DEPTH()):
+	nftest_invalidate_ARP_table(arp_depth)
+	nftest_invalidate_LPM_table(lpm_depth)
+	nftest_invalidate_dst_ip_filter_table(dst_ip_filter_depth)
