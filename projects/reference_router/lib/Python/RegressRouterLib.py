@@ -152,7 +152,7 @@ def nftest_add_dst_ip_filter_entry(entryIndex, destIP):
 	add_dst_ip_filter_entry(entryIndex, destIP)
 
 ################################################################
-# Name: nftest_invalidate_dst_ip_filter
+# Name: nftest_invalidate_dst_ip_filter_table
 #
 # Removes contents of the IP destination filtering table by
 # setting all entries to 0.
@@ -161,7 +161,7 @@ def nftest_add_dst_ip_filter_entry(entryIndex, destIP):
 #
 # Return:
 ################################################################
-def nftest_invalidate_dst_ip_filter(depth):
+def nftest_invalidate_dst_ip_filter_table(depth):
 	for i in range(depth):
 	    invalidate_dst_ip_filter_entry(i)
 
