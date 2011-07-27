@@ -19,15 +19,8 @@ nftest_regwrite(reg_defines.OQ_QUEUE_2_CTRL_REG(), 0x0)
 nftest_regwrite(reg_defines.OQ_QUEUE_4_CTRL_REG(), 0x0)
 nftest_regwrite(reg_defines.OQ_QUEUE_6_CTRL_REG(), 0x0)
 
-routerMAC0 = "00:ca:fe:00:00:01"
-routerMAC1 = "00:ca:fe:00:00:02"
-routerMAC2 = "00:ca:fe:00:00:03"
-routerMAC3 = "00:ca:fe:00:00:04"
-
-routerIP0 = "192.168.0.40"
-routerIP1 = "192.168.1.40"
-routerIP2 = "192.168.2.40"
-routerIP3 = "192.168.3.40"
+routerMAC = ["00:ca:fe:00:00:01", "00:ca:fe:00:00:02", "00:ca:fe:00:00:03", "00:ca:fe:00:00:04"]
+routerIP = ["192.168.0.40", "192.168.1.40", "192.168.2.40", "192.168.3.40"]
 
 total_errors = 0
 
@@ -45,7 +38,7 @@ for i in range(4):
 
 for i in range(4):
     for pkt in pkts[i]:
-        nftest_send_dma('nf2c'+str(i), pkt)
+        nftest_send_dma('nf2c%d'%i, pkt)
 
 time.sleep(4)
 
@@ -130,7 +123,7 @@ time.sleep(4)
 
 for i in range(2):
     for pkt in pkts[i]:
-        nftest_expect_phy("nf2c" +str(i), pkt)
+        nftest_expect_phy("nf2c%d"%i, pkt)
 restart() # resets packet lists so missing dropped packets are ignored
 
 nwords_after_0 = regread('nf2c0', reg_defines.OQ_QUEUE_0_NUM_WORDS_LEFT_REG())

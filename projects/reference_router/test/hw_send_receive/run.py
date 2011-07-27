@@ -12,35 +12,26 @@ nftest_start()
 
 NUM_PKTS = 100
 
-routerMAC0 = "00:ca:fe:00:00:01"
-routerMAC1 = "00:ca:fe:00:00:02"
-routerMAC2 = "00:ca:fe:00:00:03"
-routerMAC3 = "00:ca:fe:00:00:04"
-
-routerIP0 = "192.168.0.40"
-routerIP1 = "192.168.1.40"
-routerIP2 = "192.168.2.40"
-routerIP3 = "192.168.3.40"
+routerMAC = ["00:ca:fe:00:00:01", "00:ca:fe:00:00:02", "00:ca:fe:00:00:03", "00:ca:fe:00:00:04"]
+routerIP = ["192.168.0.40", "192.168.1.40", "192.168.2.40", "192.168.3.40"]
 
 ALLSPFRouters = "224.0.0.5"
 
 check_value = 0 # ??
 total_errors = 0
 
-# Write the mac and IP addresses doesn't matter which of the nf2c0..3 you write to.
-nftest_add_dst_ip_filter_entry ('nf2c0', 0, routerIP0);
-nftest_add_dst_ip_filter_entry ('nf2c0', 1, routerIP1);
-nftest_add_dst_ip_filter_entry ('nf2c0', 2, routerIP2);
-nftest_add_dst_ip_filter_entry ('nf2c0', 3, routerIP3);
-nftest_add_dst_ip_filter_entry ('nf2c0', 4, ALLSPFRouters);
+# Clear all tables in a hardware test (not needed in software)
+if isHW():
+    nftest_invalidate_all_tables()
 
-# For these it does matter which interface you write to
-nftest_set_router_MAC ('nf2c0', routerMAC0);
-nftest_set_router_MAC ('nf2c1', routerMAC1);
-nftest_set_router_MAC ('nf2c2', routerMAC2);
-nftest_set_router_MAC ('nf2c3', routerMAC3);
+# Write the mac and IP addresses
+for port in range(4):
+    nftest_add_dst_ip_filter_entry (port, routerIP[port])
+    nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
+nftest_add_dst_ip_filter_entry (4, ALLSPFRouters);
 
-DA = routerMAC0
+
+DA = routerMAC[0]
 SA = "aa:bb:cc:dd:ee:ff"
 TTL = 64
 DST_IP = "192.168.1.1"
@@ -50,30 +41,10 @@ nextHopMAC = "dd:55:dd:66:dd:77"
 hdr = scapy.Ether(dst=DA, src=SA, type=0x800)/scapy.IP(dst=DST_IP, src=SRC_IP, ttl=TTL)
 
 # precreate random sized packets
-precreated0 = []
-for i in range(NUM_PKTS):
-    precreated0.append(make_IP_pkt(src_MAC=SA, dst_MAC=routerMAC0,
-                                   EtherType=0x800, src_IP=SRC_IP,
-                                   dst_IP=DST_IP, TTL=TTL,
-                                   pkt_len=random.randint(60,1514)))
-
-precreated1 = []
-for i in range(NUM_PKTS):
-    precreated1.append(make_IP_pkt(src_MAC=SA, dst_MAC=routerMAC1,
-                                   EtherType=0x800, src_IP=SRC_IP,
-                                   dst_IP=DST_IP, TTL=TTL,
-                                   pkt_len=random.randint(60,1514)))
-
-precreated2 = []
-for i in range(NUM_PKTS):
-    precreated2.append(make_IP_pkt(src_MAC=SA, dst_MAC=routerMAC2,
-                                   EtherType=0x800, src_IP=SRC_IP,
-                                   dst_IP=DST_IP, TTL=TTL,
-                                   pkt_len=random.randint(60,1514)))
-
-precreated3 = []
-for i in range(NUM_PKTS):
-    precreated3.append(make_IP_pkt(src_MAC=SA, dst_MAC=routerMAC3,
+precreated = [[], [], [], []]
+for port in range(4):
+    for i in range(NUM_PKTS):
+        precreated[port].append(make_IP_pkt(src_MAC=SA, dst_MAC=routerMAC[port],
                                    EtherType=0x800, src_IP=SRC_IP,
                                    dst_IP=DST_IP, TTL=TTL,
                                    pkt_len=random.randint(60,1514)))
@@ -103,25 +74,14 @@ print "Sending now:"
 pkt = None
 totalPktLengths = [0,0,0,0]
 for i in range(NUM_PKTS):
-    pkt = precreated0[i]
-    totalPktLengths[0] += len(pkt)
-    nftest_send_dma('nf2c0', pkt)
-    nftest_expect_phy('nf2c0', pkt)
-
-    pkt = precreated1[i]
-    totalPktLengths[1] += len(pkt)
-    nftest_send_dma('nf2c1', pkt)
-    nftest_expect_phy('nf2c1', pkt)
-
-    pkt = precreated2[i]
-    totalPktLengths[2] += len(pkt)
-    nftest_send_dma('nf2c2', pkt)
-    nftest_expect_dma('nf2c2', pkt)
-
-    pkt = precreated3[i]
-    totalPktLengths[3] += len(pkt)
-    nftest_send_dma('nf2c3', pkt)
-    nftest_expect_dma('nf2c3', pkt)
+    for port in range(4):
+        pkt = precreated[port][i]
+        totalPktLengths[port] += len(pkt)
+        nftest_send_dma('nf2c%d'%port, pkt)
+        if port < 2:
+            nftest_expect_phy('nf2c%d'%port, pkt)
+        else:
+            nftest_expect_dma('nf2c%d'%port, pkt)
 
 print 'nf2c0 numBytes sent--->' + str(totalPktLengths[0])
 print 'nf2c1 numBytes sent--->' + str(totalPktLengths[1])

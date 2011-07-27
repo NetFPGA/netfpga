@@ -9,37 +9,25 @@ phy2loop0 = ('../connections/2phy', [])
 nftest_init([phy2loop0])
 nftest_start()
 
-routerMAC0 = "00:ca:fe:00:00:01"
-routerMAC1 = "00:ca:fe:00:00:02"
-routerMAC2 = "00:ca:fe:00:00:03"
-routerMAC3 = "00:ca:fe:00:00:04"
+routerMAC = ["00:ca:fe:00:00:01", "00:ca:fe:00:00:02", "00:ca:fe:00:00:03", "00:ca:fe:00:00:04"]
+routerIP = ["192.168.0.40", "192.168.1.40", "192.168.2.40", "192.168.3.40"]
 
-routerIP0 = "192.168.0.40"
-routerIP1 = "192.168.1.40"
-routerIP2 = "192.168.2.40"
-routerIP3 = "192.168.3.40"
+# Clear all tables in a hardware test (not needed in software)
+if isHW():
+    nftest_invalidate_all_tables()
 
 # Write the mac and IP addresses
-nftest_add_dst_ip_filter_entry ('nf2c0', 0, routerIP0)
-nftest_add_dst_ip_filter_entry ('nf2c1', 1, routerIP1)
-nftest_add_dst_ip_filter_entry ('nf2c2', 2, routerIP2)
-nftest_add_dst_ip_filter_entry ('nf2c3', 3, routerIP3)
-
-nftest_set_router_MAC ('nf2c0', routerMAC0)
-nftest_set_router_MAC ('nf2c1', routerMAC1)
-nftest_set_router_MAC ('nf2c2', routerMAC2)
-nftest_set_router_MAC ('nf2c3', routerMAC3)
+for port in range(4):
+    nftest_add_dst_ip_filter_entry (port, routerIP[port])
+    nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
 
 total_errors = 0
 temp_val = 0
 
 pkts = []
-for portid in range(2):
+for port in range(2):
     # set parameters
-    if portid == 0:
-        DA = routerMAC0
-    else:
-        DA = routerMAC1
+    DA = routerMAC[port]
     SA = "aa:bb:cc:dd:ee:ff"
     TTL = 64
     DST_IP = "192.168.2.1";   #not in the lpm table
@@ -58,7 +46,7 @@ for portid in range(2):
                                     TTL=TTL, pkt_len=random.randint(60,1514)))
     pkts.append(portPkts)
 
-for portid in range(2):
+for port in range(2):
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_WRONG_DEST_REG(), 0)
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_NON_IP_RCVD_REG(), 0)
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_BAD_OPTS_VER_REG(), 0)
@@ -70,17 +58,9 @@ for portid in range(2):
 
     # loop for 30 packets
     for i in range(30):
-        sent_pkt = pkts[portid][i]
-        if portid == 0:
-            # send packet out of eth1->nf2c0
-            nftest_send_phy('nf2c0', sent_pkt)
-            nftest_expect_dma('nf2c0', sent_pkt)
-        elif portid == 1:
-            # send packet out of eth2->nf2c1
-            nftest_send_phy('nf2c1', sent_pkt)
-            nftest_expect_dma('nf2c1', sent_pkt)
-        else:
-            print 'ERROR: Not a valid port'
+        sent_pkt = pkts[port][i]
+        nftest_send_phy('nf2c%d'%port, sent_pkt)
+        nftest_expect_dma('nf2c%d'%port, sent_pkt)
     nftest_barrier()
 
     # Read the counters

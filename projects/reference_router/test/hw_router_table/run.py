@@ -51,29 +51,20 @@ def get_q_num_pkts_reg(i):
     if i == 3:
         return reg_defines.OQ_QUEUE_3_NUM_PKTS_IN_Q()
 
-routerMAC0 = "00:ca:fe:00:00:01"
-routerMAC1 = "00:ca:fe:00:00:02"
-routerMAC2 = "00:ca:fe:00:00:03"
-routerMAC3 = "00:ca:fe:00:00:04"
-
-routerIP0 = "192.168.0.40"
-routerIP1 = "192.168.1.40"
-routerIP2 = "192.168.2.40"
-routerIP3 = "192.168.3.40"
+routerMAC = ["00:ca:fe:00:00:01", "00:ca:fe:00:00:02", "00:ca:fe:00:00:03", "00:ca:fe:00:00:04"]
+routerIP = ["192.168.0.40", "192.168.1.40", "192.168.2.40", "192.168.3.40"]
 
 ALLSPFRouters = "224.0.0.5"
 
-# Write the mac and IP addresses
-nftest_add_dst_ip_filter_entry ('nf2c0', 0, routerIP0)
-nftest_add_dst_ip_filter_entry ('nf2c0', 1, routerIP1)
-nftest_add_dst_ip_filter_entry ('nf2c0', 2, routerIP2)
-nftest_add_dst_ip_filter_entry ('nf2c0', 3, routerIP3)
-nftest_add_dst_ip_filter_entry ('nf2c0', 4, ALLSPFRouters)
+# Clear all tables in a hardware test (not needed in software)
+if isHW():
+    nftest_invalidate_all_tables()
 
-nftest_set_router_MAC ('nf2c0', routerMAC0)
-nftest_set_router_MAC ('nf2c1', routerMAC1)
-nftest_set_router_MAC ('nf2c2', routerMAC2)
-nftest_set_router_MAC ('nf2c3', routerMAC3)
+# Write the mac and IP addresses
+for port in range(4):
+    nftest_add_dst_ip_filter_entry (port, routerIP[port])
+    nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
+nftest_add_dst_ip_filter_entry (4, ALLSPFRouters)
 
 check_value = 0
 # router mac 0
@@ -116,12 +107,6 @@ if internal_loopback:
     phy_loopback('nf2c2')
     phy_loopback('nf2c3')
 
-for i in range(32):
-    nftest_invalidate_LPM_table_entry('nf2c0', i)
-
-for i in range(32):
-    nftest_invalidate_ARP_table_entry('nf2c0', i)
-
 total_errors = 0
 # add LPM and ARP entries for each port
 for i in range(NUM_PORTS):
@@ -133,9 +118,9 @@ for i in range(NUM_PORTS):
     nextHopMAC = get_dest_MAC(i)
 
     # add an entry in the routing table
-    nftest_add_LPM_table_entry('nf2c0', i, subnetIP, subnetMask, nextHopIP, outPort)
+    nftest_add_LPM_table_entry(i, subnetIP, subnetMask, nextHopIP, outPort)
     # add and entry in the ARP table
-    nftest_add_ARP_table_entry('nf2c0', i, nextHopIP, nextHopMAC)
+    nftest_add_ARP_table_entry(i, nextHopIP, nextHopMAC)
 
 print total_errors
 

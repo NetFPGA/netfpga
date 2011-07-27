@@ -11,34 +11,17 @@ phy2loop0 = ('../connections/2phy', [])
 nftest_init([phy2loop0])
 nftest_start()
 
-routerMAC0 = "00:ca:fe:00:00:01"
-routerMAC1 = "00:ca:fe:00:00:02"
-routerMAC2 = "00:ca:fe:00:00:03"
-routerMAC3 = "00:ca:fe:00:00:04"
+routerMAC = ["00:ca:fe:00:00:01", "00:ca:fe:00:00:02", "00:ca:fe:00:00:03", "00:ca:fe:00:00:04"]
+routerIP = ["192.168.0.40", "192.168.1.40", "192.168.2.40", "192.168.3.40"]
 
-routerIP0 = "192.168.0.40"
-routerIP1 = "192.168.1.40"
-routerIP2 = "192.168.2.40"
-routerIP3 = "192.168.3.40"
+# Clear all tables in a hardware test (not needed in software)
+if isHW():
+    nftest_invalidate_all_tables()
 
 # Write the mac and IP addresses
-nftest_add_dst_ip_filter_entry ('nf2c0', 0, routerIP0)
-nftest_add_dst_ip_filter_entry ('nf2c1', 1, routerIP1)
-nftest_add_dst_ip_filter_entry ('nf2c2', 2, routerIP2)
-nftest_add_dst_ip_filter_entry ('nf2c3', 3, routerIP3)
-
-nftest_set_router_MAC ('nf2c0', routerMAC0)
-nftest_set_router_MAC ('nf2c1', routerMAC1)
-nftest_set_router_MAC ('nf2c2', routerMAC2)
-nftest_set_router_MAC ('nf2c3', routerMAC3)
-
-for i in range(32):
-    nftest_invalidate_LPM_table_entry('nf2c0', i)
-
-for i in range(32):
-    nftest_invalidate_ARP_table_entry('nf2c0', i)
-
-nftest_regwrite(reg_defines.ROUTER_OP_LUT_ARP_NUM_MISSES_REG(), 0)
+for port in range(4):
+    nftest_add_dst_ip_filter_entry (port, routerIP[port])
+    nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
 
 index = 0
 subnetIP = "192.168.1.0"
@@ -47,14 +30,13 @@ nextHopIP = "192.168.1.54"
 outPort = 0x4
 nextHopMAC = "dd:55:dd:66:dd:77"
 
-nftest_add_LPM_table_entry('nf2c0', index, subnetIP, subnetMask, nextHopIP, outPort)
+nftest_add_LPM_table_entry(index, subnetIP, subnetMask, nextHopIP, outPort)
 
 nftest_regwrite(reg_defines.ROUTER_OP_LUT_ARP_NUM_MISSES_REG(), 0)
 
 nftest_barrier()
 
-routerMAC0 = "00:ca:fe:00:00:01"
-DA = routerMAC0
+DA = routerMAC[0]
 SA = "aa:bb:cc:dd:ee:ff"
 TTL = 64
 DST_IP = "192.168.1.1"
@@ -69,8 +51,6 @@ for i in range(30):
                            pkt_len=random.randint(60,1514))
     nftest_send_phy('nf2c0', sent_pkt)
     nftest_expect_dma('nf2c0', sent_pkt)
-
-temp_error_val = 0
 
 nftest_barrier()
 

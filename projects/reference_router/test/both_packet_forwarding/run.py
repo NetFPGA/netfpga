@@ -9,34 +9,17 @@ phy2loop0 = ('../connections/2phy', [])
 nftest_init([phy2loop0])
 nftest_start()
 
-routerMAC0 = "00:ca:fe:00:00:01"
-routerMAC1 = "00:ca:fe:00:00:02"
-routerMAC2 = "00:ca:fe:00:00:03"
-routerMAC3 = "00:ca:fe:00:00:04"
+routerMAC = ["00:ca:fe:00:00:01", "00:ca:fe:00:00:02", "00:ca:fe:00:00:03", "00:ca:fe:00:00:04"]
+routerIP = ["192.168.0.40", "192.168.1.40", "192.168.2.40", "192.168.3.40"]
 
-routerIP0 = "192.168.0.40"
-routerIP1 = "192.168.1.40"
-routerIP2 = "192.168.2.40"
-routerIP3 = "192.168.3.40"
-
-# clear LPM table
-for i in range(32):
-    nftest_invalidate_LPM_table_entry('nf2c0', i);
-
-# clear ARP table
-for i in range(32):
-    nftest_invalidate_ARP_table_entry('nf2c0', i);
+# Clear all tables in a hardware test (not needed in software)
+if isHW():
+    nftest_invalidate_all_tables()
 
 # Write the mac and IP addresses
-nftest_add_dst_ip_filter_entry ('nf2c0', 0, routerIP0)
-nftest_add_dst_ip_filter_entry ('nf2c1', 1, routerIP1)
-nftest_add_dst_ip_filter_entry ('nf2c2', 2, routerIP2)
-nftest_add_dst_ip_filter_entry ('nf2c3', 3, routerIP3)
-
-nftest_set_router_MAC ('nf2c0', routerMAC0)
-nftest_set_router_MAC ('nf2c1', routerMAC1)
-nftest_set_router_MAC ('nf2c2', routerMAC2)
-nftest_set_router_MAC ('nf2c3', routerMAC3)
+for port in range(4):
+    nftest_add_dst_ip_filter_entry (port, routerIP[port])
+    nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
 
 # add an entry in the routing table:
 index = 0
@@ -50,14 +33,14 @@ outPort = 0x1 # output on MAC0
 outPort2 = 0x4
 nextHopMAC = "dd:55:dd:66:dd:77"
 
-nftest_add_LPM_table_entry ('nf2c0',
+nftest_add_LPM_table_entry (
                 1,
                 subnetIP,
                 subnetMask,
                 nextHopIP,
                 outPort)
 
-nftest_add_LPM_table_entry ('nf2c0',
+nftest_add_LPM_table_entry (
                 0,
                 subnetIP2,
                 subnetMask2,
@@ -66,13 +49,13 @@ nftest_add_LPM_table_entry ('nf2c0',
 
 
 # add an entry in the ARP table
-nftest_add_ARP_table_entry('nf2c0',
+nftest_add_ARP_table_entry(
                index,
                nextHopIP,
                nextHopMAC)
 
 # add an entry in the ARP table
-nftest_add_ARP_table_entry('nf2c0',
+nftest_add_ARP_table_entry(
                1,
                nextHopIP2,
                nextHopMAC)
@@ -82,63 +65,37 @@ nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_PKTS_FORWARDED_REG(), 0)
 
 nftest_barrier()
 
-precreated0 = []
-precreated0_exp = []
+precreated = [[], []]
+precreated_exp = [[], []]
 # loop for 20 packets from eth1 to eth2
-for i in range(20):
-    # set parameters
-    DA = routerMAC0
-    SA = "aa:bb:cc:dd:ee:ff"
-    TTL = 64
-    DST_IP = "192.168.1.1"
-    SRC_IP = "192.168.0.1"
-    length = 100
-    nextHopMAC = "dd:55:dd:66:dd:77"
+for port in range(2):
+    for i in range(20):
+        # set parameters
+        DA = routerMAC[port]
+        SA = "aa:bb:cc:dd:ee:ff"
+        TTL = 64
+        DST_IP = "192.168.%d.1"%(port + 1)
+        SRC_IP = "192.168.0.1"
+        length = 100
+        nextHopMAC = "dd:55:dd:66:dd:77"
 
-    sent_pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA, dst_IP=DST_IP,
-                               src_IP=SRC_IP, TTL=TTL, pkt_len=length)
-    exp_pkt = make_IP_pkt(dst_MAC=nextHopMAC, src_MAC=routerMAC1,
-                              TTL=TTL-1, dst_IP=DST_IP, src_IP=SRC_IP)
-    exp_pkt[scapy.Raw].load = sent_pkt[scapy.Raw].load
+        sent_pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA, dst_IP=DST_IP,
+                                   src_IP=SRC_IP, TTL=TTL, pkt_len=length)
+        exp_pkt = make_IP_pkt(dst_MAC=nextHopMAC, src_MAC=routerMAC[1 - port],
+                                  TTL=TTL-1, dst_IP=DST_IP, src_IP=SRC_IP)
+        exp_pkt[scapy.Raw].load = sent_pkt[scapy.Raw].load
 
-    precreated0.append(sent_pkt)
-    precreated0_exp.append(exp_pkt)
-
-precreated1 = []
-precreated1_exp = []
-# loop for 20 packets from eth2 to eth1
-for i in range(20):
-    # set parameters
-    DA = routerMAC1
-    SA = "aa:bb:cc:dd:ee:ff"
-    TTL = 64
-    DST_IP = "192.168.2.1"
-    SRC_IP = "192.168.0.1"
-    length = 100
-    nextHopMAC = "dd:55:dd:66:dd:77"
-
-    sent_pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA, dst_IP=DST_IP, src_IP=SRC_IP, TTL=TTL, pkt_len=length)
-    exp_pkt = make_MAC_hdr(dst_MAC=nextHopMAC, src_MAC=routerMAC0)/make_IP_hdr(TTL=TTL-1, dst_IP=DST_IP, src_IP=SRC_IP)/sent_pkt[scapy.Raw]
-
-    precreated1.append(sent_pkt)
-    precreated1_exp.append(exp_pkt)
+        precreated[port].append(sent_pkt)
+        precreated_exp[port].append(exp_pkt)
 
 # loop for 20 packets from eth1 to eth2
-for i in range(20):
-    sent_pkt = precreated0[i]
-    exp_pkt = precreated0_exp[i]
-    # send packet out of eth1->nf2c0
-    nftest_send_phy('nf2c0', sent_pkt);
-    nftest_expect_phy('nf2c1', exp_pkt);
-
-# loop for 20 packets from eth2 to eth1
-for i in range(20):
-    sent_pkt = precreated1[i]
-    exp_pkt = precreated1_exp[i]
-
-    # send packet out of eth1->nf2c0
-    nftest_send_phy('nf2c1', sent_pkt)
-    nftest_expect_phy('nf2c0', exp_pkt)
+for port in range(2):
+    for i in range(20):
+        sent_pkt = precreated[port][i]
+        exp_pkt = precreated_exp[port][i]
+        # send packet out of eth1->nf2c0
+        nftest_send_phy('nf2c%d'%port, sent_pkt);
+        nftest_expect_phy('nf2c%d'%(1-port), exp_pkt);
 
 nftest_barrier()
 

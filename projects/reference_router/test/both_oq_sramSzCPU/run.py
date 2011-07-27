@@ -11,47 +11,22 @@ nftest_start()
 
 NUM_TBL_ENTRIES = 32
 
-routerMAC0 = "00:ca:fe:00:00:01"
-routerMAC1 = "00:ca:fe:00:00:02"
-routerMAC2 = "00:ca:fe:00:00:03"
-routerMAC3 = "00:ca:fe:00:00:04"
-
-routerIP0 = "192.168.0.40"
-routerIP1 = "192.168.1.40"
-routerIP2 = "192.168.2.40"
-routerIP3 = "192.168.3.40"
-
-dstIP0 = "192.168.0.50"
-dstIP1 = "192.168.1.50"
-dstIP2 = "192.168.2.50"
-dstIP3 = "192.168.3.50"
-
-dstMAC0 = "aa:bb:cc:dd:ee:01"
-dstMAC1 = "aa:bb:cc:dd:ee:02"
-dstMAC2 = "aa:bb:cc:dd:ee:03"
-dstMAC3 = "aa:bb:cc:dd:ee:04"
+routerMAC = ["00:ca:fe:00:00:01", "00:ca:fe:00:00:02", "00:ca:fe:00:00:03", "00:ca:fe:00:00:04"]
+routerIP = ["192.168.0.40", "192.168.1.40", "192.168.2.40", "192.168.3.40"]
+dstIP = ["192.168.0.50", "192.168.1.50", "192.168.2.50", "192.168.3.50"]
+dstMAC = ["aa:bb:cc:dd:ee:01", "aa:bb:cc:dd:ee:02", "aa:bb:cc:dd:ee:03", "aa:bb:cc:dd:ee:04"]
 
 ALLSPFRouters = "224.0.0.5"
 
-# clear LPM table
-for i in range(32):
-    nftest_invalidate_LPM_table_entry('nf2c0', i)
-
-# clear ARP table
-for i in range(32):
-    nftest_invalidate_ARP_table_entry('nf2c0', i)
+# Clear all tables in a hardware test (not needed in software)
+if isHW():
+    nftest_invalidate_all_tables()
 
 # Write the mac and IP addresses
-nftest_add_dst_ip_filter_entry ('nf2c0', 0, routerIP0)
-nftest_add_dst_ip_filter_entry ('nf2c1', 1, routerIP1)
-nftest_add_dst_ip_filter_entry ('nf2c2', 2, routerIP2)
-nftest_add_dst_ip_filter_entry ('nf2c3', 3, routerIP3)
-nftest_add_dst_ip_filter_entry ('nf2c0', 4, ALLSPFRouters)
-
-nftest_set_router_MAC ('nf2c0', routerMAC0)
-nftest_set_router_MAC ('nf2c1', routerMAC1)
-nftest_set_router_MAC ('nf2c2', routerMAC2)
-nftest_set_router_MAC ('nf2c3', routerMAC3)
+for port in range(4):
+    nftest_add_dst_ip_filter_entry (port, routerIP[port])
+    nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
+nftest_add_dst_ip_filter_entry (4, ALLSPFRouters)
 
 # set the oq sram boundaries
 nftest_regwrite(reg_defines.OQ_QUEUE_0_ADDR_HI_REG(), 0x3ff) #1024 words * 8 byte/word = 8KB
@@ -98,36 +73,22 @@ nftest_regwrite(reg_defines.OQ_QUEUE_7_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_S
 
 NUM_PKTS_IN_CPU_OQ = 8
 
-DA = routerMAC0
+DA = routerMAC[0]
 SA = "aa:bb:cc:dd:ee:ff"
 TTL = 64
 DST_IP = "192.168.101.2"
 SRC_IP = "192.168.100.2"
 nextHopMAC = "dd:55:dd:66:dd:77"
 
-precreated0 = []
-for i in range(NUM_PKTS_IN_CPU_OQ + 1):
-    precreated0.append(make_IP_pkt(dst_MAC=routerMAC0, src_MAC=SA,
+precreated = []
+for port in range(4):
+    pkts = []
+    for i in range(NUM_PKTS_IN_CPU_OQ + 1):
+        pkts.append(make_IP_pkt(dst_MAC=routerMAC[port], src_MAC=SA,
                                    EtherType=0x800, dst_IP=DST_IP,
                                    src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
+    precreated.append(pkts)
 
-precreated1 = []
-for i in range(NUM_PKTS_IN_CPU_OQ + 1):
-    precreated1.append(make_IP_pkt(dst_MAC=routerMAC1, src_MAC=SA,
-                                   EtherType=0x800, dst_IP=DST_IP,
-                                   src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
-
-precreated2 = []
-for i in range(NUM_PKTS_IN_CPU_OQ + 1):
-    precreated2.append(make_IP_pkt(dst_MAC=routerMAC2, src_MAC=SA,
-                                   EtherType=0x800, dst_IP=DST_IP,
-                                   src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
-
-precreated3 = []
-for i in range(NUM_PKTS_IN_CPU_OQ + 1):
-    precreated3.append(make_IP_pkt(dst_MAC=routerMAC3, src_MAC=SA,
-                                   EtherType=0x800, dst_IP=DST_IP,
-                                   src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
 
 
 print "Start testing CPU OQ sizes"
@@ -155,35 +116,23 @@ nftest_barrier()
 
 sent = [[],[],[],[]]
 for i in range(NUM_PKTS_IN_CPU_OQ):
-    pkt = precreated0[i]
-    nftest_send_phy('nf2c0', pkt)
-    sent[0].append(pkt)
+    for port in range(4):
+        pkt = precreated[port][i]
+        if port < 2:
+            nftest_send_phy('nf2c%d'%port, pkt)
+        else:
+            nftest_send_dma('nf2c%d'%port, pkt)
+        sent[port].append(pkt)
 
-    pkt = precreated1[i]
-    nftest_send_phy('nf2c1', pkt)
-    sent[1].append(pkt)
-
-    pkt = precreated2[i]
-    nftest_send_dma('nf2c2', pkt)
-    sent[2].append(pkt)
-
-    pkt = precreated3[i]
-    nftest_send_dma('nf2c3', pkt)
-    sent[3].append(pkt)
 
 print "CPU OQs should be full. Start to drop received pkts"
 
-pkt = precreated0[NUM_PKTS_IN_CPU_OQ]
-nftest_send_phy('nf2c0', pkt)
-
-pkt = precreated1[NUM_PKTS_IN_CPU_OQ]
-nftest_send_phy('nf2c1', pkt)
-
-pkt = precreated2[NUM_PKTS_IN_CPU_OQ]
-nftest_send_dma('nf2c2', pkt)
-
-pkt = precreated3[NUM_PKTS_IN_CPU_OQ]
-nftest_send_dma('nf2c3', pkt)
+for port in range(4):
+    pkt = precreated[port][NUM_PKTS_IN_CPU_OQ]
+    if port < 2:
+        nftest_send_phy('nf2c%d'%port, pkt)
+    else:
+        nftest_send_dma('nf2c%d'%port, pkt)
 
 nftest_barrier()
 
@@ -209,9 +158,9 @@ nftest_regwrite(reg_defines.OQ_QUEUE_7_CTRL_REG(), 1 << reg_defines.OQ_ENABLE_SE
 
 nftest_barrier()
 
-for i in range(4):
-    for pkt in sent[i]:
-        nftest_expect_dma('nf2c'+str(i), pkt)
+for port in range(4):
+    for pkt in sent[port]:
+        nftest_expect_dma('nf2c%d'%port, pkt)
 
 nftest_barrier()
 
