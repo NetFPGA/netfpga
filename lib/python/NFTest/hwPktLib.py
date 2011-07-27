@@ -18,6 +18,7 @@ captureThreads = {}
 openSockets = {}
 packets = {}
 toIgnore = {}
+barrier_timeouts = 0
 
 ############################
 # Function: init
@@ -114,6 +115,8 @@ def barrier(timeout = 10):
                 print 'Error: device', iface, 'missed',
                 print str(numExp), 'expected packets'
         print ''
+        global barrier_timeouts
+        barrier_timeouts += 1
     return good
 
 ############################
@@ -210,6 +213,7 @@ def finish():
             error_count += num_bad_reads
         except(KeyError):
             pass
+    error_count += barrier_timeouts
     return error_count
 
 ############################

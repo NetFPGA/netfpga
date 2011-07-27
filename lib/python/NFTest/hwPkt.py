@@ -129,7 +129,7 @@ class pktExpect(Thread):
                         break
                 i += 1
         self.lock.release()
-        if (len(self.pkts) is 0) and  (len(self.exp_pkts) is 0):
+        if (len(self.exp_pkts) is 0):
             self.barrierEvent.set()
             return True
         return False
