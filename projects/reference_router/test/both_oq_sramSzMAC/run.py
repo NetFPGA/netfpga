@@ -28,47 +28,16 @@ for port in range(4):
 nftest_add_dst_ip_filter_entry (4, ALLSPFRouters)
 
 # set the oq sram boundaries
-nftest_regwrite(reg_defines.OQ_QUEUE_0_ADDR_HI_REG(), 0x3ff) #1024 words * 8 byte/word = 8KB
-nftest_regwrite(reg_defines.OQ_QUEUE_0_ADDR_LO_REG(), 0x0)
-nftest_regwrite(reg_defines.OQ_QUEUE_0_CTRL_REG(), 1<<reg_defines.OQ_INITIALIZE_OQ_BIT_NUM())
-
-nftest_regwrite(reg_defines.OQ_QUEUE_1_ADDR_HI_REG(), 0x105ff) #1024 words * 8 byte/word = 8KB
-nftest_regwrite(reg_defines.OQ_QUEUE_1_ADDR_LO_REG(), 0x10000)
-nftest_regwrite(reg_defines.OQ_QUEUE_1_CTRL_REG(), 1<<reg_defines.OQ_INITIALIZE_OQ_BIT_NUM())
-
-nftest_regwrite(reg_defines.OQ_QUEUE_2_ADDR_HI_REG(), 0x203ff) #1024 words * 8 byte/word = 8KB
-nftest_regwrite(reg_defines.OQ_QUEUE_2_ADDR_LO_REG(), 0x20000)
-nftest_regwrite(reg_defines.OQ_QUEUE_2_CTRL_REG(), 1<<reg_defines.OQ_INITIALIZE_OQ_BIT_NUM())
-
-nftest_regwrite(reg_defines.OQ_QUEUE_3_ADDR_HI_REG(), 0x305ff) #1024 words * 8 byte/word = 8KB
-nftest_regwrite(reg_defines.OQ_QUEUE_3_ADDR_LO_REG(), 0x30000)
-nftest_regwrite(reg_defines.OQ_QUEUE_3_CTRL_REG(), 1<<reg_defines.OQ_INITIALIZE_OQ_BIT_NUM())
-
-nftest_regwrite(reg_defines.OQ_QUEUE_4_ADDR_HI_REG(), 0x403ff) #1024 words * 8 byte/word = 8KB
-nftest_regwrite(reg_defines.OQ_QUEUE_4_ADDR_LO_REG(), 0x40000)
-nftest_regwrite(reg_defines.OQ_QUEUE_4_CTRL_REG(), 1<<reg_defines.OQ_INITIALIZE_OQ_BIT_NUM())
-
-nftest_regwrite(reg_defines.OQ_QUEUE_5_ADDR_HI_REG(), 0x505ff) #1024 words * 8 byte/word = 8KB
-nftest_regwrite(reg_defines.OQ_QUEUE_5_ADDR_LO_REG(), 0x50000)
-nftest_regwrite(reg_defines.OQ_QUEUE_5_CTRL_REG(), 1<<reg_defines.OQ_INITIALIZE_OQ_BIT_NUM())
-
-nftest_regwrite(reg_defines.OQ_QUEUE_6_ADDR_HI_REG(), 0x603ff) #1024 words * 8 byte/word = 8KB
-nftest_regwrite(reg_defines.OQ_QUEUE_6_ADDR_LO_REG(), 0x60000)
-nftest_regwrite(reg_defines.OQ_QUEUE_6_CTRL_REG(), 1<<reg_defines.OQ_INITIALIZE_OQ_BIT_NUM())
-
-nftest_regwrite(reg_defines.OQ_QUEUE_7_ADDR_HI_REG(), 0x705ff) #1024 words * 8 byte/word = 8KB
-nftest_regwrite(reg_defines.OQ_QUEUE_7_ADDR_LO_REG(), 0x70000)
-nftest_regwrite(reg_defines.OQ_QUEUE_7_CTRL_REG(), 1<<reg_defines.OQ_INITIALIZE_OQ_BIT_NUM())
+for q in range(8):
+    addr_offset = q * reg_defines.OQ_QUEUE_GROUP_INST_OFFSET()
+    nftest_regwrite(reg_defines.OQ_QUEUE_0_ADDR_HI_REG() + addr_offset, q * 0x10000 + 0x3ff)
+    nftest_regwrite(reg_defines.OQ_QUEUE_0_ADDR_LO_REG() + addr_offset, q * 0x10000)
+    nftest_regwrite(reg_defines.OQ_QUEUE_0_CTRL_REG() + addr_offset, 1<<reg_defines.OQ_INITIALIZE_OQ_BIT_NUM())
 
 # Enable all Output Queues. Later on some Output Queues are selectively disabled
-nftest_regwrite(reg_defines.OQ_QUEUE_0_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
-nftest_regwrite(reg_defines.OQ_QUEUE_1_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
-nftest_regwrite(reg_defines.OQ_QUEUE_2_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
-nftest_regwrite(reg_defines.OQ_QUEUE_3_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
-nftest_regwrite(reg_defines.OQ_QUEUE_4_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
-nftest_regwrite(reg_defines.OQ_QUEUE_5_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
-nftest_regwrite(reg_defines.OQ_QUEUE_6_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
-nftest_regwrite(reg_defines.OQ_QUEUE_7_CTRL_REG(), (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
+for q in range(8):
+    addr_offset = q * reg_defines.OQ_QUEUE_GROUP_INST_OFFSET()
+    nftest_regwrite(reg_defines.OQ_QUEUE_0_CTRL_REG() + addr_offset, (1 << reg_defines.OQ_ENABLE_SEND_BIT_NUM()))
 
 DA = routerMAC[0]
 SA = "aa:bb:cc:dd:ee:ff"
