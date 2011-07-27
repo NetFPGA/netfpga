@@ -49,8 +49,7 @@ def nftest_get_router_MAC(ifaceName):
 #
 # Adds an entry to the routing table in the hardware.
 #
-# Arguments: ifaceName   string
-#            entryIndex  int
+# Arguments: entryIndex  int
 #            subnetIP    string in format w.x.y.z
 #            subnetMask  string in format w.x.y.z
 #            nextHopIP   string in format w.x.y.z
@@ -61,7 +60,7 @@ def nftest_get_router_MAC(ifaceName):
 #                        0x40 is MAC3, 0x80 is CPU3,
 # Return:
 ################################################################
-def nftest_add_LPM_table_entry(ifaceName, entryIndex, subnetIP, subnetMask, nextHopIP, outputPort):
+def nftest_add_LPM_table_entry(entryIndex, subnetIP, subnetMask, nextHopIP, outputPort):
 	add_LPM_table_entry(entryIndex, subnetIP, subnetMask, nextHopIP, outputPort)
 
 
@@ -71,8 +70,7 @@ def nftest_add_LPM_table_entry(ifaceName, entryIndex, subnetIP, subnetMask, next
 # Checks that the entry at the given index in the routing table
 # matches the provided data
 #
-# Arguments: ifaceName   string
-#            entryIndex  int
+# Arguments: entryIndex  int
 #            subnetIP    string in format w.x.y.z
 #            subnetMask  string in format w.x.y.z
 #            nextHopIP   string in format w.x.y.z
@@ -83,7 +81,7 @@ def nftest_add_LPM_table_entry(ifaceName, entryIndex, subnetIP, subnetMask, next
 #                        0x40 is MAC3, 0x80 is CPU3,
 # Return:
 ################################################################
-def nftest_check_LPM_table_entry(ifaceName, entryIndex, subnetIP, subnetMask, nextHopIP, outputPort):
+def nftest_check_LPM_table_entry(entryIndex, subnetIP, subnetMask, nextHopIP, outputPort):
 	check_LPM_table_entry(entryIndex, subnetIP, subnetMask, nextHopIP, outputPort)
 
 ################################################################
@@ -92,12 +90,11 @@ def nftest_check_LPM_table_entry(ifaceName, entryIndex, subnetIP, subnetMask, ne
 # clears all entries in the routing table (by setting everything
 # to 0)
 #
-# Arguments: ifaceName   string
-#            depth       int
+# Arguments: depth       int
 #
 # Return:
 ################################################################
-def nftest_invalidate_LPM_table(ifaceName, depth):
+def nftest_invalidate_LPM_table(depth):
 	for i in range(depth):
 		invalidate_LPM_table_entry(i)
 
@@ -107,12 +104,11 @@ def nftest_invalidate_LPM_table(ifaceName, depth):
 # clears an entry in the routing table (by setting everything
 # to 0)
 #
-# Arguments: ifaceName   string
-#            entryIndex  int
+# Arguments: entryIndex  int
 #
 # Return:
 ################################################################
-def nftest_invalidate_LPM_table_entry(ifaceName, entryIndex):
+def nftest_invalidate_LPM_table_entry(entryIndex):
 	invalidate_LPM_table_entry(entryIndex)
 
 ################################################################
@@ -148,12 +144,11 @@ def nftest_contains_LPM_table_entries(expected_entries):
 # the CPU. This is also used to set the IP address of the
 # router's ports.
 #
-# Arguments: ifaceName   string
-#            entryIndex  int
+# Arguments: entryIndex  int
 #            destIP      string in format w.x.y.z
 # Return:
 ################################################################
-def nftest_add_dst_ip_filter_entry(ifaceName, entryIndex, destIP):
+def nftest_add_dst_ip_filter_entry(entryIndex, destIP):
 	add_dst_ip_filter_entry(entryIndex, destIP)
 
 ################################################################
@@ -162,12 +157,11 @@ def nftest_add_dst_ip_filter_entry(ifaceName, entryIndex, destIP):
 # Removes contents of the IP destination filtering table by
 # setting all entries to 0.
 #
-# Arguments: ifaceName   string
-#            depth       int
+# Arguments: depth       int
 #
 # Return:
 ################################################################
-def nftest_invalidate_dst_ip_filter(ifaceName, depth):
+def nftest_invalidate_dst_ip_filter(depth):
 	for i in range(depth):
 	    invalidate_dst_ip_filter_entry(i)
 
@@ -177,12 +171,11 @@ def nftest_invalidate_dst_ip_filter(ifaceName, depth):
 # Removes an entry from the IP destination filtering table by
 # setting it to 0.
 #
-# Arguments: ifaceName   string
-#            entryIndex  int
+# Arguments: entryIndex  int
 #
 # Return:
 ################################################################
-def nftest_invalidate_dst_ip_filter_entry(ifaceName, entryIndex):
+def nftest_invalidate_dst_ip_filter_entry(entryIndex):
 	invalidate_dst_ip_filter_entry(entryIndex)
 
 ################################################################
@@ -213,14 +206,13 @@ def nftest_contains_dst_ip_filter_entries(expected_ips):
 #
 # adds an entry to the hardware's ARP table.
 #
-# Arguments: ifaceName   string
-#            entryIndex  int
+# Arguments: entryIndex  int
 #            nextHopIP   string in format w.x.y.z
 #            nextHopMAC  string in format w.x.y.z
 #
 # Return:
 ################################################################
-def nftest_add_ARP_table_entry(ifaceName, entryIndex, nextHopIP, nextHopMAC):
+def nftest_add_ARP_table_entry(entryIndex, nextHopIP, nextHopMAC):
 	add_ARP_table_entry(entryIndex, nextHopIP, nextHopMAC)
 
 ################################################################
@@ -229,12 +221,11 @@ def nftest_add_ARP_table_entry(ifaceName, entryIndex, nextHopIP, nextHopMAC):
 # clears all entries from the hardware's ARP table by setting to
 # all zeros.
 #
-# Arguments: ifaceName   string
-#            depth       int
+# Arguments: depth       int
 #
 # Return:
 ################################################################
-def nftest_invalidate_ARP_table(ifaceName, depth):
+def nftest_invalidate_ARP_table(depth):
 	for i in range(depth):
 		invalidate_ARP_table_entry(i)
 
@@ -244,12 +235,11 @@ def nftest_invalidate_ARP_table(ifaceName, depth):
 # clears an entry from the hardware's ARP table by setting to
 # all zeros.
 #
-# Arguments: ifaceName   string
-#            entryIndex  int
+# Arguments: entryIndex  int
 #
 # Return:
 ################################################################
-def nftest_invalidate_ARP_table_entry(ifaceName, entryIndex):
+def nftest_invalidate_ARP_table_entry(entryIndex):
 	invalidate_ARP_table_entry(entryIndex)
 
 ################################################################
@@ -257,14 +247,13 @@ def nftest_invalidate_ARP_table_entry(ifaceName, entryIndex):
 #
 # checks the entry in the hardware's ARP table.
 #
-# Arguments: ifaceName   string
-#            entryIndex  int
+# Arguments: entryIndex  int
 #            nextHopIP   string in format w.x.y.z
 #            nextHopMAC  string in format w.x.y.z
 #
 # Return:
 ################################################################
-def nftest_check_ARP_table_entry(ifaceName, entryIndex, nextHopIP, nextHopMAC):
+def nftest_check_ARP_table_entry(entryIndex, nextHopIP, nextHopMAC):
 	check_ARP_table_entry(entryIndex, nextHopIP, nextHopMAC)
 
 ################################################################
