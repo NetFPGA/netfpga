@@ -39,7 +39,6 @@ print ""
 
 nftest_barrier()
 
-
 print "Checking pkt errors on Normal Operation\n"
 # check counter values
 for i in range(4):
@@ -104,7 +103,6 @@ for i in range(NUM_PKTS):
 print ""
 
 nftest_barrier()
-
 
 print "Checking pkt errors on Normal Operation after CRC is enabled\n"
 # check counter values
