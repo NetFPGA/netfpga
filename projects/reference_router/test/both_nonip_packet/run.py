@@ -21,27 +21,12 @@ for port in range(4):
     nftest_add_dst_ip_filter_entry (port, routerIP[port])
     nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
 
-pkts = []
-for port in range(2):
-    # set parameters
-    DA = routerMAC[port]
-    SA = "aa:bb:cc:dd:ee:ff"
-    TTL = 64
-    DST_IP = "192.168.2.1";   #not in the lpm table
-    SRC_IP = "192.168.0.1"
-    VERSION = 0x4
-    nextHopMAC = "dd:55:dd:66:dd:77"
-
-    # Non IP packets
-    EtherType = 0x802
-
-    # precreate random packets
-    portPkts = []
-    for i in range(30):
-        portPkts.append(make_IP_pkt(dst_MAC=DA, src_MAC=SA,
-                                    EtherType=EtherType, dst_IP=DST_IP,
-                                    TTL=TTL, pkt_len=random.randint(60,1514)))
-    pkts.append(portPkts)
+SA = "aa:bb:cc:dd:ee:ff"
+DST_IP = "192.168.2.1";   #not in the lpm table
+SRC_IP = "192.168.0.1"
+nextHopMAC = "dd:55:dd:66:dd:77"
+# Non IP packets
+EtherType = 0x802
 
 for port in range(2):
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_WRONG_DEST_REG(), 0)
@@ -53,9 +38,12 @@ for port in range(2):
 
     nftest_barrier()
 
+    DA = routerMAC[port]
+
     # loop for 30 packets
     for i in range(30):
-        sent_pkt = pkts[port][i]
+        sent_pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA, dst_IP=DST_IP,
+                               EtherType=EtherType, pkt_len=random.randint(60,1514))
         nftest_send_phy('nf2c%d'%port, sent_pkt)
         nftest_expect_dma('nf2c%d'%port, sent_pkt)
     nftest_barrier()

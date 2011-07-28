@@ -12,28 +12,6 @@ nftest_start()
 routerMAC = ["00:ca:fe:00:00:01", "00:ca:fe:00:00:02", "00:ca:fe:00:00:03", "00:ca:fe:00:00:04"]
 routerIP = ["192.168.0.40", "192.168.1.40", "192.168.2.40", "192.168.3.40"]
 
-pkts = []
-for portid in range(2):
-    # set parameters
-    DA = routerMAC[portid]
-    SA = "aa:bb:cc:dd:ee:ff"
-    EtherType = 0x800
-    TTL = 0
-    DST_IP = "192.168.2.1";   #not in the lpm table
-    SRC_IP = "192.168.0.1"
-    VERSION = 0x4
-    nextHopMAC = "dd:55:dd:66:dd:77"
-
-    # precreate random packets
-    portPkts = []
-    for i in range(30):
-        pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA, EtherType=EtherType,
-                          src_IP=SRC_IP, dst_IP=DST_IP,
-                          pkt_len=random.randint(60,1514))
-        pkt.ttl = TTL # setting ttl manually
-        portPkts.append(pkt)
-    pkts.append(portPkts)
-
 # Clear all tables in a hardware test (not needed in software)
 if isHW():
     nftest_invalidate_all_tables()
@@ -42,6 +20,13 @@ if isHW():
 for port in range(4):
     nftest_add_dst_ip_filter_entry (port, routerIP[port])
     nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
+
+SA = "aa:bb:cc:dd:ee:ff"
+TTL = 0
+DST_IP = "192.168.2.1";   #not in the lpm table
+SRC_IP = "192.168.0.1"
+VERSION = 0x4
+nextHopMAC = "dd:55:dd:66:dd:77"
 
 for port in range(2):
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_WRONG_DEST_REG(), 0)
@@ -53,9 +38,14 @@ for port in range(2):
 
     nftest_barrier()
 
+    DA = routerMAC[port]
+
     # loop for 30 packets
     for i in range(30):
-        sent_pkt = pkts[port][i]
+        sent_pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA,
+                          src_IP=SRC_IP, dst_IP=DST_IP,
+                          pkt_len=random.randint(60,1514))
+        sent_pkt.ttl = TTL
         nftest_send_phy('nf2c%d'%port, sent_pkt)
         nftest_expect_dma('nf2c%d'%port, sent_pkt)
     nftest_barrier()

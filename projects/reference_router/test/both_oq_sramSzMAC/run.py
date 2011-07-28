@@ -41,7 +41,6 @@ for q in range(8):
 
 DA = routerMAC[0]
 SA = "aa:bb:cc:dd:ee:ff"
-TTL = 64
 DST_IP = "192.168.101.2"
 SRC_IP = "192.168.100.2"
 nextHopMAC = "dd:55:dd:66:dd:77"
@@ -52,8 +51,7 @@ precreated = [[], [], [], []]
 for port in range(4):
     for i in range(NUM_PKTS_IN_MAC_OQ + 1):
         precreated[port].append(make_IP_pkt(dst_MAC=routerMAC[port], src_MAC=SA,
-                                   EtherType=0x800, dst_IP=DST_IP,
-                                   src_IP=SRC_IP, TTL=TTL, pkt_len=1016))
+                                dst_IP=DST_IP, src_IP=SRC_IP, pkt_len=1016))
 
 print "Start testing MAC OQ sizes"
 

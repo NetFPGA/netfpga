@@ -44,8 +44,8 @@ nextHopMAC = "dd:55:dd:66:dd:77"
 print "Sending packets"
 
 for i in range(30):
-    sent_pkt = make_IP_pkt(src_MAC=SA, dst_MAC=DA, EtherType=0x800,
-                           dst_IP=DST_IP, src_IP=SRC_IP, TTL=TTL,
+    sent_pkt = make_IP_pkt(src_MAC=SA, dst_MAC=DA,
+                           dst_IP=DST_IP, src_IP=SRC_IP,
                            pkt_len=random.randint(60,1514))
     nftest_send_phy('nf2c0', sent_pkt)
     nftest_expect_dma('nf2c0', sent_pkt)

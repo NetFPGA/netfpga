@@ -34,8 +34,6 @@ for port in range(2):
 
     # set parameters
     SA = "aa:bb:cc:dd:ee:ff"
-    EtherType = 0x800
-    TTL = 64
     DST_IP = "192.168.2.1";   #not in the lpm table
     SRC_IP = "192.168.0.1"
     VERSION = 0x4
@@ -47,8 +45,7 @@ for port in range(2):
     # loop for 30 packets
     for i in range(30):
         sent_pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA,
-                               EtherType=EtherType, src_IP=SRC_IP,
-                               dst_IP=DST_IP, TTL=TTL,
+                               src_IP=SRC_IP, dst_IP=DST_IP,
                                pkt_len=random.randint(60, 1514))
         nftest_send_phy('nf2c%d'%port, sent_pkt)
     nftest_barrier()

@@ -37,11 +37,10 @@ nftest_barrier()
 
 for i in range(100):
     hdr = make_MAC_hdr(src_MAC="aa:bb:cc:dd:ee:ff", dst_MAC=routerMAC[0],
-                       EtherType=0x800)/scapy.IP(src="192.168.0.1",
-                                                 dst="192.168.1.1", ttl=64)
+                       )/scapy.IP(src="192.168.0.1", dst="192.168.1.1")
     exp_hdr = make_MAC_hdr(src_MAC=routerMAC[1], dst_MAC=nextHopMAC,
-                           EtherType=0x800)/scapy.IP(src="192.168.0.1",
-                                                     dst="192.168.1.1", ttl=63)
+                           )/scapy.IP(src="192.168.0.1", dst="192.168.1.1",
+                                      ttl=63)
     load = generate_load(100)
     pkt = hdr/load
     exp_pkt = exp_hdr/load

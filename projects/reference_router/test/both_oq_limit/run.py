@@ -47,9 +47,8 @@ for port in range(4):
     pkts = []
     for i in range(NUM_PKTS):
         pkts.append(make_IP_pkt(dst_MAC=routerMAC[port], src_MAC=SA,
-                                       EtherType=0x800, dst_IP=DST_IP,
-                                       src_IP=SRC_IP, TTL=TTL,
-                                       pkt_len=random.randint(60,1514)))
+                                dst_IP=DST_IP, src_IP=SRC_IP,
+                                pkt_len=random.randint(60,1514)))
     precreated.append(pkts)
 
 nftest_regwrite(reg_defines.OQ_QUEUE_0_NUM_PKTS_DROPPED_REG(), 0)

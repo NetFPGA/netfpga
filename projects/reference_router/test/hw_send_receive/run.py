@@ -17,9 +17,6 @@ routerIP = ["192.168.0.40", "192.168.1.40", "192.168.2.40", "192.168.3.40"]
 
 ALLSPFRouters = "224.0.0.5"
 
-check_value = 0 # ??
-total_errors = 0
-
 # Clear all tables in a hardware test (not needed in software)
 if isHW():
     nftest_invalidate_all_tables()
@@ -37,17 +34,6 @@ TTL = 64
 DST_IP = "192.168.1.1"
 SRC_IP = "192.168.0.1"
 nextHopMAC = "dd:55:dd:66:dd:77"
-
-hdr = scapy.Ether(dst=DA, src=SA, type=0x800)/scapy.IP(dst=DST_IP, src=SRC_IP, ttl=TTL)
-
-# precreate random sized packets
-precreated = [[], [], [], []]
-for port in range(4):
-    for i in range(NUM_PKTS):
-        precreated[port].append(make_IP_pkt(src_MAC=SA, dst_MAC=routerMAC[port],
-                                   EtherType=0x800, src_IP=SRC_IP,
-                                   dst_IP=DST_IP, TTL=TTL,
-                                   pkt_len=random.randint(60,1514)))
 
 # reset counters
 nftest_regwrite(reg_defines.MAC_GRP_0_RX_QUEUE_NUM_PKTS_STORED_REG(), 0)
@@ -75,7 +61,8 @@ pkt = None
 totalPktLengths = [0,0,0,0]
 for i in range(NUM_PKTS):
     for port in range(4):
-        pkt = precreated[port][i]
+        pkt = make_IP_pkt(src_MAC=SA, dst_MAC=routerMAC[port], src_IP=SRC_IP,
+                          dst_IP=DST_IP, pkt_len=random.randint(60,1514))
         totalPktLengths[port] += len(pkt)
         nftest_send_dma('nf2c%d'%port, pkt)
         if port < 2:
@@ -92,107 +79,33 @@ nftest_barrier()
 
 reset_phy()
 
-control_reg0 = regread('nf2c0', reg_defines.MAC_GRP_0_CONTROL_REG())
-if control_reg0 != 0:
-    total_errors += 1
-
-control_reg1 = regread('nf2c0', reg_defines.MAC_GRP_1_CONTROL_REG())
-if control_reg1 != 0:
-    total_errors += 1
-
-control_reg2 = regread('nf2c0', reg_defines.MAC_GRP_2_CONTROL_REG())
-if control_reg2 != 0:
-    total_errors += 1
-
-control_reg3 = regread('nf2c0', reg_defines.MAC_GRP_3_CONTROL_REG())
-if control_reg3 != 0:
-    total_errors += 1
+nftest_regread_expect(reg_defines.MAC_GRP_0_CONTROL_REG(), 0)
+nftest_regread_expect(reg_defines.MAC_GRP_1_CONTROL_REG(), 0)
+nftest_regread_expect(reg_defines.MAC_GRP_2_CONTROL_REG(), 0)
+nftest_regread_expect(reg_defines.MAC_GRP_3_CONTROL_REG(), 0)
 
 ###### QUEUE 0
-check_value = regread('nf2c0', reg_defines.MAC_GRP_0_TX_QUEUE_NUM_PKTS_SENT_REG())
-if check_value != NUM_PKTS:
-    total_errors += 1
-    print "MAC_GRP_0_TX_QUEUE_NUM_PKTS_SENT --> " + str(check_value) + " Expecting--> " + str(NUM_PKTS)
-
-check_value = regread('nf2c0', reg_defines.MAC_GRP_0_RX_QUEUE_NUM_PKTS_STORED_REG())
-if check_value != 0:
-    total_errors += 1
-    print "MAC_GRP_0_RX_QUEUE_NUM_PKTS_STORED --> " + str(check_value) + " Expecting-->0"
-
-check_value = regread('nf2c0', reg_defines.MAC_GRP_0_TX_QUEUE_NUM_BYTES_PUSHED_REG())
-if check_value != totalPktLengths[0]:
-    total_errors += 1
-    print "MAC_GRP_0_TX_QUEUE_NUM_BYTES_PUSHED--> " + str(check_value) + " Expecting--> " + str(totalPktLengths[0])
-
-check_value = regread('nf2c0', reg_defines.MAC_GRP_0_RX_QUEUE_NUM_BYTES_PUSHED_REG())
-if check_value != 0:
-    total_errors += 1
-    print "MAC_GRP_0_RX_QUEUE_NUM_BYTES_PUSHED --> " + str(check_value) + " Expecting --> 0"
+nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_PKTS_SENT_REG(), NUM_PKTS)
+nftest_regread_expect(reg_defines.MAC_GRP_0_RX_QUEUE_NUM_PKTS_STORED_REG(), 0)
+nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[0])
+nftest_regread_expect(reg_defines.MAC_GRP_0_RX_QUEUE_NUM_BYTES_PUSHED_REG(), 0)
 
 ###### QUEUE 1
-check_value = regread('nf2c0', reg_defines.MAC_GRP_1_TX_QUEUE_NUM_PKTS_SENT_REG())
-if check_value != NUM_PKTS:
-    total_errors += 1
-    print "MAC_GRP_1_TX_QUEUE_NUM_PKTS_SENT --> " + str(check_value) + " Expecting--> " + str(NUM_PKTS)
-
-check_value = regread('nf2c0', reg_defines.MAC_GRP_1_RX_QUEUE_NUM_PKTS_STORED_REG())
-if check_value != 0:
-    total_errors += 1
-    print "MAC_GRP_1_RX_QUEUE_NUM_PKTS_STORED --> " + str(check_value) + " Expecting-->0"
-
-check_value = regread('nf2c0', reg_defines.MAC_GRP_1_TX_QUEUE_NUM_BYTES_PUSHED_REG())
-if check_value != totalPktLengths[1]:
-    total_errors += 1
-    print "MAC_GRP_1_TX_QUEUE_NUM_BYTES_PUSHED--> " + str(check_value) + " Expecting--> " + str(totalPktLengths[1])
-
-check_value = regread('nf2c0', reg_defines.MAC_GRP_1_RX_QUEUE_NUM_BYTES_PUSHED_REG())
-if check_value != 0:
-    total_errors += 1
-    print "MAC_GRP_1_RX_QUEUE_NUM_BYTES_PUSHED --> " + str(check_value) + " Expecting --> 0"
+nftest_regread_expect(reg_defines.MAC_GRP_1_TX_QUEUE_NUM_PKTS_SENT_REG(), NUM_PKTS)
+nftest_regread_expect(reg_defines.MAC_GRP_1_RX_QUEUE_NUM_PKTS_STORED_REG(), 0)
+nftest_regread_expect(reg_defines.MAC_GRP_1_TX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[1])
+nftest_regread_expect(reg_defines.MAC_GRP_1_RX_QUEUE_NUM_BYTES_PUSHED_REG(), 0)
 
 ###### QUEUE 2
-check_value = regread('nf2c0', reg_defines.MAC_GRP_2_TX_QUEUE_NUM_PKTS_SENT_REG())
-if check_value != NUM_PKTS:
-    total_errors += 1
-    print "MAC_GRP_2_TX_QUEUE_NUM_PKTS_SENT --> " + str(check_value) + " Expecting--> " + str(NUM_PKTS)
-
-check_value = regread('nf2c0', reg_defines.MAC_GRP_2_RX_QUEUE_NUM_PKTS_STORED_REG())
-if check_value != NUM_PKTS:
-    total_errors += 1
-    print "MAC_GRP_2_RX_QUEUE_NUM_PKTS_STORED --> " + str(check_value) + " Expecting-->" + str(NUM_PKTS)
-
-check_value = regread('nf2c0', reg_defines.MAC_GRP_2_TX_QUEUE_NUM_BYTES_PUSHED_REG())
-if check_value != totalPktLengths[2]:
-    total_errors += 1
-    print "MAC_GRP_2_TX_QUEUE_NUM_BYTES_PUSHED--> " + str(check_value) + " Expecting--> " + str(totalPktLengths[2])
-
-check_value = regread('nf2c0', reg_defines.MAC_GRP_2_RX_QUEUE_NUM_BYTES_PUSHED_REG())
-if check_value != totalPktLengths[2]:
-    total_errors += 1
-    print "MAC_GRP_2_RX_QUEUE_NUM_BYTES_PUSHED --> " + str(check_value) + " Expecting --> " + str(totalPktLengths[2])
+nftest_regread_expect(reg_defines.MAC_GRP_2_TX_QUEUE_NUM_PKTS_SENT_REG(), NUM_PKTS)
+nftest_regread_expect(reg_defines.MAC_GRP_2_RX_QUEUE_NUM_PKTS_STORED_REG(), NUM_PKTS)
+nftest_regread_expect(reg_defines.MAC_GRP_2_TX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[2])
+nftest_regread_expect(reg_defines.MAC_GRP_2_RX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[2])
 
 ###### QUEUE 3
-check_value = regread('nf2c0', reg_defines.MAC_GRP_3_TX_QUEUE_NUM_PKTS_SENT_REG())
-if check_value != NUM_PKTS:
-    total_errors += 1
-    print "MAC_GRP_3_TX_QUEUE_NUM_PKTS_SENT --> " + str(check_value) + " Expecting--> " + str(NUM_PKTS)
+nftest_regread_expect(reg_defines.MAC_GRP_3_TX_QUEUE_NUM_PKTS_SENT_REG(), NUM_PKTS)
+nftest_regread_expect(reg_defines.MAC_GRP_3_RX_QUEUE_NUM_PKTS_STORED_REG(), NUM_PKTS)
+nftest_regread_expect(reg_defines.MAC_GRP_3_TX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[3])
+nftest_regread_expect(reg_defines.MAC_GRP_3_RX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[3])
 
-check_value = regread('nf2c0', reg_defines.MAC_GRP_3_RX_QUEUE_NUM_PKTS_STORED_REG())
-if check_value != NUM_PKTS:
-    total_errors += 1
-    print "MAC_GRP_3_RX_QUEUE_NUM_PKTS_STORED --> " + str(check_value) + " Expecting-->" + str(NUM_PKTS)
-
-check_value = regread('nf2c0', reg_defines.MAC_GRP_3_TX_QUEUE_NUM_BYTES_PUSHED_REG())
-if check_value != totalPktLengths[3]:
-    total_errors += 1
-    print "MAC_GRP_3_TX_QUEUE_NUM_BYTES_PUSHED--> " + str(check_value) + " Expecting--> " + str(totalPktLengths[3])
-
-check_value = regread('nf2c0', reg_defines.MAC_GRP_3_RX_QUEUE_NUM_BYTES_PUSHED_REG())
-if check_value != totalPktLengths[3]:
-    total_errors += 1
-    print "MAC_GRP_3_RX_QUEUE_NUM_BYTES_PUSHED --> " + str(check_value) + " Expecting --> " + str(totalPktLengths[3])
-
-
-nftest_barrier()
-
-total_errors += nftest_finish()
+nftest_finish()

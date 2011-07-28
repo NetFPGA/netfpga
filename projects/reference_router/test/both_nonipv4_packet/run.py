@@ -34,28 +34,24 @@ for port in range(2):
     # set parameters
     DA = routerMAC[port]
     SA = "aa:bb:cc:dd:ee:ff"
-    EtherType = 0x800
-    TTL = 64
     DST_IP = "192.168.2.1";   #not in the lpm table
     SRC_IP = "192.168.0.1"
-    VERSION = 0x4
     nextHopMAC = "dd:55:dd:66:dd:77"
 
     # Non IP option or ip_ver not 4
     VERSION = 5
 
-    # loop for 100 packets
+    # loop for 30 packets
     for i in range(30):
-        sent_pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA, EtherType=EtherType,
-                          src_IP=SRC_IP, dst_IP=DST_IP, TTL=TTL,
-                          pkt_len=random.randint(60,1514))
+        sent_pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA, src_IP=SRC_IP,
+                               dst_IP=DST_IP, pkt_len=random.randint(60,1514))
         sent_pkt.version = VERSION
         nftest_send_phy('nf2c%d'%port, sent_pkt)
         nftest_expect_dma('nf2c%d'%port, sent_pkt)
     nftest_barrier()
 
     # Read the counters
-    temp_val = nftest_regread_expect(reg_defines.ROUTER_OP_LUT_NUM_BAD_OPTS_VER_REG(), 30)
+    nftest_regread_expect(reg_defines.ROUTER_OP_LUT_NUM_BAD_OPTS_VER_REG(), 30)
 
     nftest_barrier()
 

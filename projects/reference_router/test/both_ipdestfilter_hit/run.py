@@ -16,27 +16,6 @@ dstMAC = ["aa:bb:cc:dd:ee:01", "aa:bb:cc:dd:ee:02", "aa:bb:cc:dd:ee:03", "aa:bb:
 
 ALLSPFRouters = "224.0.0.5"
 
-pkts = []
-for portid in range(2):
-    # set parameters
-    DA = routerMAC[portid]
-    SA = "aa:bb:cc:dd:ee:ff"
-    EtherType = 0x800
-    TTL = 64
-    DST_IP = dstIP[0]
-    SRC_IP = "192.168.0.1"
-    VERSION = 0x4
-    nextHopMAC = "dd:55:dd:66:dd:77"
-
-    # precreate random packets
-    portPkts = []
-    for i in range(30):
-        portPkts.append(make_IP_pkt(dst_MAC=DA, src_MAC=SA,
-                                    EtherType=EtherType, src_IP=SRC_IP,
-                                    dst_IP=DST_IP, TTL=TTL,
-                                    pkt_len=random.randint(60,1514)))
-    pkts.append(portPkts)
-
 # Clear all tables in a hardware test (not needed in software)
 if isHW():
     nftest_invalidate_all_tables()
@@ -48,14 +27,21 @@ for port in range(4):
 nftest_add_dst_ip_filter_entry (4, ALLSPFRouters)
 nftest_add_dst_ip_filter_entry (5, dstIP[0])
 
+SA = "aa:bb:cc:dd:ee:ff"
+DST_IP = dstIP[0]
+SRC_IP = "192.168.0.1"
+
 for portid in range(2):
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_FILTERED_PKTS_REG(), 0)
 
     nftest_barrier()
 
+    DA = routerMAC[portid]
+
     # loop for 30 packets
     for i in range(30):
-        sent_pkt = pkts[portid][i]
+        sent_pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA, src_IP=SRC_IP,
+                               dst_IP=DST_IP, pkt_len=random.randint(60,1514))
         nftest_send_phy('nf2c%d'%portid, sent_pkt)
         nftest_expect_dma('nf2c%d'%portid, sent_pkt)
     nftest_barrier()

@@ -35,8 +35,7 @@ nftest_barrier()
 
 for i in range(100):
     pkt = make_IP_pkt(src_MAC="aa:bb:cc:dd:ee:ff", dst_MAC=routerMAC[0],
-                      EtherType=0x800, src_IP="192.168.0.1",
-                      dst_IP="192.168.2.1", TTL=64)
+                      src_IP="192.168.0.1", dst_IP="192.168.2.1")
 
     nftest_send_phy('nf2c0', pkt)
     nftest_expect_dma('nf2c0', pkt)

@@ -46,26 +46,17 @@ for port in range(2):
         # set parameters
         DA = routerMAC[port]
         SA = "aa:bb:cc:dd:ee:ff"
-        TTL = 64
         DST_IP = "192.168.%d.1"%(port + 1)
         SRC_IP = "192.168.0.1"
         length = 100
         nextHopMAC = "dd:55:dd:66:dd:77"
 
         sent_pkt = make_IP_pkt(dst_MAC=DA, src_MAC=SA, dst_IP=DST_IP,
-                                   src_IP=SRC_IP, TTL=TTL, pkt_len=length)
+                               src_IP=SRC_IP, pkt_len=length)
         exp_pkt = make_IP_pkt(dst_MAC=nextHopMAC, src_MAC=routerMAC[1 - port],
-                                  TTL=TTL-1, dst_IP=DST_IP, src_IP=SRC_IP)
+                              TTL = 63, dst_IP=DST_IP, src_IP=SRC_IP)
         exp_pkt[scapy.Raw].load = sent_pkt[scapy.Raw].load
 
-        precreated[port].append(sent_pkt)
-        precreated_exp[port].append(exp_pkt)
-
-# loop for 20 packets from eth1 to eth2
-for port in range(2):
-    for i in range(20):
-        sent_pkt = precreated[port][i]
-        exp_pkt = precreated_exp[port][i]
         # send packet out of eth1->nf2c0
         nftest_send_phy('nf2c%d'%port, sent_pkt);
         nftest_expect_phy('nf2c%d'%(1-port), exp_pkt);

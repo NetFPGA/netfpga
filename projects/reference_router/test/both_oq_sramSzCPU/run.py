@@ -115,8 +115,8 @@ print "Verifying dropped pkts counter."
 nftest_regread_expect(reg_defines.OQ_QUEUE_1_NUM_PKTS_DROPPED_REG(), 1)
 nftest_regread_expect(reg_defines.OQ_QUEUE_3_NUM_PKTS_DROPPED_REG(), 1)
 nftest_regread_expect(reg_defines.OQ_QUEUE_5_NUM_PKTS_DROPPED_REG(), 1)
-if not isHW():
-    simReg.regDelay(10000)
+#if not isHW():
+#    simReg.regDelay(10000)
 nftest_regread_expect(reg_defines.OQ_QUEUE_7_NUM_PKTS_DROPPED_REG(), 1)
 
 print "Start servicing the output queues again. Packets should be sent out."
