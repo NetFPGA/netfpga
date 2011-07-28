@@ -21,9 +21,6 @@ for port in range(4):
     nftest_add_dst_ip_filter_entry (port, routerIP[port])
     nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
 
-total_errors = 0
-temp_val = 0
-
 pkts = []
 for port in range(2):
     # set parameters

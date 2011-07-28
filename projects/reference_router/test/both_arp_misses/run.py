@@ -1,10 +1,8 @@
 #!/bin/env python
 
 from NFTest import *
-
-import random
-
 from RegressRouterLib import *
+import random
 
 phy2loop0 = ('../connections/2phy', [])
 

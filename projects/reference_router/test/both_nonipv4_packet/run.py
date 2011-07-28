@@ -22,18 +22,6 @@ for port in range(4):
     nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
 
 for port in range(2):
-    # set parameters
-    DA = routerMAC[port]
-    SA = "aa:bb:cc:dd:ee:ff"
-    EtherType = 0x800
-    TTL = 64
-    DST_IP = "192.168.2.1";   #not in the lpm table
-    SRC_IP = "192.168.0.1"
-    nextHopMAC = "dd:55:dd:66:dd:77"
-
-    # Non IP option or ip_ver not 4
-    VERSION = 5
-
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_WRONG_DEST_REG(), 0)
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_NON_IP_RCVD_REG(), 0)
     nftest_regwrite(reg_defines.ROUTER_OP_LUT_NUM_BAD_OPTS_VER_REG(), 0)

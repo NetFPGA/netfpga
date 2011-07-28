@@ -22,21 +22,15 @@ for port in range(4):
     nftest_set_router_MAC ('nf2c%d'%port, routerMAC[port])
 
 
-index = 0
-subnetIP = "192.168.1.0"
-subnetIP2 = "192.168.1.1"
-subnetMask = "255.255.255.0"
-subnetMask2 = "255.255.255.225"
-nextHopIP = "192.168.1.54"
-nextHopIP2 = "192.168.3.12"
-outPort = 0x1
-outPort2 = 0x4
+subnetIP = ["192.168.1.1", "192.168.1.0"]
+subnetMask = ["255.255.255.225", "255.255.255.0"]
+nextHopIP = ["192.168.3.12", "192.168.1.54"]
+outPort = [0x4, 0x1]
 nextHopMAC = "dd:55:dd:66:dd:77"
 
-nftest_add_LPM_table_entry(1, subnetIP, subnetMask, nextHopIP, outPort)
-nftest_add_LPM_table_entry(0, subnetIP2, subnetMask2, nextHopIP2, outPort2)
-nftest_add_ARP_table_entry(index, nextHopIP, nextHopMAC)
-nftest_add_ARP_table_entry(index, nextHopIP2, nextHopMAC)
+for i in range(2):
+    nftest_add_LPM_table_entry(i, subnetIP[i], subnetMask[i], nextHopIP[i], outPort[i])
+    nftest_add_ARP_table_entry(i, nextHopIP[i], nextHopMAC)
 
 nftest_barrier()
 

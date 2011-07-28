@@ -73,6 +73,8 @@ nftest_regwrite(reg_defines.MAC_GRP_3_TX_QUEUE_NUM_PKTS_SENT_REG(), 0)
 nftest_regwrite(reg_defines.MAC_GRP_3_RX_QUEUE_NUM_BYTES_PUSHED_REG(), 0)
 nftest_regwrite(reg_defines.MAC_GRP_3_TX_QUEUE_NUM_BYTES_PUSHED_REG(), 0)
 
+nftest_barrier()
+
 print "Sending now:"
 pkt = None
 totalPktLengths = [0,0,0,0]
@@ -88,23 +90,14 @@ for i in range(NUM_PKTS):
 
 nftest_barrier()
 
-nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_PKTS_SENT_REG(), NUM_PKTS)
-nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[0])
+for port in range(4):
+    offset = port * reg_defines.MAC_GRP_OFFSET()
+    nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_PKTS_SENT_REG() + offset, NUM_PKTS)
+    nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_BYTES_PUSHED_REG() + offset, totalPktLengths[port])
 
-nftest_regread_expect(reg_defines.MAC_GRP_1_TX_QUEUE_NUM_PKTS_SENT_REG(), NUM_PKTS)
-nftest_regread_expect(reg_defines.MAC_GRP_1_TX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[1])
-
-nftest_regread_expect(reg_defines.MAC_GRP_2_TX_QUEUE_NUM_PKTS_SENT_REG(), NUM_PKTS)
-nftest_regread_expect(reg_defines.MAC_GRP_2_TX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[2])
-
-nftest_regread_expect(reg_defines.MAC_GRP_2_RX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[2])
-nftest_regread_expect(reg_defines.MAC_GRP_2_RX_QUEUE_NUM_PKTS_STORED_REG(), NUM_PKTS)
-
-nftest_regread_expect(reg_defines.MAC_GRP_3_TX_QUEUE_NUM_PKTS_SENT_REG(), NUM_PKTS)
-nftest_regread_expect(reg_defines.MAC_GRP_3_TX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[3])
-
-nftest_regread_expect(reg_defines.MAC_GRP_3_RX_QUEUE_NUM_BYTES_PUSHED_REG(), totalPktLengths[3])
-nftest_regread_expect(reg_defines.MAC_GRP_3_RX_QUEUE_NUM_PKTS_STORED_REG(), NUM_PKTS)
+    if port >= 2:
+        nftest_regread_expect(reg_defines.MAC_GRP_3_RX_QUEUE_NUM_PKTS_STORED_REG() + offset, NUM_PKTS)
+        nftest_regread_expect(reg_defines.MAC_GRP_3_RX_QUEUE_NUM_BYTES_PUSHED_REG() + offset, totalPktLengths[port])
 
 nftest_regread_expect(reg_defines.ROUTER_OP_LUT_NUM_CPU_PKTS_SENT_REG(), 4*NUM_PKTS)
 
