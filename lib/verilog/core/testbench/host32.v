@@ -319,6 +319,8 @@ module host32 (
                   barrier_req = 0;
                   wait (!barrier_proceed);
                   $display($time," %m Info: barrier complete");
+                  for (i = 0; i < `NUM_DMA_PORTS; i = i + 1)
+                     dma_rx_pkts[i]=0;
 
 	          pci_ptr = pci_ptr + 1 + `NUM_DMA_PORTS;
                end
