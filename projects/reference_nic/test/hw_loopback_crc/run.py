@@ -2,7 +2,6 @@
 
 from NFTest import *
 import random
-import NFTest.hwRegLib
 import sys
 
 phy0loop4 = ('../connections/conn', ['nf2c0', 'nf2c1', 'nf2c2', 'nf2c3'])
@@ -17,7 +16,7 @@ TTL = 64
 DST_IP = "192.168.1.1"
 SRC_IP = "192.168.0.1"
 nextHopMAC = "dd:55:dd:66:dd:77"
-NUM_PKTS = 100
+NUM_PKTS = 2
 
 print "Sending now: "
 pkts = [[], [], [], []]
@@ -49,11 +48,13 @@ for i in range(4):
 
 print ""
 
-hwRegLib.fpga_reset()
+nftest_fpga_reset()
 
 # Disable CRC
 for i in range(4):
     nftest_regwrite(reg_defines.MAC_GRP_0_CONTROL_REG() + i*reg_defines.MAC_GRP_OFFSET(), 1 << reg_defines.MAC_GRP_MAC_DIS_CRC_GEN_BIT_NUM())
+
+nftest_barrier()
 
 # Send Packets with CRC disabled
 print "Sending now: "
@@ -82,11 +83,13 @@ for i in range(4):
 
 print ""
 
-hwRegLib.fpga_reset()
+nftest_fpga_reset()
 
 # Enable CRC
 for i in range(4):
     nftest_regwrite(reg_defines.MAC_GRP_0_CONTROL_REG() + i*reg_defines.MAC_GRP_OFFSET(), 0 << reg_defines.MAC_GRP_MAC_DIS_CRC_GEN_BIT_NUM())
+
+nftest_barrier()
 
 # Send packets normally again
 print "Sending now: "

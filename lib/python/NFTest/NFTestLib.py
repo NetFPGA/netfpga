@@ -264,6 +264,17 @@ def nftest_regwrite(addr, val):
         hwRegLib.regwrite(map['nf2c0'], addr, val)
 
 ############################
+# Function: nftest_fpga_reset
+# Arguments: none
+# Description: resets the fpga
+############################
+def nftest_fpga_reset():
+    if sim:
+        simReg.regWrite(simReg.CPCI_REG_CTRL, simReg.CPCI_REG_CTRL_RESET)
+    else:
+        hwRegLib.fpga_reset()
+
+############################
 # Function: isHW
 # Arguments: none
 # Description: helper for HW specific tasks in tests supporting hw and sim
