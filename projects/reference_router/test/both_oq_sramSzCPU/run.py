@@ -106,6 +106,8 @@ for port in range(4):
 nftest_barrier()
 
 print "\nVerifying that the packets are stored in the output queues"
+if not isHW():
+    simReg.regDelay(50000)
 nftest_regread_expect(reg_defines.OQ_QUEUE_1_NUM_PKTS_IN_Q_REG(), NUM_PKTS_IN_CPU_OQ)
 nftest_regread_expect(reg_defines.OQ_QUEUE_3_NUM_PKTS_IN_Q_REG(), NUM_PKTS_IN_CPU_OQ)
 nftest_regread_expect(reg_defines.OQ_QUEUE_5_NUM_PKTS_IN_Q_REG(), NUM_PKTS_IN_CPU_OQ)
@@ -115,8 +117,6 @@ print "Verifying dropped pkts counter."
 nftest_regread_expect(reg_defines.OQ_QUEUE_1_NUM_PKTS_DROPPED_REG(), 1)
 nftest_regread_expect(reg_defines.OQ_QUEUE_3_NUM_PKTS_DROPPED_REG(), 1)
 nftest_regread_expect(reg_defines.OQ_QUEUE_5_NUM_PKTS_DROPPED_REG(), 1)
-#if not isHW():
-#    simReg.regDelay(10000)
 nftest_regread_expect(reg_defines.OQ_QUEUE_7_NUM_PKTS_DROPPED_REG(), 1)
 
 print "Start servicing the output queues again. Packets should be sent out."
