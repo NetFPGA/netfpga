@@ -32,7 +32,7 @@ my $configFile = 'config.txt';
 my $finishFile = 'config.sim';
 
 # Name of the script to create packets
-my $makePkts = 'make_pkts.py';
+my $makePkts = 'make_pkts.pl';
 
 # Location of PCI simulation data file
 my $pciSimDataFile = 'packet_data/pci_sim_data';
@@ -121,7 +121,7 @@ if ($good) {
 
 	# Run the script
 	my $makePktsOut;
-	$makePktsOut = `python $makePkts 2>&1`;
+	$makePktsOut = `perl $makePkts 2>&1`;
 	print $makePktsOut;
 
 	# Verify the return code
