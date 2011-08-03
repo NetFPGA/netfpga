@@ -507,6 +507,8 @@ def runScript(project, subdir, script, required):
     testDir = rootDir + '/' + projectRoot + '/' + project + '/' + testRoot + '/' + subdir
     if os.path.exists(testDir):
         subprocess.call(['cp', '-r', '-p', testDir, proj_test_dir])
+        user = os.environ['USER']
+        subprocess.call(['chown', '-R', user + ':' + user, proj_test_dir + '/' + subdir])
     cmd = proj_test_dir + '/' + subdir + '/' + script
     if args.map:
         cmd += ' --map ' + args.map
