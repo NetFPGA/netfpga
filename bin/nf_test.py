@@ -4,7 +4,6 @@ import os
 import sys
 import argparse
 import glob
-import shutil
 import subprocess
 import TeamCity
 
@@ -108,25 +107,6 @@ def run_hw_test():
             # Actual test -- only run if both setups succeed
             if csResult and lsResult:
                 (testResult, testOutput) = runTest(project, test)
-                # move pcap files to work dir
-                for pcap in glob.glob(src_test_dir + '/' + test + '/*.pcap'):
-                    try:
-                        shutil.copy(pcap, proj_test_dir + '/' + test)
-                        os.remove(pcap)
-                    except shutil.Error:
-                        if os.path.exists(pcap):
-                            os.remove(pcap)
-                            shutil.move(pcap, proj_test_dir + '/' + test)
-                            print 'yay'
-                # move seed to work dir
-                if glob.glob(src_test_dir + '/' + test + '/seed'):
-                    try:
-                        shutil.copy(src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test)
-                        os.remove(src_test_dir + '/' + test + '/seed')
-                    except shutil.Error:
-                        if os.path.exists(proj_test_dir + '/' + test + '/seed'):
-                            os.remove(proj_test_dir + '/' + test + '/seed')
-                            shutil.move(src_test_dir + '/' + test + '/seed', proj_test_dir + '/' + test)
                 testResults[test] = testResult
                 passed &= testResult
 
@@ -403,12 +383,7 @@ def prepareWorkDir():
             print exc.strerror, exc.filename
             sys.exit(1)
     # copy the connections directory for sim
-    if args.type == 'sim':
-        try:
-            shutil.rmtree(projDir + '/connections')
-        except OSError:
-            pass # doesn't exist, nothing to do
-        shutil.copytree(src_test_dir + '/connections', projDir + '/connections')
+    subprocess.call(['cp', '-r', '-p', src_test_dir + '/connections', projDir])
 
 def prepareTestWorkDir(testName):
     dst_dir = proj_test_dir + '/' + testName
@@ -427,16 +402,14 @@ def prepareTestWorkDir(testName):
     # cp files to dst_dir
     if args.type == 'sim':
         for file in glob.glob(src_dir + '/*'):
-            #subprocess.call(['cp', '-r', '-p', file, dst_dir])
-            shutil.copy2(file, dst_dir)
+            subprocess.call(['cp', '-r', '-p', file, dst_dir])
 
 def buildSim():
     if not os.path.exists(make_file):
         print 'Unable to find make file ' + make_file
         sys.exit(1)
     project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-    #subprocess.call(['cp', make_file, proj_test_dir + '/Makefile'])
-    shutil.copy(make_file, proj_test_dir + '/Makefile')
+    subprocess.call(['cp', make_file, proj_test_dir + '/Makefile'])
 
     print '=== Work directory is ' + proj_test_dir
 
@@ -532,7 +505,9 @@ def runLocalTeardown(project, test):
 
 def runScript(project, subdir, script, required):
     testDir = rootDir + '/' + projectRoot + '/' + project + '/' + testRoot + '/' + subdir
-    cmd = testDir + '/' + script
+    if os.path.exists(testDir):
+        subprocess.call(['cp', '-r', '-p', testDir, proj_test_dir])
+    cmd = proj_test_dir + '/' + subdir + '/' + script
     if args.map:
         cmd += ' --map ' + args.map
 
@@ -542,7 +517,7 @@ def runScript(project, subdir, script, required):
     origDir = os.getcwd()
 
     try:
-        os.chdir(testDir)
+        os.chdir(proj_test_dir + '/' + subdir)
         process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output = process.communicate()[0]
         status = process.returncode

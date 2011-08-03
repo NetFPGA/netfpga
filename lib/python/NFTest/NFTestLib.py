@@ -1,13 +1,22 @@
 import hwPktLib
+from hwPktLib import scapy
 import hwRegLib
 import simLib
 import simReg
 import simPkt
 import sys
+import os
 
 sim = True # default, pass an argument if hardware is needed
 map = {} # key is interface specified by test, value is physical interface to use
 connections = {} # key is an interface specified by test, value is connected interface specified by test
+
+ifaceArray = []
+
+sent_phy = {}
+sent_dma = {}
+expected_phy = {}
+expected_dma = {}
 
 CPCI_Control_reg = 0x08
 CPCI_Interrupt_Mask = 0x40
@@ -96,6 +105,16 @@ def nftest_init(configurations):
     # avoid duplicating interfaces
     ifaces = list(set(connections.keys() + connections.values() + list(configurations[portConfig][1])) - set(['']))
 
+    global ifaceArray
+    ifaceArray = ifaces
+
+    global sent_phy, sent_dma, expected_phy, expected_dma
+    for iface in ifaces:
+        sent_phy[iface] = []
+        sent_dma[iface] = []
+        expected_phy[iface] = []
+        expected_dma[iface] = []
+
     global map
     # populate map
     if '--map' in sys.argv:
@@ -146,6 +165,7 @@ def nftest_start():
     if sim:
         simReg.regWrite(CPCI_Control_reg, 0)
         simReg.regWrite(CPCI_Interrupt_Mask, 0)
+        simReg.regDelay(1000)
     else:
         hwPktLib.start()
         hwRegLib.fpga_reset()
@@ -161,6 +181,7 @@ def nftest_send_phy(ifaceName, pkt):
     if connections[ifaceName] == ifaceName:
         print "Error: cannot send on phy of a port in loopback"
         sys.exit(1)
+    sent_phy[ifaceName].append(pkt)
     if sim:
         simPkt.pktSendPHY(int(ifaceName[4:5])+1, pkt)
     else:
@@ -173,6 +194,7 @@ def nftest_send_phy(ifaceName, pkt):
 # Description: send a packet from the dma
 ############################
 def nftest_send_dma(ifaceName, pkt):
+    sent_dma[ifaceName].append(pkt)
     if sim:
         simPkt.pktSendDMA(int(ifaceName[4:5])+1, pkt)
     else:
@@ -188,6 +210,7 @@ def nftest_expect_phy(ifaceName, pkt):
     if connections[ifaceName] == ifaceName:
         print "Error: cannot expect on phy of a port in loopback"
         sys.exit(1)
+    expected_phy[ifaceName].append(pkt)
     if sim:
         simPkt.pktExpectPHY(int(ifaceName[4:5])+1, pkt)
     else:
@@ -200,6 +223,7 @@ def nftest_expect_phy(ifaceName, pkt):
 # Description: expect a packet on dma
 ############################
 def nftest_expect_dma(ifaceName, pkt):
+    expected_dma[ifaceName].append(pkt)
     if sim:
         simPkt.pktExpectDMA(int(ifaceName[4:5])+1, pkt)
     else:
@@ -224,6 +248,24 @@ def nftest_barrier():
 ############################
 def nftest_finish(total_errors = 0):
     nftest_barrier()
+
+    # write out the sent/expected pcaps for easy viewing
+    if not os.path.isdir("./source_pcaps"):
+        os.mkdir("./source_pcaps")
+    for iface in ifaceArray:
+        if len(sent_phy[iface]) > 0:
+            scapy.wrpcap("./source_pcaps/%s_sent_phy.pcap"%iface,
+                         sent_phy[iface])
+        if len(sent_dma[iface]) > 0:
+            scapy.wrpcap("./source_pcaps/%s_sent_dma.pcap"%iface,
+                         sent_dma[iface])
+        if len(expected_phy[iface]) > 0:
+            scapy.wrpcap("./source_pcaps/%s_expected_phy.pcap"%iface,
+                         expected_phy[iface])
+        if len(expected_dma[iface]) > 0:
+            scapy.wrpcap("./source_pcaps/%s_expected_dma.pcap"%iface,
+                         expected_dma[iface])
+
     if sim:
         simLib.close()
         return 0

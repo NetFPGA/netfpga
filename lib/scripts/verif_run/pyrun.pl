@@ -136,12 +136,12 @@ if ($good) {
 #
 # Note: always run the simulation but only run it for 1 time step if
 # things are not good since the reg_defines.h is generated from it
-$config{'finish'} = 1 if (!$good);
-$good &= &createFinishFile;
+#$config{'finish'} = 1 if (!$good);
+$good &= &createFinishFile if $good;
 
 # Run the simulation (again, always try to run since
 # the reg_defines.h file is generated from the output)
-$good &= &runSim($good);
+$good &= &runSim($good) if $good;
 
 # Validate the output
 $good &= &validateOutput if $good;

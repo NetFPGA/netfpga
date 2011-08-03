@@ -2,6 +2,7 @@
 
 import hwPkt
 import sys
+import os
 
 import time
 
@@ -19,6 +20,8 @@ openSockets = {}
 packets = {}
 toIgnore = {}
 barrier_timeouts = 0
+
+pcap_dir = "hw_pcaps/"
 
 ############################
 # Function: init
@@ -181,6 +184,8 @@ def finish():
     bad_reads = get_bad_reads()
     error_count = 0
 
+    if not os.path.isdir(pcap_dir):
+        os.mkdir(pcap_dir)
     for iface in ifaceArray:
         openSockets[iface].close()
         # close capture threads, record packets
@@ -200,13 +205,13 @@ def finish():
 
         # write pcap files - TO IMPLEMENT: write to tmp dir
         if packets[iface]['Matched'].__len__() > 0:
-            scapy.wrpcap(iface+"_matched.pcap", packets[iface]['Matched'])
+            scapy.wrpcap(pcap_dir + iface+"_matched.pcap", packets[iface]['Matched'])
         if packets[iface]['Expected'].__len__() > 0:
-            scapy.wrpcap(iface+"_expected.pcap", packets[iface]['Expected'])
+            scapy.wrpcap(pcap_dir + iface+"_expected.pcap", packets[iface]['Expected'])
         if packets[iface]['Unexpected'].__len__() > 0:
-            scapy.wrpcap(iface+"_extra.pcap", packets[iface]['Unexpected'])
+            scapy.wrpcap(pcap_dir + iface+"_extra.pcap", packets[iface]['Unexpected'])
         if ignored.__len__() > 0:
-            scapy.wrpcap(iface+"_ignored.pcap", ignored)
+            scapy.wrpcap(pcap_dir + iface + "_ignored.pcap", ignored)
         # check for bad regread_expect
         try:
             num_bad_reads = bad_reads[iface].__len__()
