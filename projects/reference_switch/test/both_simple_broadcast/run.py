@@ -2,7 +2,7 @@
 
 from NFTest import *
 
-phy2loop0 = ('./conn', [])
+phy2loop0 = ('../connections/conn', [])
 
 nftest_init([phy2loop0])
 nftest_start()

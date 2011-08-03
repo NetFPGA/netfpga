@@ -48,6 +48,8 @@ foreach my $iface (keys %interfaces) {
 	$success += ifconfig($iface, $ip);
 }
 
+sleep(2);
+
 if ($success == scalar(keys %interfaces))
 {
 	printf "SUCCESS!\n";
