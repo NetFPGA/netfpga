@@ -414,7 +414,7 @@ def buildSim():
     print '=== Work directory is ' + proj_test_dir
 
     if args.dump:
-        dumpile = 'dump.v'
+        dumpfile = 'dump.v'
     else:
         dumpfile = ''
     if args.isim:
