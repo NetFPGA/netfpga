@@ -20,7 +20,6 @@
     core/dma
     core/user_data_path/udp_reg_master
     core/io_queues/add_rm_hdr
-    core/strip_headers/keep_length
     core/ddr2_controller
     core/ddr2_blk_rdwr
     core/utils/generic_regs
@@ -37,7 +36,6 @@
     <nf:group name="udp">
       <nf:instance name="in_arb" />
       <nf:instance name="router_op_lut" />
-      <nf:instance name="strip_headers" />
       <nf:instance name="output_queues" />
     </nf:group>
   </nf:memalloc>

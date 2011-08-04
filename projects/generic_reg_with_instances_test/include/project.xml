@@ -22,7 +22,6 @@
     core/dma
     core/user_data_path/udp_reg_master
     core/io_queues/add_rm_hdr
-    core/strip_headers/keep_length
     core/utils
     core/utils/generic_regs
   </nf:use_modules>
@@ -36,7 +35,6 @@
     </nf:group>
     <nf:group name="udp">
       <nf:instance name="in_arb" />
-      <nf:instance name="strip_headers" />
       <nf:instance name="output_queues" />
       <nf:instance name="generic_regs_test" />
     </nf:group>

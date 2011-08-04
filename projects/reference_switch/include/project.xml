@@ -22,7 +22,6 @@
     core/cpci_bus
     core/dma
     core/io_queues/add_rm_hdr
-    core/strip_headers/keep_length
     core/utils
   </nf:use_modules>
   <nf:memalloc layout="reference">
@@ -36,7 +35,6 @@
     <nf:group name="udp">
       <nf:instance name="in_arb" />
       <nf:instance name="learning_cam_switch" base="0x2000100"/>
-      <nf:instance name="strip_headers" />
       <nf:instance name="output_queues" />
     </nf:group>
   </nf:memalloc>

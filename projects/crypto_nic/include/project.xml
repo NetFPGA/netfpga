@@ -22,7 +22,6 @@
     core/dma
     core/user_data_path/udp_reg_master
     core/io_queues/add_rm_hdr
-    core/strip_headers/keep_length
     core/utils/generic_regs
     core/utils
   </nf:use_modules>
@@ -37,7 +36,6 @@
     <nf:group name="udp">
       <nf:instance name="in_arb" />
       <nf:instance name="crypto" />
-      <nf:instance name="strip_headers" />
       <nf:instance name="output_queues" />
     </nf:group>
   </nf:memalloc>

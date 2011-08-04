@@ -25,7 +25,6 @@
     core/cpci_bus
     core/dma
     core/io_queues/add_rm_hdr
-    core/strip_headers/keep_length
     core/utils
     core/utils/generic_regs
   </nf:use_modules>-
@@ -41,7 +40,6 @@
       <nf:instance name="in_arb" />
       <nf:instance name="router_op_lut" base="0x2000000"/>
       <nf:instance name="event_capture" />
-      <nf:instance name="strip_headers" />
       <nf:instance name="output_queues" />
       <nf:instance name="rate_limiter" count="4" />
       <nf:instance name="drop_nth_pkt" base="0x2000700"/>
