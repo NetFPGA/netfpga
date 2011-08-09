@@ -326,6 +326,8 @@ def identifyWorkDir():
     if not os.path.exists(workDir):
         try:
             os.mkdir(workDir)
+            user = os.environ['USER']
+            subprocess.call(['chown', '-R', user + ':' + user, workDir])
         except OSError as exc:
             print "Cannot create work directory '" + workDir + "'"
             print exc.strerror, exc.filename
@@ -339,6 +341,8 @@ def identifyWorkDir():
     global proj_test_dir; global src_test_dir
     global project; global projDir
     project = os.path.basename(os.environ['NF_DESIGN_DIR'])
+    if project == '':
+        project = os.path.basename(os.environ['NF_DESIGN_DIR'][0:-1])
     projDir = os.environ['NF_WORK_DIR'] + '/test/' + project
     proj_test_dir = work_test_dir + '/' + project
     if args.src_test_dir:
@@ -374,10 +378,13 @@ def prepareWorkDir():
     global project; global projDir
 
     if not os.path.exists(projDir):
+        user = os.environ['USER']
         try:
             if not os.path.exists(os.environ['NF_WORK_DIR'] + '/test/'):
                 os.mkdir(os.environ['NF_WORK_DIR'] + '/test')
+                subprocess.call(['chown', '-R', user + ':' + user, os.environ['NF_WORK_DIR'] + '/test'])
             os.mkdir(projDir)
+            subprocess.call(['chown', '-R', user + ':' + user, projDir])
         except OSError, exc:
             print 'Error: Unable to create project directory ' + projDir
             print exc.strerror, exc.filename
@@ -409,6 +416,8 @@ def buildSim():
         print 'Unable to find make file ' + make_file
         sys.exit(1)
     project = os.path.basename(os.environ['NF_DESIGN_DIR'])
+    if project == '':
+        project = os.path.basename(os.environ['NF_DESIGN_DIR'][0:-1])
     subprocess.call(['cp', make_file, proj_test_dir + '/Makefile'])
 
     print '=== Work directory is ' + proj_test_dir
