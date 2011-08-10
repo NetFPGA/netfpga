@@ -340,9 +340,7 @@ def identifyWorkDir():
         work_test_dir = workDir + '/test'
     global proj_test_dir; global src_test_dir
     global project; global projDir
-    project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-    if project == '':
-        project = os.path.basename(os.environ['NF_DESIGN_DIR'][0:-1])
+    project = os.path.basename(os.path.abspath(os.environ['NF_DESIGN_DIR']))
     projDir = os.environ['NF_WORK_DIR'] + '/test/' + project
     proj_test_dir = work_test_dir + '/' + project
     if args.src_test_dir:
@@ -415,9 +413,7 @@ def buildSim():
     if not os.path.exists(make_file):
         print 'Unable to find make file ' + make_file
         sys.exit(1)
-    project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-    if project == '':
-        project = os.path.basename(os.environ['NF_DESIGN_DIR'][0:-1])
+    project = os.path.basename(os.path.abspath(os.environ['NF_DESIGN_DIR']))
     subprocess.call(['cp', make_file, proj_test_dir + '/Makefile'])
 
     print '=== Work directory is ' + proj_test_dir
