@@ -5,7 +5,7 @@ from CryptoNICLib import *
 
 phy2loop0 = ('../connections/conn', [])
 
-nftest_init([phy2loop0])
+nftest_init(sim_loop = [], hw_config = [phy2loop0])
 nftest_start()
 
 MAC = ['00:ca:fe:00:00:01', '00:ca:fe:00:00:02',
