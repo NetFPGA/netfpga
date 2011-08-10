@@ -5,7 +5,7 @@ import sys
 
 phy0loop4 = ('../connections/conn', ['nf2c0', 'nf2c1', 'nf2c2', 'nf2c3'])
 
-nftest_init([phy0loop4])
+nftest_init(sim_loop = ['nf2c0', 'nf2c1', 'nf2c2', 'nf2c3'], hw_config = [phy0loop4])
 nftest_start()
 
 # set parameters
