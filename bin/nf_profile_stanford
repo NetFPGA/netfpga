@@ -3,7 +3,7 @@
 
 
 ############ XILINX
-XILINX_ROOT=/cad/xilinx
+XILINX_ROOT=${XILINX_ROOT:-/cad/xilinx}
 
 XILINX_VER="10.1"
 if [ -r ${XILINX_ROOT}/ise${XILINX_VER}/settings.sh ] ; then
