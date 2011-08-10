@@ -5,7 +5,7 @@ from RegressRouterLib import *
 
 phy2loop2 = ('../connections/2phy', ['nf2c2', 'nf2c3'])
 
-nftest_init([phy2loop2])
+nftest_init(sim_loop = ['nf2c2', 'nf2c3'], hw_config = [phy2loop2])
 nftest_start()
 
 NUM_TBL_ENTRIES = 32

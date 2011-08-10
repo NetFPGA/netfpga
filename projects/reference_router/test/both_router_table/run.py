@@ -6,7 +6,7 @@ from RegressRouterLib import *
 
 phy2loop0 = ('../connections/2phy', [])
 
-nftest_init([phy2loop0])
+nftest_init(sim_loop = [], hw_config = [phy2loop0])
 nftest_start()
 
 NUM_PORTS = 4

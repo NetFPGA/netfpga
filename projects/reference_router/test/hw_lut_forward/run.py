@@ -8,7 +8,7 @@ import time
 
 phy4loop0 = ('../connections/4phy', [])
 
-nftest_init([phy4loop0])
+nftest_init(sim_loop = [], hw_config = [phy4loop0])
 nftest_start()
 
 NUM_PKTS_PER_PORT = 500

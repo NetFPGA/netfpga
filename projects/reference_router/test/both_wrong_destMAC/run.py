@@ -7,7 +7,7 @@ import NFTest.simReg
 
 phy2loop0 = ('../connections/2phy', [])
 
-nftest_init([phy2loop0])
+nftest_init(sim_loop = [], hw_config = [phy2loop0])
 nftest_start()
 
 routerMAC = ["00:ca:fe:00:00:01", "00:ca:fe:00:00:02", "00:ca:fe:00:00:03", "00:ca:fe:00:00:04"]
@@ -50,7 +50,7 @@ for port in range(2):
         nftest_send_phy('nf2c%d'%port, sent_pkt)
     nftest_barrier()
     if not isHW():
-        simReg.regDelay(100)
+        simReg.regDelay(200)
 
     # Read the counters
     nftest_regread_expect(reg_defines.ROUTER_OP_LUT_NUM_WRONG_DEST_REG(), 30)
