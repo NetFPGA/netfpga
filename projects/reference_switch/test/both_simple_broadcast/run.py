@@ -4,7 +4,7 @@ from NFTest import *
 
 phy2loop0 = ('../connections/conn', [])
 
-nftest_init([phy2loop0])
+nftest_init(sim_loop = [], hw_config = [phy2loop0])
 nftest_start()
 
 routerMAC = []
