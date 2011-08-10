@@ -191,8 +191,8 @@ def get_ARP_table_entry(index):
         grp_mac = re.search("^(..)(..)(..)(..)(..)(..)$", mac_tmp).groups()
         str_mac = ''
         for octet in grp_mac:
-            str_mac += grp_mac + ":"
-        str_mac.rstrip(':')
+            str_mac += octet + ":"
+        str_mac = str_mac.rstrip(':')
 	return IP_str + '-' + str_mac
 
 

@@ -5,13 +5,14 @@ from RegressRouterLib import *
 import os
 import time
 import signal
+import subprocess
 
-rkd = os.path.abspath(os.environ['NF_DESIGN_DIR']) + "/rkd"
+rkd = os.path.abspath(os.environ['NF_DESIGN_DIR']) + "/sw/rkd"
 
 nftest_init(hw_config=[("../connections/conn", [])])
 nftest_start()
 
-pid = os.spawnvp(os.P_NOWAIT, rkd, [rkd])
+pid = subprocess.Popen(rkd).pid
 time.sleep(1)
 
 # format: ip-mask-nexthop-outputport

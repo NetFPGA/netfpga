@@ -192,7 +192,7 @@ def nftest_contains_dst_ip_filter_entries(expected_ips):
 		actual_ips[ip] = ip
 	for expected_ip in expected_ips:
 		try:
-			tmp = actual_ips[expected_ip]
+			tmp = actual_ips[dotted(expected_ip)]
 		except(KeyError):
 			missing_ips.append(expected_ip)
 	return missing_ips
@@ -265,8 +265,8 @@ def nftest_check_ARP_table_entry(entryIndex, nextHopIP, nextHopMAC):
 ################################################################
 def nftest_contains_ARP_table_entries(expected_entries):
 	actual_entries = {}
-	missing_entry = []
-	for i in range(reg_defines.ROUTER_OP_LUT_DST_ARP_TABLE_DEPTH() - 1):
+	missing_entries = []
+	for i in range(reg_defines.ROUTER_OP_LUT_ARP_TABLE_DEPTH() - 1):
 		entry = get_ARP_table_entry(i)
 		actual_entries[entry] = entry
 	for expected_entry in expected_entries:

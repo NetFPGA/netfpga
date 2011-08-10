@@ -497,9 +497,9 @@ def runCommonTeardown(project):
 def runLocalSetup(project, test):
     match = re.search(r'/(.*)\/([^\/]*)/', test)
     if match:
-        return runScript(project, match.group(1), teardown, OPTIONAL)
+        return runScript(project, match.group(1), setup, OPTIONAL)
     else:
-        return runScript(project, test, teardown, OPTIONAL)
+        return runScript(project, test, setup, OPTIONAL)
 
 def runLocalTeardown(project, test):
     match = re.search(r'/(.*)\/([^\/]*)/', test)
