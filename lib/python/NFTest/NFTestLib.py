@@ -23,112 +23,38 @@ CPCI_Interrupt_Mask = 0x40
 
 ############################
 # Function: nftest_init
-# Arguments: list of valid configurations
+# Keyword Arguments: sim_loop - list of interfaces to put into loopback for simulation tests
+#                               all 4 ports are automatically initialized for simulation
+#                    hw_config - list of valid hardware configurations for hardware tests
+#                                configurations are formatted ('path/to/conn/file', ['looped', 'ifaces'])
 # Description: parses the configurations to find a valid configuration
 #              populates map and connections dictionaries
-#              configurations are formatted ('path/to/conn/file', ['looped', 'ifaces'])
 ############################
-def nftest_init(configurations):
+def nftest_init(sim_loop = [], hw_config=None):
     global sim
-    if isHW():
-        sim = False
-
-    # validate connections and process loopback
-    portConfig = 0
-    looped = [False, False, False, False]
-    global connections
-    if '--conn' in sys.argv:
-        specified_connections = {}
-        # read specified connections
-        lines = open(sys.argv[sys.argv.index('--conn')+1], 'r').readlines()
-        for line in lines:
-            conn = line.strip().split(':')
-            if not isHW() and conn[0].beginswith('nf2c') and  conn[1].beginswith('nf2c'):
-                print "Error: nf2cX interfaces cannot be interconnected in simulation"
-                sys.exit(1)
-            specified_connections[conn[0]] = conn[1]
-
-        # find matching configuration
-        for portConfig in range(len(configurations)):
-            conns = {}
-            lines = open(configurations[portConfig][0]).readlines()
-            match = True
-            for line in lines:
-                conn = line.strip().split(':')
-                conns[conn[0]] = conn[1]
-            # physical connections match
-            if conns == specified_connections:
-                connections = specified_connections
-                # check if we've got disconnected interfaces
-                for connection in connections:
-                    if connections[connection] == '':
-                        if isHW():
-                            hwRegLib.phy_isolate(iface)
-                        else:
-                            print "Error: ports should not be isolated in simulation.  Should this be a hardware only test?"
-                            sys.exit(1)
-                # specify loopback
-                for iface in configurations[portConfig][1]:
-                    if iface.startswith('nf2c'):
-                        if isHW():
-                            hwRegLib.phy_loopback(iface)
-                        else:
-                            looped[int(iface[4:5])] = True
-                    else:
-                        print "Error: Only nf2cX interfaces can be put in loopback"
-                        sys.exit(1)
-                break
-            # incompatible configuration
-            elif portConfig == len(configurations) - 1:
-                print "Specified connections file incompatible with this test."
-                sys.exit(1)
-
-    else:
-        portConfig = 0
-        # use the first valid_conn_file if not specified
-        lines = open(configurations[0][0], 'r').readlines()
-        for line in lines:
-            conn = line.strip().split(':')
-            connections[conn[0]] = conn[1]
-        # specify loopback
-        if len(configurations[0][1]) > 0:
-            for iface in configurations[0][1]:
-                if iface.startswith('nf2c'):
-                    if isHW():
-                        hwRegLib.phy_loopback(iface)
-                    else:
-                        looped[int(iface[4:5])] = True
-                else:
-                    print "Error: Only nf2cX interfaces can be put in loopback"
-                    sys.exit(1)
-
-    # avoid duplicating interfaces
-    ifaces = list(set(connections.keys() + connections.values() + list(configurations[portConfig][1])) - set(['']))
-
     global ifaceArray
-    ifaceArray = ifaces
-
+    global connections
     global sent_phy, sent_dma, expected_phy, expected_dma
-    for iface in ifaces:
-        sent_phy[iface] = []
-        sent_dma[iface] = []
-        expected_phy[iface] = []
-        expected_dma[iface] = []
 
-    global map
-    # populate map
-    if '--map' in sys.argv:
-        mapfile = open(sys.argv[sys.argv.index('--map')+1], 'r')
-        lines = mapfile.readlines()
-        for line in lines:
-            mapping = line.strip().split(':')
-            map[mapping[0]] = mapping[1]
-    else:
-        for iface in ifaces:
-            map[iface] = iface
-
-    if sim:
+    # handle simulation separately
+    if not isHW():
+        sim = True
         simLib.init()
+        ifaceArray = ['nf2c0', 'nf2c1', 'nf2c2', 'nf2c3']
+        for iface in ifaceArray:
+            connections[iface] = 'phy_dummy'
+            sent_phy[iface] = []
+            sent_dma[iface] = []
+            expected_phy[iface] = []
+            expected_dma[iface] = []
+
+        looped = [False, False, False, False]
+        for iface in sim_loop:
+            if not iface.startswith('nf2c'):
+                print "Error: Only nf2cX interfaces can be put in loopback"
+                sys.exit(1)
+            else:
+                looped[int(iface[4:5])] = True
         portcfgfile = 'portconfig.sim'
         portcfg = open(portcfgfile, 'w')
         portcfg.write('LOOPBACK=')
@@ -138,23 +64,110 @@ def nftest_init(configurations):
             else:
                 portcfg.write('0')
         portcfg.close()
+        return 'sim'
+
+    # running a hardware test, check connections
     else:
+        if hw_config is None:
+            print "Error: trying to run hardware test without specifying hardware configurations.  Verify the keyword argument hw_config is being used in nftest_init"
+            sys.exit(1)
+        sim = False
+
+        # validate connections and process loopback
+        portConfig = 0
+        if '--conn' in sys.argv:
+            specified_connections = {}
+            # read specified connections
+            lines = open(sys.argv[sys.argv.index('--conn')+1], 'r').readlines()
+            for line in lines:
+                conn = line.strip().split(':')
+                specified_connections[conn[0]] = conn[1]
+
+            # find matching configuration
+            for portConfig in range(len(hw_config)):
+                conns = {}
+                lines = open(hw_config[portConfig][0]).readlines()
+                for line in lines:
+                    conn = line.strip().split(':')
+                    conns[conn[0]] = conn[1]
+                # physical connections match
+                if conns == specified_connections:
+                    connections = specified_connections
+                    # check if we've got disconnected interfaces
+                    for connection in connections:
+                        if connections[connection] == '':
+                            hwRegLib.phy_isolate(iface)
+                    # specify loopback
+                    for iface in hw_config[portConfig][1]:
+                        if iface.startswith('nf2c'):
+                            hwRegLib.phy_loopback(iface)
+                        else:
+                            print "Error: Only nf2cX interfaces can be put in loopback"
+                            sys.exit(1)
+                    break
+                # incompatible configuration
+                elif portConfig == len(hw_config) - 1:
+                    print "Specified connections file incompatible with this test."
+                    sys.exit(1)
+
+        else:
+            portConfig = 0
+            # use the first valid_conn_file if not specified
+            lines = open(hw_config[0][0], 'r').readlines()
+            for line in lines:
+                conn = line.strip().split(':')
+                connections[conn[0]] = conn[1]
+            # specify loopback
+            if len(hw_config[0][1]) > 0:
+                for iface in hw_config[0][1]:
+                    if iface.startswith('nf2c'):
+                        if isHW():
+                            hwRegLib.phy_loopback(iface)
+                        else:
+                            looped[int(iface[4:5])] = True
+                    else:
+                        print "Error: Only nf2cX interfaces can be put in loopback"
+                        sys.exit(1)
+
+        # avoid duplicating interfaces
+        ifaces = list(set(connections.keys() + connections.values() + list(hw_config[portConfig][1])) - set(['']))
+
+        ifaceArray = ifaces
+
+        for iface in ifaces:
+            sent_phy[iface] = []
+            sent_dma[iface] = []
+            expected_phy[iface] = []
+            expected_dma[iface] = []
+
+        global map
+        # populate map
+        if '--map' in sys.argv:
+            mapfile = open(sys.argv[sys.argv.index('--map')+1], 'r')
+            lines = mapfile.readlines()
+            for line in lines:
+                mapping = line.strip().split(':')
+                map[mapping[0]] = mapping[1]
+        else:
+            for iface in ifaces:
+                map[iface] = iface
+
         hwPktLib.init(ifaces)
 
-    # print setup for inspection
-    print 'Running test using the following physical connections:'
-    for connection in connections.items():
-        try:
-            print map[connection[0]] + ':' + map[connection[1]]
-        except KeyError:
-            print map[connection[0]] + ' initialized but not connected'
-    if len(list(configurations[portConfig][1])) > 0:
-        print 'Ports in loopback:'
-        for iface in list(configurations[portConfig][1]):
-            print map[iface]
-    print '------------------------------------------------------'
+        # print setup for inspection
+        print 'Running test using the following physical connections:'
+        for connection in connections.items():
+            try:
+                print map[connection[0]] + ':' + map[connection[1]]
+            except KeyError:
+                print map[connection[0]] + ' initialized but not connected'
+        if len(list(hw_config[portConfig][1])) > 0:
+            print 'Ports in loopback:'
+            for iface in list(hw_config[portConfig][1]):
+                print map[iface]
+        print '------------------------------------------------------'
 
-    return portConfig
+        return portConfig
 
 ############################
 # Function: nftest_start

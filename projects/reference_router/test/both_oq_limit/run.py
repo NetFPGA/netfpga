@@ -6,7 +6,7 @@ from RegressRouterLib import *
 
 phy2loop2 = ('../connections/2phy', ['nf2c2', 'nf2c3'])
 
-nftest_init([phy2loop2])
+nftest_init(sim_loop = ['nf2c2', 'nf2c3'], hw_config = [phy2loop2])
 nftest_start()
 
 routerMAC = ["00:ca:fe:00:00:01", "00:ca:fe:00:00:02", "00:ca:fe:00:00:03", "00:ca:fe:00:00:04"]
