@@ -1,0 +1,8 @@
+#!/bin/sh
+
+/sbin/ifconfig nf2c0 0.0.0.0
+/sbin/ifconfig nf2c1 0.0.0.0
+/sbin/ifconfig nf2c2 0.0.0.0
+/sbin/ifconfig nf2c3 0.0.0.0
+
+/sbin/iptables -D FORWARD --src 10.10.0.0/16 -j ACCEPT
