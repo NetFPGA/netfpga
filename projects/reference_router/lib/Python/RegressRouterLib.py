@@ -4,10 +4,6 @@ import re
 
 import sys
 import os
-sys.path.append(os.environ['NF_DESIGN_DIR']+'/lib/Python')
-project = os.path.basename(os.environ['NF_DESIGN_DIR'])
-reg_defines = __import__('reg_defines_'+project)
-
 
 ################################################################
 # Name: nftest_set_router_MAC
