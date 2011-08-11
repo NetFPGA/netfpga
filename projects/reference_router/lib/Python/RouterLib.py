@@ -40,8 +40,8 @@ def get_router_MAC(port, MAC):
 	if port < 1 or port > 4:
 		print 'bad port number'
 	port -= 1
-	mac_hi = regread(reg_defines.ROUTER_OP_LUT_MAC_0_HI_REG() + port * 8 )
-	mac_lo = regread(reg_defines.ROUTER_OP_LUT_MAC_0_LO_REG() + port * 8 )
+	mac_hi = regread('nf2c0', reg_defines.ROUTER_OP_LUT_MAC_0_HI_REG() + port * 8 )
+	mac_lo = regread('nf2c0', reg_defines.ROUTER_OP_LUT_MAC_0_LO_REG() + port * 8 )
 	mac_tmp = "%04x%08x"%(mac_hi, mac_lo)
         grp_mac = re.search("^(..)(..)(..)(..)(..)(..)$", mac_tmp).groups()
         str_mac = ''
@@ -98,19 +98,19 @@ def invalidate_LPM_table_entry(index):
         nftest_regwrite(reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT_REG(), 0)
         nftest_regwrite(reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_WR_ADDR_REG(), index)
 
-def get_LPM_table_entry(ifaceName, index):
+def get_LPM_table_entry(index):
 	if index < 0 or index > reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_DEPTH() - 1:
 		print 'get_LPM_table_entry_generic: Bad data'
 		sys.exit(1)
 	nftest_regwrite(reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_RD_ADDR_REG(), index)
-	IP = regread(reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP_REG())
-	mask = regread(reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK_REG())
-	next_hop = regread(reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_NEXT_HOP_IP_REG())
-	output_port = regread(reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT_REG())
+	IP = regread('nf2c0', reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_IP_REG())
+	mask = regread('nf2c0', reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_MASK_REG())
+	next_hop = regread('nf2c0', reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_NEXT_HOP_IP_REG())
+	output_port = regread('nf2c0', reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_ENTRY_OUTPUT_PORT_REG())
 
-	ip_str = socket.inet_ntoa(struct.pack('N', ip))
-	mask_str = socket.inet_ntoa(struct.pack('N', ip))
-	next_hop_str = socket.inet_ntoa(struct.pack('N', next_hop))
+	ip_str = socket.inet_ntoa(struct.pack('!L', IP))
+	mask_str = socket.inet_ntoa(struct.pack('!L', mask))
+	next_hop_str = socket.inet_ntoa(struct.pack('!L', next_hop))
 	return ip_str + '-' + mask_str + '-' + next_hop_str + "0x%02x"%output_port
 
 ################################################################
@@ -139,7 +139,7 @@ def get_dst_ip_filter_entry(index):
 		print 'Bad data'
 		sys.exit(1)
 	nftest_regwrite(ROUTER_OP_LUT_DST_IP_FILTER_TABLE_RD_ADDR_REG(), index)
-	return regread(reg_defines.ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP_REG())
+	return regread('nf2c0', reg_defines.ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP_REG())
 
 ################################################################
 #
@@ -185,11 +185,11 @@ def get_ARP_table_entry(index):
 		print 'check_ARP_table_entry: Bad data'
 		sys.exit(1)
 	nftest_regwrite(reg_defines.ROUTER_OP_LUT_ARP_TABLE_RD_ADDR_REG(), index)
-	IP = regread(reg_defines.ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP_REG())
-	mac_hi = regread(reg_defines.ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI_REG())
-	mac_lo = regread(reg_defines.ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO_REG())
+	IP = regread('nf2c0', reg_defines.ROUTER_OP_LUT_ARP_TABLE_ENTRY_NEXT_HOP_IP_REG())
+	mac_hi = regread('nf2c0', reg_defines.ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_HI_REG())
+	mac_lo = regread('nf2c0', reg_defines.ROUTER_OP_LUT_ARP_TABLE_ENTRY_MAC_LO_REG())
 
-	IP_str = socket.inet_ntoa(struct.pack('N', IP))
+	IP_str = socket.inet_ntoa(struct.pack('!L', IP))
 	mac_tmp = "%04x%08x"%(mac_hi, mac_lo)
         grp_mac = re.search("^(..)(..)(..)(..)(..)(..)$", mac_tmp).groups()
         str_mac = ''

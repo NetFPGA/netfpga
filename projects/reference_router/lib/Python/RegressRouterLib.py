@@ -127,7 +127,7 @@ def nftest_contains_LPM_table_entries(expected_entries):
 	missing_entries = []
 
 	for i in range(reg_defines.ROUTER_OP_LUT_ROUTE_TABLE_DEPTH() - 1):
-		entry = get_LPM_table_entry_generic(i)
+		entry = get_LPM_table_entry(i)
 		actual_entries[entry] = entry
 	for expected_entry in expected_entries:
 		try:
