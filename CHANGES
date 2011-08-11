@@ -1,5 +1,31 @@
 HEAD -- Version X.X.X
 
+Version 3.0.0_pre1 (pre-release 1)
+(12 Aug, 2011)
+  Improvements:
+   * Verification infrastructure -- rewritten, Python-based
+     - unified: run same tests in simulation and on hardware
+     - reduces the need to specify explicit delays in test code
+     - barriers: enables tests to be partitioned into sections in which code
+                 preceding a barrier must complete before proceeding past
+		 barrier
+
+		 Use case: 1) send and expect a number of packets,
+		           2) read registers only after *all* packets have
+			      been received
+
+     - pcap: standard-format pcap files are generated for all tests run
+             in hardware
+     - random seed: can specify the random seed to use when running tests,
+                    allowing random data to be reproduced identically across runs
+     - legacy mode: run existing tests without rewriting
+   * project XML:
+     - remove unused "strip_headers" module from all projects
+
+  Bug fixes:
+   * register system:
+     - fix width calculation bug in compound types
+
 Version 2.2.0
 (21 Jan, 2011)
   Improvements:
