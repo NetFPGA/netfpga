@@ -108,7 +108,7 @@ def get_LPM_table_entry(index):
 	ip_str = socket.inet_ntoa(struct.pack('!L', IP))
 	mask_str = socket.inet_ntoa(struct.pack('!L', mask))
 	next_hop_str = socket.inet_ntoa(struct.pack('!L', next_hop))
-	return ip_str + '-' + mask_str + '-' + next_hop_str + "0x%02x"%output_port
+	return ip_str + '-' + mask_str + '-' + next_hop_str + "-0x%02x"%output_port
 
 ################################################################
 #
