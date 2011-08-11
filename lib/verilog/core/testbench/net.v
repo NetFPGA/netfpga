@@ -23,9 +23,7 @@
 `define EGRESS_FILE_LEN 25
 `define EGRESS_FILE_BITS 8*`EGRESS_FILE_LEN
 
-`define CONFIG_FILE_FMT "config.sim"
-`define CONFIG_FILE_LEN 10
-`define CONFIG_FILE_BITS 8*`CONFIG_FILE_LEN
+`define PORTCONFIG_FILE "portconfig.sim"
 
 `define DEFAULT_FINISH_TIME 1000000
 
@@ -49,7 +47,15 @@ module net
     input       rgmii_tx_clk,
 
     input [1:0] link_speed,        // 0=10 1=100 2=1000 3=10000
-    input       host32_is_active   // reset and PCI config are complete.
+    input       host32_is_active,  // reset and PCI config are complete.
+
+    output reg       done,
+    input            sim_end,
+
+    output reg       activity,
+
+    output reg       barrier_req,
+    input            barrier_proceed
 
     );
 
@@ -61,9 +67,14 @@ module net
 	     INTER_PKT_GAP_1000 = 96-8; // -8 for overhead in packet sending
 
 
-   reg [3:0]   my_rgmii_rx_d;
+   // Commands
+   parameter CMD_SEND      = 32'h00000001;
+   parameter CMD_BARRIER   = 32'h00000002;
+   parameter CMD_DELAY     = 32'h00000003;
 
    parameter PKT_MEM_SZ = 10000;
+
+   reg [3:0]   my_rgmii_rx_d;
 
    reg [7:0] rx_packet_buffer [0:PKT_MEM_SZ]; // data of receive packet.
    reg [7:0] tx_packet_buffer [0:PKT_MEM_SZ];
@@ -71,17 +82,17 @@ module net
    reg [31:0] ingress_file [0:`INGRESS_MAX_WORD];
 
    integer    tx_count;
+   integer    barrier_count;
    integer    rx_count;
    integer    packet_length;
    integer    inter_packet_gap;
    integer    i;
-   time       finish_time;   // when simulation should end
    time       last_activity; // when we last saw packet on ingress or egress
+   reg        loopback;      // should this port run in loopback mode
 
 
    reg [`INGRESS_FILE_BITS-1:0] ingress_file_name;
    reg [`EGRESS_FILE_BITS-1:0] 	egress_file_name;
-   reg [`CONFIG_FILE_BITS-1:0] 	config_file_name;
 
    integer 			fd_e; // egress file descriptor
 
@@ -110,13 +121,16 @@ module net
 	rgmii_rx_d = 4'h0;
 	rgmii_rx_ctl = 0;
 	gen_crc_table;
-	finish_time = 0;
 	last_activity = 0;
+	barrier_count = 0;
 	tx_count = 0;
 	rx_count = 0;
+        barrier_req = 0;
+        activity = 0;
+        done = 0;
 
-	// get info such as finish time from the config.txt file
-	read_configuration;
+	// get info such as loopback config
+	read_portconfig;
 	gen_crc_table;
 
 	#1 initialize_ingress;
@@ -132,11 +146,20 @@ module net
 	fork
 	   handle_ingress;
 	   handle_egress;
+	   handle_loopback_ingress;
+	   handle_loopback_egress;
 	   handle_finish;
 	join
 
      end
 
+
+/////////////////////////////////////////////////////////////
+// Perform the "ingress" functionality
+// Note that ingress includes sending packets, barriers, and delays
+//
+// See the "check_integrity" function for a description of the file format
+//
 /////////////////////////////////////////////////////////////
 
 task handle_ingress;
@@ -144,7 +167,8 @@ task handle_ingress;
   integer packet_index;       // pointer to next word in ingress memory
   integer words, i;
   reg [31:0] len, tmp, crc;
-  time time2send;
+  time delay;
+  integer exp_pkts;
 
 begin
 
@@ -152,70 +176,100 @@ begin
 
    // send while there are any packets left to send!
    while ((packet_index < `INGRESS_MAX_WORD) && (ingress_file[packet_index] !== 32'hxxxxxxxx))
-     begin
-	// get next packet and put in rx_packet_buffer
-	len = ingress_file[packet_index];
+   begin
+      // Identify the command
+      case (ingress_file[packet_index])
+         CMD_SEND: begin
+            // get next packet and put in rx_packet_buffer
+            len = ingress_file[packet_index+1];
 
-	// time2send is EARLIEST we can send this packet.
-	time2send = {ingress_file[packet_index+2],ingress_file[packet_index+3]};
+            $display("%t %m Sending next ingress packet (len %0d) to NF2.", $time, len);
 
-	if (time2send > $time) begin
-	   $display("%t %m Info: Waiting until time %t to send packet (length %0d)",
-		    $time, time2send, len);
+            // Build the packet in rx_packet_buffer.
+            packet_index = packet_index + 3;	// now points at DA
+            words = ((len-1)>>2)+1;             // number of 32 bit words in pkt
+            i = 0;                              // index into rx_packet_buffer
+            while (words) begin
+               tmp = ingress_file[packet_index];
+               rx_packet_buffer[i]   = tmp[31:24];
+               rx_packet_buffer[i+1] = tmp[23:16];
+               rx_packet_buffer[i+2] = tmp[15:8];
+               rx_packet_buffer[i+3] = tmp[7:0];
+               words = words - 1;
+               i = i + 4;
+               packet_index = packet_index + 1;
+            end
 
-	   #(time2send - $time);
-	end
+            // might have gone too far so set byte index to correct position,
+            i = len;
 
-	$display("%t %m Sending next ingress packet (len %0d) to NF2.", $time, len);
+            // clear out buffer ready for CRC
+            rx_packet_buffer[i]   = 8'h0;
+            rx_packet_buffer[i+1] = 8'h0;
+            rx_packet_buffer[i+2] = 8'h0;
+            rx_packet_buffer[i+3] = 8'h0;
 
-	// Build the packet in rx_packet_buffer.
-	packet_index = packet_index + 4;	//now points at DA
-	words = ((len-1)>>2)+1;                 // number of 32 bit words in pkt
-	i = 0;                                  // index into rx_packet_buffer
-	while (words) begin
-	   tmp = ingress_file[packet_index];
-	   rx_packet_buffer[i]   = tmp[31:24];
-	   rx_packet_buffer[i+1] = tmp[23:16];
-	   rx_packet_buffer[i+2] = tmp[15:8];
-	   rx_packet_buffer[i+3] = tmp[7:0];
-	   words = words - 1;
-	   i = i + 4;
-	   packet_index = packet_index + 1;
-	end
+            crc = update_crc(32'hffffffff,len)^32'hffffffff;
 
-	// might have gone too far so set byte index to correct position,
-	i = len;
+            //$display("%t %m Info: CRC is %x", $time, crc);
 
-	// clear out buffer ready for CRC
-	rx_packet_buffer[i]   = 8'h0;
-	rx_packet_buffer[i+1] = 8'h0;
-	rx_packet_buffer[i+2] = 8'h0;
-	rx_packet_buffer[i+3] = 8'h0;
+            rx_packet_buffer[i+3] = crc[31:24];
+            rx_packet_buffer[i+2] = crc[23:16];
+            rx_packet_buffer[i+1] = crc[15:8];
+            rx_packet_buffer[i]   = crc[7:0];
 
-	crc = update_crc(32'hffffffff,len)^32'hffffffff;
+            activity = 1;
 
-	//$display("%t %m Info: CRC is %x", $time, crc);
+            send_rgmii_rx_pkt(len+4);  // data + CRC
 
-	rx_packet_buffer[i+3] = crc[31:24];
-	rx_packet_buffer[i+2] = crc[23:16];
-	rx_packet_buffer[i+1] = crc[15:8];
-	rx_packet_buffer[i]   = crc[7:0];
+            last_activity = $time;
+            activity = 0;
 
-	send_rgmii_rx_pkt(len+4);  // data + CRC
+            #inter_packet_gap;
 
-	last_activity = $time;
+            if (ingress_file[packet_index] !== `INGRESS_SEPARATOR) begin
+               $display($time," %m Error: expected to point at packet separator %x but saw %x",
+                     `INGRESS_SEPARATOR, ingress_file[packet_index]);
+                     $fflush; $finish;
+            end
 
-	#inter_packet_gap;
+            packet_index = packet_index + 1;
+         end
 
-	if (ingress_file[packet_index] !== `INGRESS_SEPARATOR) begin
-	   $display($time," %m Error: expected to point at packet separator %x but saw %x",
-		    `INGRESS_SEPARATOR, ingress_file[packet_index]);
-	   $fflush; $finish;
-	end
+         CMD_BARRIER: begin
+            exp_pkts = ingress_file[packet_index + 1];
 
-	packet_index = packet_index + 1;
+            $display($time," %m Info: barrier request: expecting %0d pkts, seen %0d pkts",
+               exp_pkts, barrier_count);
 
-     end
+            // Wait until we've seen the requested number of packets
+            wait (barrier_count >= exp_pkts)
+
+            // Assert barrier request and wait for barrier proceed
+            barrier_req = 1;
+            wait (barrier_proceed);
+            #1;
+            barrier_req = 0;
+            wait (!barrier_proceed);
+            $display($time," %m Info: barrier complete");
+	    barrier_count = 0;
+
+            packet_index = packet_index + 2;
+         end
+
+         CMD_DELAY: begin
+            delay = {ingress_file[packet_index+1],ingress_file[packet_index+2]};
+            $display($time," %m Info: delay: %0d ns", delay);
+            activity = 1;
+            #delay;
+            activity = 0;
+            packet_index = packet_index + 3;
+         end
+      endcase
+   end
+
+   // Indicate that we are done
+   done = 1;
 end
 endtask // handle_ingress
 
@@ -305,7 +359,10 @@ endtask // handle_ingress
 			  end
 		       end
 		     else begin
-		        if (data == 8'hd5) seeing_data = 1;
+                        if (data == 8'hd5) begin
+                           seeing_data = 1;
+                           activity = 1;
+                        end
 		        else if (data != 8'h55)
 			  $display("%t ERROR %m : expected preamble but saw %2x", $time,data);
 		     end
@@ -313,13 +370,69 @@ endtask // handle_ingress
 
 		end // while (rgmii_tx_en)
 
-	      handle_tx_packet(i);
+	      if (!loopback)
+                 handle_tx_packet(i);
 	      last_activity = $time;
+              activity = 0;
 
 	   end
       end
 
 endtask // handle_egress
+
+
+////////////////////////////////////////////////////////////
+// Perform loopback if the port is in loopback mode
+
+reg rgmii_tx_ctl_d1;
+reg rgmii_tx_ctl_d2;
+reg [3:0] rgmii_tx_d_d1;
+reg [3:0] rgmii_tx_d_d2;
+
+task handle_loopback_egress;
+   begin
+      if (loopback) begin
+         while (1) begin
+            @(posedge rgmii_tx_clk)
+            begin
+               rgmii_tx_ctl_d1 <= rgmii_tx_ctl;
+               rgmii_tx_d_d1 <= rgmii_tx_d;
+            end
+            @(negedge rgmii_tx_clk)
+            begin
+               rgmii_tx_ctl_d2 <= rgmii_tx_ctl;
+               rgmii_tx_d_d2 <= rgmii_tx_d;
+            end
+         end
+      end
+   end
+endtask // handle_loopback_egress
+
+
+task handle_loopback_ingress;
+   begin
+      if (loopback) begin
+         while (1) begin
+            @(posedge rgmii_rx_clk)
+            begin
+               if (rgmii_tx_ctl_d2 === 1'b1 || rgmii_tx_ctl_d2 === 1'b0)
+                  #1 rgmii_rx_ctl <= rgmii_tx_ctl_d2;
+               else
+                  #1 rgmii_rx_ctl <= 1'b0;
+               rgmii_rx_d <= rgmii_tx_d_d2;
+            end
+            @(negedge rgmii_rx_clk)
+            begin
+               if (rgmii_tx_ctl_d1 === 1'b1 || rgmii_tx_ctl_d1 === 1'b0)
+                  #1 rgmii_rx_ctl <= rgmii_tx_ctl_d1;
+               else
+                  #1 rgmii_rx_ctl <= 1'b0;
+               rgmii_rx_d <= rgmii_tx_d_d1;
+            end
+         end
+      end
+   end
+endtask // handle_loopback_ingress
 
 
 ///////////////////////////////////////////////////////////////////
@@ -338,6 +451,7 @@ task handle_tx_packet;
       begin
 
 	 tx_count = tx_count + 1;
+	 barrier_count = barrier_count + 1;
 
 	 // We're not going to put the transmitted CRC in the packet, but tell the user what
 	 // it was in case they need to know. (So put it in an XML comment)
@@ -388,7 +502,15 @@ endtask // handle_tx_packet
 
 ////////////////////////////////////////////////////////////////
 // Check integrity of ingress file read
-//    Format of memory data is:
+//
+// Format of memory data is:
+//   Command (1 word)
+//   Command-specific data (n words)
+//
+// Command-specific formats:
+//   Packet send (0x01)
+//   ------------------
+//   00000001 // Send packet
 //   00000040 // len = 60 (not including CRC)
 //   00000000 // port= 0
 //   00000000 // earliest send time MSB (ns)
@@ -397,43 +519,78 @@ endtask // handle_tx_packet
 //   ...
 //   24252627 // end of data
 //   eeeeffff // token indicates end of packet
+//
+//   Barrier (0x02)
+//   --------------
+//   00000002 // Barrier
+//   0000000a // Number of packets to wait for
+//
+//   Delay (0x03)
+//   --------------
+//   00000002 // Delay
+//   00000000 // Time to wait MSB (ns)
+//   00000001 // Time to wait LSB
+//
 ////////////////////////////////////////////////////////////////
 task check_integrity;
 
-      integer pkt_count, i, words;
+      integer pkt_count;
+      integer barrier_count;
+      integer delay_count;
+      integer i;
+      integer words;
       reg [31:0] len, port;
-      time time2send;
 
 begin
    #1 pkt_count = 0; // #1 is done so that time format is set.
+   barrier_count = 0;
+   delay_count = 0;
    i = 0;
    while ((ingress_file[i] !== 32'hxxxxxxxx) && (ingress_file[i] !== 32'h0))
-     begin
+   begin
+      case (ingress_file[i])
+         CMD_SEND: begin
+            pkt_count = pkt_count + 1;
 
-	pkt_count = pkt_count + 1;
+            len = ingress_file[i+1];
+            if (len <14) $display("%m Warning: packet length %0d is < 14", len);
+            if (len >1518) $display("%m Warning: packet length %0d is > 1518", len);
 
-	len = ingress_file[i];
-	if (len <14) $display("%m Warning: packet length %0d is < 14", len);
-	if (len >1518) $display("%m Warning: packet length %0d is > 1518", len);
+            port = ingress_file[i+2];
+            if (port != my_port_number)
+               $display("%m Warning: Packet Port %0d does not match my port %0d", port, my_port_number);
 
-	port = ingress_file[i+1];
-	if (port != my_port_number)
-	  $display("%m Warning: Packet Port %0d does not match my port %0d", port, my_port_number);
+            words = (len-1)/4+1;
+            i=i+words+3;
+            if (ingress_file[i] !== `INGRESS_SEPARATOR) begin
+               $display("%m Error : expected to see %x at word %0d but saw %x",
+                  `INGRESS_SEPARATOR, i, ingress_file[i]);
+               $finish;
+            end
+            i=i+1;
+         end
 
-	time2send ={ingress_file[i+2],ingress_file[i+3]};
+         CMD_BARRIER: begin
+            barrier_count = barrier_count + 1;
+            i = i + 2;
+         end
 
-	//$display("pkt %0d len:%0d  port: %0d  time %t %d",
-	//	 pkt_count, len, port, time2send, time2send);
-	words = (len-1)/4+1;
-	i=i+words+4;
-	if (ingress_file[i] !== `INGRESS_SEPARATOR) begin
-	   $display("%m Error : expected to see %x at word %0d but saw %x",
-		    `INGRESS_SEPARATOR, i, ingress_file[i]);
-	end
-	i=i+1;
-     end
-   $display("%t %m Info: There will be %0d ingress packets.",
-	    $time, pkt_count);
+         CMD_DELAY: begin
+            delay_count = delay_count + 1;
+            i = i + 3;
+         end
+
+         default: begin
+            $display("%m Error: Unknown command %08x at word %0d", ingress_file[i], i);
+            $finish;
+         end
+     endcase
+   end
+
+   $display("%t %m Info: Input file contains:", $time);
+   $display("%t %m Info:    %0d ingress packets", $time, pkt_count);
+   $display("%t %m Info:    %0d barriers", $time, barrier_count);
+   $display("%t %m Info:    %0d delays", $time, delay_count);
 end
 endtask // check_integrity
 
@@ -551,45 +708,37 @@ endtask // initialize_egress
 
 
 ///////////////////////////////////////////////////////////////
-// Process a configuration file (config.txt).
+// Process a portconfiguration file (portconfig.sim).
 
-  task read_configuration;
-      integer fd_c, tmp;
-      begin
-	 #1;
+task read_portconfig;
+   integer fd_pc, tmp, loopback_all;
+   begin
+      #1;
 
-	 config_file_name = `CONFIG_FILE_FMT;
+      fd_pc = $fopen(`PORTCONFIG_FILE, "r");
 
-	 fd_c = $fopen(config_file_name, "r");
-
-	 if (fd_c == 0) begin
-	    if (my_port_number == 1)
-	      begin
-		 $display("Warning: could not read file config.txt");
-		 $display("Will use defaults:");
-		 $display("    Finish time is %t ",`DEFAULT_FINISH_TIME );
-		 $display("");
-		 $display("A config.txt file should have the format:");
-		 $display("FINISH=<time>");
-		 $display("where time is the desired finish time in ns");
-	      end
-	    finish_time = `DEFAULT_FINISH_TIME;
-	 end
-	 else begin
-	    tmp=$fscanf(fd_c,"FINISH=%d",finish_time);
-
-	    if (my_port_number == 1)
-	      begin
-		 $display("Read Configuration file %s",config_file_name);
-		 $display("    Finish time is %t.", finish_time);
-	      end
-	 end
-
-	 $fclose(fd_c);
-
+      if (fd_pc == 0) begin
+         if (my_port_number == 1)
+         begin
+            $display("No port configuration file %s", `PORTCONFIG_FILE);
+            $display("    Loopback is %4b.", loopback_all);
+         end
+         loopback = 0;
       end
-  endtask // read_configuration
+      else begin
+         tmp = $fscanf(fd_pc, "LOOPBACK=%b", loopback_all);
 
+         if (my_port_number == 1)
+         begin
+            $display("Read port configuration file %s", `PORTCONFIG_FILE);
+            $display("    Loopback is %4b.", loopback_all);
+         end
+         loopback = loopback_all[my_port_number - 1];
+      end
+
+      $fclose(fd_pc);
+   end
+endtask // read_portconfig
 
 
 
@@ -599,19 +748,7 @@ endtask // initialize_egress
 task handle_finish;
       time t;
 begin
-   // First, figure out when to finish
-   if (finish_time == 0) begin
-      $display("%m Weird! finish_time should have been set. Will use default.");
-      finish_time = `DEFAULT_FINISH_TIME ;
-   end
-
-   if (finish_time < $time) begin // Finished already!
-      $display($time," Finishing immediately - maybe that's not what you wanted - if so then change config.txt to something larger");
-   end
-   else begin
-      t = finish_time - $time;
-      #t;
-   end
+   wait (sim_end === 1'b1);
 
    // OK, now it's time to finish so clean up
    $fwrite(fd_e,"\n<!-- Simulation terminating at time %0t -->\n",$time);

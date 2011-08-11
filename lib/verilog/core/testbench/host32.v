@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// $Id: host32.v 5550 2009-05-11 20:09:59Z grg $
+// vim:set shiftwidth=3 softtabstop=3 expandtab:
 //
 // Module: host32.v
 // Project: CPCI (PCI Control FPGA)
@@ -32,7 +32,14 @@ module host32 (
 	       // testbench side signals
                output reg req,
                input      grant,
-	       output reg host32_is_active  // tell TB when we are ready for requests
+	       output reg host32_is_active,  // tell TB when we are ready for requests
+
+               output reg done,
+
+               output reg activity,
+
+               output reg barrier_req,
+               input      barrier_proceed
                );
 
 // Include all of the base code that defines how do do various
@@ -40,6 +47,8 @@ module host32 (
 `include "host32_inc.v"
 
 `define PCI_FILE_NAME "packet_data/pci_sim_data"
+
+`define NUM_DMA_PORTS   4
 
    reg dma_in_progress;
    reg [`PCI_DATA_WIDTH - 1:0] dma_q_status;
@@ -50,6 +59,17 @@ module host32 (
    assign dma_pkt_avail = dma_q_status[`PCI_DATA_WIDTH/2 +: `PCI_DATA_WIDTH/2];
    assign dma_can_wr_pkt = dma_q_status[`PCI_DATA_WIDTH/2 - 1:0];
 
+   integer dma_rx_pkts[0 : `NUM_DMA_PORTS - 1];
+   integer dma_rx_pkts_i;
+
+   integer exp_pkts [0: `NUM_DMA_PORTS - 1];
+   reg all_exp_pkts_seen;
+
+   reg delay_done;
+   time delay_end;
+
+
+
 // Begin the actual simulation sequence
    initial
    begin
@@ -57,6 +77,17 @@ module host32 (
       host32_is_active = 0;
       dma_in_progress = 0;
       dma_q_status = 'h0;
+      barrier_req = 0;
+      activity = 0;
+      done = 0;
+      for (dma_rx_pkts_i = 0; dma_rx_pkts_i < `NUM_DMA_PORTS;
+         dma_rx_pkts_i = dma_rx_pkts_i + 1) begin
+            dma_rx_pkts[dma_rx_pkts_i] = 0;
+            exp_pkts[dma_rx_pkts_i] = 0;
+         end
+      all_exp_pkts_seen = 0;
+      delay_end = 0;
+      delay_done = 1;
 
       // wait for the system to reset
       RESET_WAIT;
@@ -79,16 +110,25 @@ module host32 (
 `define PCI_READ     1
 `define PCI_WRITE    2
 `define PCI_DMA      3
+`define PCI_BARRIER  4
+`define PCI_DELAY    5
 
-   time  earliest_time;
-   reg   time_elapsed;
+   reg pkts_good;
 
    always @(posedge CLK)
    begin
-      if ($time < earliest_time)
-         time_elapsed = 0;
-      else
-         time_elapsed = 1;
+      pkts_good = 1;
+      for (dma_rx_pkts_i = 0; dma_rx_pkts_i < `NUM_DMA_PORTS;
+         dma_rx_pkts_i = dma_rx_pkts_i + 1) begin
+            pkts_good = pkts_good &
+               (dma_rx_pkts[dma_rx_pkts_i] >= exp_pkts[dma_rx_pkts_i]);
+         end
+      all_exp_pkts_seen = pkts_good;
+   end
+
+   always @(posedge CLK)
+   begin
+      delay_done = $time >= delay_end;
    end
 
    task process_PCI_requests;
@@ -103,7 +143,9 @@ module host32 (
       reg ok2, ok3;
 
       reg [`PCI_DATA_WIDTH - 1:0]   interrupt_mask;
+      reg rx_good;
 
+      time delay;
 
       begin
 	 for (i=0;i <= `PCI_SZ; i=i+1) pci_cmds[i] = 'h0;
@@ -116,114 +158,199 @@ module host32 (
 	 // Iterate through the command memory until we get to a null command or end of mem.
 	 while ((pci_ptr < `PCI_SZ) && (pci_cmds[pci_ptr] != 0)) begin
 	    pci_cmd = pci_cmds[pci_ptr];
-	    earliest_time = {pci_cmds[pci_ptr+1],pci_cmds[pci_ptr+2]};
-            time_elapsed = 0;
-	    pci_addr = pci_cmds[pci_ptr+3];
-	    pci_data = pci_cmds[pci_ptr+4];
-	    pci_mask = pci_cmds[pci_ptr+5];
-	    pci_ptr = pci_ptr + 6;
+	    pci_addr = pci_cmds[pci_ptr+1];
+	    pci_data = pci_cmds[pci_ptr+2];
+	    pci_mask = pci_cmds[pci_ptr+3];
+            if (pci_cmd == `PCI_BARRIER)
+               for (i = 0; i < `NUM_DMA_PORTS; i = i + 1)
+                  exp_pkts[i] = pci_cmds[pci_ptr + 1 + i];
+            delay = {pci_cmds[pci_ptr+1], pci_cmds[pci_ptr+2]};
 
-	    // First, do nothing until it's time for this access.
+            // Service any pending interrupts
+            while (~INTR_A)
+               service_interrupt;
 
-	    if ($time < earliest_time)
-	       $display("%t %m: Info: Waiting until time %t to execute next PCI access.",
-			$time, earliest_time);
+            // Wait appropriately if the command is a PCI transaction
+            if (pci_cmd != `PCI_BARRIER && pci_cmd != `PCI_DELAY) begin
+                while (dma_in_progress ||
+                   (pci_cmd == `PCI_DMA && !dma_can_wr_pkt[pci_addr - 1])) begin
 
-	    while (($time < earliest_time) || dma_in_progress ||
-               (pci_cmd == `PCI_DMA && !dma_can_wr_pkt[pci_addr - 1])) begin
+                   // Wait until either an interrupt occurs
+                   // or the there's no DMA transfer in progress and we can
+                   // proceed with the next command
+                   wait (~INTR_A || !dma_in_progress &&
+                      !(pci_cmd == `PCI_DMA && !dma_can_wr_pkt[pci_addr - 1]));
 
-               // Wait until either an interrupt occurs
-               // or the time elapses without a DMA transfer in progress
-               wait (~INTR_A || (time_elapsed && !dma_in_progress) &&
-                  !(pci_cmd == `PCI_DMA && !dma_can_wr_pkt[pci_addr - 1]));
-
-               // Service any interrupts
-               if (~INTR_A)
-                  service_interrupt;
-	    end
+                   // Service any interrupts
+                   if (~INTR_A)
+                      service_interrupt;
+                end
+             end
 
 	    // tell user what we're doing
 
-	    if (pci_cmd == `PCI_READ)
-	      $display("%t %m: Info: Starting PCI Read of address 0x%08x expect result 0x%08x",
-		       $time, pci_addr, (pci_data & pci_mask));
-	    else if (pci_cmd == `PCI_WRITE)
-	      $display("%t %m: Info: Starting PCI Write data 0x%08x to address 0x%08x",
-		       $time, pci_data, pci_addr);
-	    else if (pci_cmd == `PCI_DMA)
-	      $display("%t %m: Info: Starting PCI DMA transfer of length %0d to DMA queue %0d",
-		       $time, pci_data, pci_addr);
-            else begin
-	      $display("%t %m: Error: Unknown PCI transaction: 0x%08x", $time, pci_cmd);
-            end
+            case (pci_cmd)
+               `PCI_READ: begin
+                  $display("%t %m: Info: Starting PCI Read of address 0x%08x expect result 0x%08x",
+                           $time, pci_addr, (pci_data & pci_mask));
+               end
+
+               `PCI_WRITE: begin
+	          $display("%t %m: Info: Starting PCI Write data 0x%08x to address 0x%08x",
+		           $time, pci_data, pci_addr);
+               end
+
+               `PCI_DMA: begin
+	          $display("%t %m: Info: Starting PCI DMA transfer of length %0d to DMA queue %0d",
+		           $time, pci_data, pci_addr);
+               end
+
+               `PCI_BARRIER: begin
+	          $display("%t %m: Info: PCI barrier", $time);
+                  for (i = 0; i < `NUM_DMA_PORTS; i = i + 1)
+	             $display("%t %m: Info:   DMA port %1d: expecting %1d pkts, seen %1d pkts",
+                        $time, i, exp_pkts[i], dma_rx_pkts[i]);
+               end
+
+               `PCI_DELAY: begin
+	          $display("%t %m: Info: PCI delay %t ns", $time, delay);
+               end
+
+               default: begin
+	          $display("%t %m: Error: Unknown PCI transaction: 0x%08x", $time, pci_cmd);
+               end
+            endcase
 
 
 	    // do it.
+            case (pci_cmd)
+               `PCI_READ: begin
+                  activity = 1;
+                  PCI_DW_RD_RETRY( pci_addr[26:0],  4'h6, MAX_TRIES, rd_data, ok);
+                  activity = 0;
 
-	    if (pci_cmd == `PCI_READ) begin
+                  if (ok !== 1)
+                    $display("%t %m: Error: PCI Read of address 0x%08x failed.",
+                             $time, pci_addr);
+                  else begin
+                     // check expected value against actual
+                     if ((rd_data & pci_mask) !== (pci_data & pci_mask)) begin
+                        $display("%t %m: Error: PCI read of addr 0x%06x returned data 0x%08x but expected 0x%08x (mask is 0x%08x)",
+                                 $time, pci_addr, (rd_data & pci_mask), (pci_data & pci_mask), pci_mask);
+                     end
+                     else
+                        $display("%t %m: Good: PCI read of addr 0x%06x returned data 0x%08x as expected.",
+                                 $time, pci_addr, (rd_data & pci_mask));
+                  end
 
-	       PCI_DW_RD_RETRY( pci_addr[26:0],  4'h6, MAX_TRIES, rd_data, ok);
-
-	       if (ok !== 1)
-		 $display("%t %m: Error: PCI Read of address 0x%08x failed.",
-			  $time, pci_addr);
-	       else begin
-		  // check expected value against actual
-		  if ((rd_data & pci_mask) !== (pci_data & pci_mask)) begin
-		     $display("%t %m: Error: PCI read of addr 0x%06x returned data 0x%08x but expected 0x%08x (mask is 0x%08x)",
-			      $time, pci_addr, (rd_data & pci_mask), (pci_data & pci_mask), pci_mask);
-		  end
-		  else
-		     $display("%t %m: Good: PCI read of addr 0x%06x returned data 0x%08x as expected.",
-			      $time, pci_addr, (rd_data & pci_mask));
-	       end
-
-	    end  // PCI READ
-
-	    else
-
-	    if (pci_cmd == `PCI_WRITE) begin
-
-	       PCI_DW_WR_RETRY( pci_addr[26:0],  4'h7, pci_data, MAX_TRIES, ok);
-
-	       if (ok !== 1)
-		 $display("%t %m: Error: PCI Write to address 0x%08x with data 0x%08x failed.",
-			  $time, pci_addr, pci_data);
-
-	    end  // PCI WRITE
-
-            else
-
-            if (pci_cmd == `PCI_DMA) begin
-
-               $display("%t %m: Info: Starting DMA transfer", $time);
-
-               dma_in_progress = 1;
-
-               // Prepare the DMA data in memory
-               testbench.target32.next_ingress;
-
-               // Mask off the packet available interrupts (don't start a new
-               // transfer while we're waiting for this transfer to begin)
-               PCI_DW_RD({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h6, interrupt_mask, success);
-               interrupt_mask = interrupt_mask | 32'h00000100;
-               PCI_DW_WR({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h7, interrupt_mask, success);
-
-               // Set up the write address and size
-               PCI_DW_WR({`CPCI_DMA_ADDR_E, 2'b0}, 4'h7, 32'hc0000000, ok);
-               PCI_DW_WR({`CPCI_DMA_SIZE_E, 2'b0}, 4'h7, pci_data, ok2);
-
-               // Start the DMA transfer
-               PCI_DW_WR({`CPCI_DMA_CTRL_E, 2'b0}, 4'h7,
-                  (32'h00000f00 & ((pci_addr-1) << 8)) | 32'h00000001, ok3);
-
-	       if (ok !== 1 || ok2 !== 1 || ok3 != 1)
-		 $display("%t %m: Error: Problem starting DMA transfer", $time);
-            end // PCI_DMA
+	          pci_ptr = pci_ptr + 4;
+               end  // PCI READ
 
 
+               `PCI_WRITE: begin
+                  activity = 1;
+                  PCI_DW_WR_RETRY( pci_addr[26:0],  4'h7, pci_data, MAX_TRIES, ok);
+                  activity = 0;
+
+                  if (ok !== 1)
+                    $display("%t %m: Error: PCI Write to address 0x%08x with data 0x%08x failed.",
+                             $time, pci_addr, pci_data);
+
+	          pci_ptr = pci_ptr + 4;
+               end  // PCI WRITE
+
+
+               `PCI_DMA: begin
+                  $display("%t %m: Info: Starting DMA transfer", $time);
+
+                  dma_in_progress = 1;
+
+                  // Prepare the DMA data in memory
+                  testbench.target32.next_ingress;
+
+                  // Mask off the packet available interrupts (don't start a new
+                  // transfer while we're waiting for this transfer to begin)
+                  activity = 1;
+                  PCI_DW_RD({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h6, interrupt_mask, success);
+                  interrupt_mask = interrupt_mask | 32'h00000100;
+                  PCI_DW_WR({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h7, interrupt_mask, success);
+
+                  // Set up the write address and size
+                  PCI_DW_WR({`CPCI_DMA_ADDR_E, 2'b0}, 4'h7, 32'hc0000000, ok);
+                  PCI_DW_WR({`CPCI_DMA_SIZE_E, 2'b0}, 4'h7, pci_data, ok2);
+
+                  // Start the DMA transfer
+                  PCI_DW_WR({`CPCI_DMA_CTRL_E, 2'b0}, 4'h7,
+                     (32'h00000f00 & ((pci_addr-1) << 8)) | 32'h00000001, ok3);
+
+                  if (ok !== 1 || ok2 !== 1 || ok3 != 1)
+                    $display("%t %m: Error: Problem starting DMA transfer", $time);
+
+	          pci_ptr = pci_ptr + 4;
+               end // PCI_DMA
+
+               `PCI_BARRIER: begin
+                  $display($time," %m Info: barrier request");
+
+                  // Wait to ensure that all expected packets have been seen
+                  // (ensure that interrupts are serviced)
+                  @(posedge CLK);
+                  #1; //all_exp_pkts_seen = 0;
+                  while (!all_exp_pkts_seen) begin
+                     wait (all_exp_pkts_seen || ~INTR_A);
+
+                     // Service any interrupts
+                     if (~INTR_A)
+                        service_interrupt;
+                  end
+                  barrier_req = 1;
+
+                  // Wait for the barrier proceed signals, but ensure that
+                  // interrupts are serviced
+                  while (!barrier_proceed) begin
+                     wait (barrier_proceed || ~INTR_A);
+
+                     // Service any interrupts
+                     if (~INTR_A)
+                        service_interrupt;
+                  end
+
+                  #1;
+                  barrier_req = 0;
+                  wait (!barrier_proceed);
+                  $display($time," %m Info: barrier complete");
+                  for (i = 0; i < `NUM_DMA_PORTS; i = i + 1)
+                     dma_rx_pkts[i]=0;
+
+	          pci_ptr = pci_ptr + 1 + `NUM_DMA_PORTS;
+               end
+
+               `PCI_DELAY: begin
+	          $display("%t %m: Info: delaying %0d ns", $time, delay);
+                  activity = 1;
+                  delay_end = $time + delay;
+                  @(posedge CLK);
+                  #1;
+                  while (!delay_done) begin
+                     wait (delay_done || ~INTR_A);
+
+                     // Service any interrupts
+                     if (~INTR_A)
+                        service_interrupt;
+                  end
+                  activity = 0;
+	          pci_ptr = pci_ptr + 3;
+               end
+
+               default: begin
+	          $finish;
+               end
+            endcase
 
 	 end // while ((pci_ptr < `PCI_SZ) && (pci_cmds[pci_ptr] != 0))
+
+         // Indicate that we are done
+         done = 1;
 
          // Finished processing all PCI simulation data.
          //
@@ -315,7 +442,9 @@ module host32 (
             $display("%t %m: DMA queue status change", $time);
 
             // Read the queue status
+            activity = 1;
             PCI_DW_RD({`CPCI_DMA_QUEUE_STATUS, 2'b0}, 4'h6, dma_q_status, success);
+            activity = 0;
          end
 
          // Handle ingress DMA completion
@@ -336,10 +465,15 @@ module host32 (
             testbench.target32.handle_egress_packet(dma_src, dma_size);
             dma_in_progress = 0;
 
+            if (dma_src < `NUM_DMA_PORTS)
+               dma_rx_pkts[dma_src] = dma_rx_pkts[dma_src] + 1;
+
             // Re-enable the pkt avail interrupt
             PCI_DW_RD({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h6, interrupt_mask, success);
             interrupt_mask = interrupt_mask & ~(32'h00000100);
             PCI_DW_WR({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h7, interrupt_mask, success);
+
+            activity = 0;
          end
 
          // Handle egress DMA completion
@@ -354,6 +488,7 @@ module host32 (
 
             // Clear the DMA in progress flag
             dma_in_progress = 0;
+            activity = 0;
          end
 
          // Handle PHY interrupts
@@ -367,10 +502,11 @@ module host32 (
          end
 
          // Handle packets available
-         if (pkt_avail) begin
+         if (pkt_avail && !dma_in_progress) begin
             $display("%t %m: Packet available. Starting DMA ingress transfer", $time);
 
             dma_in_progress = 1;
+            activity = 1;
 
             // Begin by masking off the interrupt
             PCI_DW_RD({`CPCI_INTERRUPT_MASK, 2'b0}, 4'h6, interrupt_mask, success);
@@ -382,6 +518,9 @@ module host32 (
 
             // Start the transfer
             PCI_DW_WR({`CPCI_DMA_CTRL_I, 2'b0}, 4'h7, 32'h00000001, success);
+         end
+         else if (pkt_avail && dma_in_progress) begin
+            $display("%t %m: Packet available. Ignoring as DMA transaction already in progress...", $time);
          end
 
          // Handle CNET read timeouts

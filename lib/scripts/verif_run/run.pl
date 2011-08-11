@@ -22,7 +22,7 @@ my %config = (
 	'extra_files' => '',
 	'extra_checks' => '',
 	'log' => 'my_sim.log',
-	'finish' => 1000000,
+	'finish' => '', #1000000,
 );
 
 # Configuration file
@@ -136,12 +136,12 @@ if ($good) {
 #
 # Note: always run the simulation but only run it for 1 time step if
 # things are not good since the reg_defines.h is generated from it
-$config{'finish'} = 1 if (!$good);
-$good &= &createFinishFile;
+#$config{'finish'} = 1 if (!$good);
+$good &= &createFinishFile if $good;
 
 # Run the simulation (again, always try to run since
 # the reg_defines.h file is generated from the output)
-$good &= &runSim($good);
+$good &= &runSim($good) if $good;
 
 # Validate the output
 $good &= &validateOutput if $good;
@@ -463,13 +463,15 @@ sub printError {
 # createFinishFile
 #   create the file that instructs the simulator when to finish
 sub createFinishFile {
-	if (open FINISH, ">$finishFile") {
-		print FINISH "FINISH=$config{'finish'}\n";
-		close FINISH;
+	if ( $config{'finish'} ne '' ) {
+		if (open FINISH, ">$finishFile") {
+			print FINISH "FINISH=$config{'finish'}\n";
+			close FINISH;
+		}
+		else {
+			&printError("Unable to open finish time file '$finishFile' for writing");
+			return 0;
+		}
 	}
-	else {
-		&printError("Unable to open finish time file '$finishFile' for writing");
-		return 0;
-	}
-
+	return 1;
 }

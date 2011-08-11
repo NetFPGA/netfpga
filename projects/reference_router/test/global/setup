@@ -1,0 +1,105 @@
+#!/usr/bin/perl
+
+use Getopt::Long;
+use NF::RegressLib;
+
+my %ifaceNameMap;
+
+# Process command line options
+unless ( GetOptions (
+		"help" => \$help,
+		"map=s" => \$mapFile
+	  )
+	  and ($help eq '')
+	) { usage(); exit 1 }
+
+#
+# Verify that the mapfile exists
+#
+if (defined($mapFile)) {
+	nftest_process_iface_map($mapFile);
+}
+
+
+my $device = nftest_get_iface('nf2c0');
+system("nf_download  -i $device $ENV{NF_ROOT}/bitfiles/reference_router.bit") == 0
+	or die "Download Failed: $?\n";
+
+my %interfaces;
+my %interfacesPremap = (
+	'eth1'	=> '192.168.100.1',
+	'eth2'	=> '192.168.101.1',
+	'nf2c0'	=> '192.168.200.1',
+	'nf2c1'	=> '192.168.201.1',
+	'nf2c2'	=> '192.168.202.1',
+	'nf2c3'	=> '192.168.203.1',
+);
+
+# Map the interface names across
+foreach my $iface (keys %interfacesPremap) {
+	$interfaces{nftest_get_iface($iface)} = $interfacesPremap{$iface};
+}
+
+my $success = 0;
+
+foreach my $iface (keys %interfaces) {
+	my $ip = $interfaces{$iface};
+
+	$success += ifconfig($iface, $ip);
+}
+
+sleep(2);
+
+if ($success == scalar(keys %interfaces))
+{
+	printf "SUCCESS!\n";
+	exit (0);
+}
+else
+{
+	printf "FAIL\n";
+	exit(1);
+}
+
+
+########################
+
+sub ifconfig {
+	my ($iface, $ip) = @_;
+
+	`/sbin/ifconfig $iface $ip netmask 255.255.255.252`;
+
+	my $output = `/sbin/ifconfig $iface`;
+	my @elements = split(/[:\s+]/, $output);
+
+	my $success = 0;
+	for (my $j = 0; $j < @elements; $j++)
+	{
+		if($elements[$j] eq "inet" && $elements[$j+1] eq "addr")
+		{
+			if($elements[$j+2] eq "$ip")
+			{
+			  $success = 1;
+			}
+			$j = 99;
+		}
+	}
+
+	return $success;
+}
+
+
+sub usage {
+  (my $cmd = $0) =~ s/.*\///;
+  print <<"HERE1";
+NAME
+   $cmd - regression suite script
+
+SYNOPSIS
+   $cmd [--map <mapfile>]
+
+   $cmd --help  - show detailed help
+
+HERE1
+
+}

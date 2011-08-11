@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+
+use Getopt::Long;
+use NF::RegressLib;
+
+my $device = nftest_get_iface('nf2c0');
+system("nf_download  -i $device $ENV{NF_ROOT}/bitfiles/reference_router.bit") == 0
+        or die "Download Failed: $?\n";
+
+sleep(2);
+
+open CPUHW, "$ENV{'NF_ROOT'}/projects/scone/sw/cpuhw";
+while (<CPUHW>) {
+	chomp;
+
+	# Work out the port and IP address
+	/^eth(\d)\s+(\d+\.\d+\.\d+\.\d+)/;
+
+	# Run ifconfig
+	`/sbin/ifconfig nf2c$1 $2 up`;
+}

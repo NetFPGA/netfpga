@@ -1,0 +1,339 @@
+# $Id$
+
+# This is the makefile for compiling an NetFPGA-1G simulation.
+
+DESIGN_DIR = $(NF_DESIGN_DIR)
+
+# Start by including the synth_makefile functions and variables to get all that
+# goodness
+include $(NF_ROOT)/lib/Makefiles/synth_makefile.funcs
+include $(NF_ROOT)/lib/Makefiles/synth_makefile.vars
+
+
+##############################################
+# Local configuration
+.SUFFIXES : .v
+
+#TOP is the top level verilog file (testbench)
+TOP = testbench.v
+
+# DUMP_CTRL may be overidden by script calling this
+DUMP_CTRL=
+
+##############################################
+# Global variables
+
+# Where are the testbench sources?
+TESTBENCH_DIR = $(LIB_DIR)/core/legacy_testbench
+
+# Where are CPCI sources?
+CPCI_DESIGN_DIR = $(NF_ROOT)/projects/cpci
+CPCI_SRC_DIR = $(CPCI_DESIGN_DIR)/src
+CPCI_SRC_COREGEN_DIR = $(CPCI_DESIGN_DIR)/src/src_coregen
+CPCI_INC_DIR = $(CPCI_DESIGN_DIR)/include
+
+# Set include directories
+DEFINES_INC_DIR = $(COMMON_DIR)
+
+#############################################
+# Specific design variables
+
+# Where are the user's sources?
+UNET_SRC_DIR = $(NF_DESIGN_DIR)/src
+# Get the additional sources one level of directories below UNET_SRC_DIR
+UNET_EXTRA_DIRS = $(filter-out $(UNET_SRC_DIR)/,$(dir $(wildcard $(UNET_SRC_DIR)/*/)))
+
+# Design specific include directory
+DESIGN_INC_DIR = $(NF_DESIGN_DIR)/include
+
+# Add the design specific defines
+DEFINES_SRCS := $(DEFINES_SRCS) $(wildcard $(DESIGN_INC_DIR)/*.v)
+
+#############################################
+# XPS directories
+
+# Where are the XPS EDK sources?
+UNET_XPS_DIR = $(wildcard $(UNET_SRC_DIR)/xps_src)
+
+UNET_XPS_GEN_SIM_DIR = $(UNET_SRC_DIR)/xps_src/simulation/behavioral
+UNET_XPS_SIM_DUMMY_DIR = $(UNET_SRC_DIR)/xps_src/src_synth
+
+UNET_XPS_SRC_DIR_1 = $(UNET_SRC_DIR)/xps_src/pcores/nf2_burst_sramc_v1_00_a/hdl/vhdl
+UNET_XPS_SRC_DIR_2 = $(UNET_SRC_DIR)/xps_src/pcores/nf2_burst_sramc_v1_00_a/hdl/verilog
+UNET_XPS_SRC_DIR_3 = $(UNET_SRC_DIR)/xps_src/pcores/nf2_mb_rdwr_v1_00_a/hdl/vhdl
+UNET_XPS_SRC_DIR_4 = $(UNET_SRC_DIR)/xps_src/pcores/nf2_mb_rdwr_v1_00_a/hdl/verilog
+
+# add the xps directories
+ifneq ($(UNET_XPS_DIR),)
+	XPS_SRC_SEARCH_CMD = 	-y $(UNET_XPS_SRC_DIR_1) -y $(UNET_XPS_SRC_DIR_2) \
+				-y $(UNET_XPS_SRC_DIR_3) -y $(UNET_XPS_SRC_DIR_4)
+else
+	XPS_SRC_SEARCH_CMD =
+endif
+
+#############################################
+# Source files
+
+# Add the testbench, dump and simulation files
+SRCS := $(SRCS) $(TESTBENCH_DIR)/$(TOP) $(XILINX)/verilog/src/glbl.v
+ifneq ($(DUMP_CTRL),)
+	SRCS := $(SRCS) $(wildcard $(UNET_SRC_DIR)/$(DUMP_CTRL))
+endif
+
+# Create a list of the testbench sources
+#
+# Filter out ones that we don't need to explicity complie
+#   board_h32_t32    -- included by testbench
+#   host32_inc       -- included by host32
+#   module_sim_tasks -- used in single-module simulations
+#   tasks            -- no longer used
+TB_SRCS := $(wildcard $(TESTBENCH_DIR)/*.v)
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/board_h32_t32.v, $(TB_SRCS))
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/host32_inc.v, $(TB_SRCS))
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/module_sim_tasks.v, $(TB_SRCS))
+TB_SRCS := $(filter-out $(TESTBENCH_DIR)/tasks.v, $(TB_SRCS))
+
+# We need this explicitly because Xilinx gets the case wrong
+PCI_LC_I = $(CPCI_SRC_COREGEN_DIR)/pci_lc_i.v
+
+# Add the CPCI sources
+# $(filter-out $(INC_DIR)/registers.v, $(wildcard $(INC_DIR)/*.v)) $(INC_DIR)/registers.v
+CPCI_SRCS := $(wildcard $(CPCI_SRC_DIR)/*.v) $(wildcard $(CPCI_SRC_COREGEN_DIR)/*.v)
+CPCI_INC_SRCS := $(filter-out $(CPCI_INC_DIR)/registers.v, $(wildcard $(CPCI_INC_DIR)/*.v)) $(CPCI_INC_DIR)/registers.v
+CPCI_SRCS := $(CPCI_SRCS) $(CPCI_INC_SRCS)
+
+############################################
+# Xilinx libraries
+
+# Set up the Xilinx libraries
+SIMPRIMS    = $(XILINX)/verilog/src/simprims
+UNISIMS     = $(XILINX)/verilog/src/unisims
+COREGENLIBS = $(XILINX)/verilog/src/XilinxCoreLib
+
+#below is smartmodels for vsim
+SMARTMODELS = $(XILINX)/smartmodel/lin/wrappers/mtiverilog
+
+#below is smartmodels for vcs
+#SMARTMODELS = $(XILINX)/smartmodel/lin/wrappers/vcsmxverilog
+
+# for vcs, BLK_MEM_GEN_V2_4.v won't be found unless explicitly specified.
+XILINX_LIBS = -y $(SIMPRIMS) -y $(UNISIMS) -v $(COREGENLIBS)/BLK_MEM_GEN_V2_4.v -y $(COREGENLIBS) -y $(SMARTMODELS)
+
+############################################
+# Compiler options
+
+# Set compiler flags for VCS
+VCS_FLAGS = +v2k +libext+.v -timescale=1ns/1ns +notimingcheck +define+sg5E +define+x16 +define+MAX_MEM +define+sb166 -lmc-swift -PP
+
+VLOG_OPTS = +notimingchecks -incr +define+sg5E +define+x16 +define+MAX_MEM +define+sb166
+VCOM_OPTS = -93
+
+# Both simulators use -y to specify directories to look in when seeking source
+# verilog files.
+SRC_SEARCH_CMD =-y $(UNET_SRC_DIR) $(foreach DIR,$(UNET_EXTRA_DIRS), -y $(DIR)) \
+		-y $(CPCI_SRC_DIR) -y $(CPCI_SRC_COREGEN_DIR) $(XILINX_LIBS) \
+		$(XPS_SRC_SEARCH_CMD) \
+		-y $(COMMON_DIR) -y $(TESTBENCH_DIR) -v $(PCI_LC_I)
+
+# Set the directories to look for when an include directive is found
+INC_CMD := +incdir+$(DEFINES_INC_DIR)+$(TESTBENCH_DIR)+$(DESIGN_INC_DIR)
+ifneq ($(LIB_INC_DIRS),)
+	# This stupid junk here is needed to include a space in a subst
+	sp :=
+	sp +=
+	INC_CMD := $(INC_CMD)+$(subst $(sp),+,$(LIB_INC_DIRS))
+endif
+
+############################################
+# Include any design specific changes
+
+# do any additional design specific changes
+UNET_MAKE_INC = $(DESIGN_INC_DIR)/makefile.inc
+ifneq ($(strip $(wildcard $(UNET_MAKE_INC))),)
+	include $(UNET_MAKE_INC)
+endif
+
+###########################################
+# Modelsim.ini copying
+ifneq ($(wildcard $(MODELSIM)),)
+	MODELSIM_INI = ${PWD}/vsim_beh/modelsim.ini
+	MODELSIM_ENV = MODELSIM=$(MODELSIM_INI)
+endif
+
+
+# ###########################################################################
+# Now lets build them.....
+# Make sure we can build under VCS and ModelSim
+# my_sim is generated by vcs
+# top is not generated but will force ModelSim's vlog to be run
+
+# generate the verilog wrappers for IP cores used
+.PHONY: cores
+cores:
+	$(MAKE) -C $(NF_DESIGN_DIR)/synth cores
+	$(MAKE) -C $(CPCI_DESIGN_DIR)/synth cores
+
+# generate the verilog wrappers for IP cores used
+.PHONY: registers
+registers:
+	$(MAKE) -C $(NF_DESIGN_DIR)/synth registers
+	$(MAKE) -C $(CPCI_DESIGN_DIR)/synth registers
+
+$(INC_DIR)/registers.v: registers
+$(CPCI_INC_DIR)/registers.v: registers
+
+# This version ONLY generates the VCS binary
+vcs_top: registers cores my_sim
+
+# This version generates ModelSim
+vsim_top: registers cores model_sim
+
+# This version generates ISIM
+isim_top: registers cores nf2_top_isim
+
+# This version generates VCS, ModelSim and ISIM
+all: vcs_top vsim_top isim_top
+
+
+########### VCS SIMULATION #################
+
+# NOTE: Added +evalorder to stop vcs getting hung up on a pseudo race condition.
+
+my_sim: $(SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(CPCI_SRCS) $(INCLUDES) $(LIB_MODULES_FILE)
+	@echo "==============================================================================="
+	@echo "Building VCS binary"
+	@echo "==============================================================================="
+	@echo "+++testStarted:build.VCS.binary"
+	vcs +evalorder -notice -o my_sim $(VCS_FLAGS) $(SIM_OPT) $(SRC_SEARCH_CMD) $(INC_CMD) $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(SRCS) $(wildcard ${UNET_XPS_SIM_DUMMY_DIR}/*.v)
+	@echo "+++testFinished:build.VCS.binary"
+
+simvfast: $(SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(INCLUDES)
+	vcs +evalorder -o simvfast +rad $(VCS_FLAGS) $(SIM_OPT) -y $(SRC_DIR) -y $(COREGENLIBS) -y $(SIMPRIMS) -y $(COMMON_DIR) $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(SRCS) $(wildcard ${UNET_XPS_SIM_DUMMY_DIR}/*.v)
+
+
+
+########### ISIM SIMULATION #################
+
+# This makefile is setup to work with ISim 10.1
+#
+# Unfortunately 10.1 is unable to correctly process some of the code in
+# nf2_core.v related to selecting register signals based on the value of
+# constants defined in a project's registers.v. This works correctly in
+# ModelSim and XST -- presumably it's a bug/limitation of ISim. The workaround
+# is to replace the references to the register constants with their actual
+# values. The code calls a script to perform this replacement and uses the
+# substituted version in simulations.
+#
+COMMON_SRCS := $(wildcard $(COMMON_DIR)/*.v)
+COMMON_SRCS := $(filter-out $(INC_SRCS), $(COMMON_SRCS))
+
+REGISTER_SRCS := $(INC_DIR)/registers.v
+SUBST_SRCS := $(filter %nf2_core.v, $(SRCS))
+NO_SUBST_SRCS := $(filter-out $(SUBST_SRCS), $(SRCS))
+SUBST_DONE_SRCS := $(addsuffix .subst, $(SUBST_SRCS))
+
+ISIM_INC_CMD := -i $(DEFINES_INC_DIR) -i $(TESTBENCH_DIR) -i $(DESIGN_INC_DIR)
+ISIM_INC_CMD := $(ISIM_INC_CMD) $(foreach dir,$(LIB_INC_DIRS),-i $(dir))
+
+%.v.subst: %.v $(REGISTER_SRCS)
+	nf_const_subst.pl --define $(REGISTER_SRCS) $<
+
+nf2_top_isim: $(NO_SUBST_SRCS) $(SUBST_DONE_SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(CPCI_SRCS) $(INCLUDES) $(LIB_MODULES_FILE) $(TB_SRCS)
+	@echo "==============================================================================="
+	@echo "Building ISIM binary"
+	@echo "==============================================================================="
+	@echo "+++testStarted:build.ISIM.binary"
+	@echo UNET_EXTRA_DIRS is $(UNET_EXTRA_DIRS)
+ifneq (${UNET_XPS_DIR},)
+	@echo XPS currently not supported for ISIM
+	@echo
+	@echo Please add support to the simulation makefile
+	false
+else
+	vlogcomp --incremental -d RUNNING_ISIM $(ISIM_INC_CMD) $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(NO_SUBST_SRCS) $(SUBST_DONE_SRCS) $(CPCI_SRCS) $(TB_SRCS) $(COMMON_SRCS)
+	fuse --incremental -top testbench -top glbl –lib unimacro_ver -lib unisims_ver -lib xilinxcorelib_ver -lib simprims_ver -o $@
+endif
+	@echo "+++testFinished:build.ISIM.binary"
+
+
+########### MODELSIM SIMULATION #################
+
+# Set flags for Modelsim
+
+
+# Once vlog has built, simulate with
+# % vsim <top_module> -do "run <sim time>"
+#
+# If you change the rule below to include xps_sim_gen please update the
+# xps_sim_gen rule to only build when necessary -- otherwise
+# the files are recompiled every time make is called
+#
+model_sim: $(SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(CPCI_SRCS) $(INCLUDES) $(LIB_MODULES_FILE)
+#model_sim: $(SRCS) $(DEFINES_SRCS) $(OTHER_SRCS) $(CPCI_SRCS) $(INCLUDES) $(LIB_MODULES_FILE) xps_sim_gen
+	@echo "==============================================================================="
+	@echo "Building ModelSim binary"
+	@echo "==============================================================================="
+	@echo "+++testStarted:build.ModelSim.binary"
+	@echo UNET_EXTRA_DIRS is $(UNET_EXTRA_DIRS)
+ifneq (${UNET_XPS_DIR},)
+	# copy the dir over to local in order to generate the libs in local dir
+	cp -rf $(UNET_XPS_GEN_SIM_DIR) .
+	rm -rf vsim_beh
+	mv behavioral vsim_beh
+	bash -c "cd vsim_beh; vsim -c -do embed_cpu_system_modify.do "
+
+	# map some common libs to their absolute paths
+	bash -c "cd vsim_beh; vmap work ${PWD}/vsim_beh/work "
+	bash -c "cd vsim_beh; vmap lmb_bram_elaborate_v1_00_a ${PWD}/vsim_beh/lmb_bram_elaborate_v1_00_a "
+
+	# map the user logic libs to their absolute paths
+	bash -c "cd vsim_beh; vmap nf2_burst_sramc_v1_00_a ${PWD}/vsim_beh/nf2_burst_sramc_v1_00_a "
+	bash -c "cd vsim_beh; vmap nf2_mb_rdwr_v1_00_a ${PWD}/vsim_beh/nf2_mb_rdwr_v1_00_a "
+
+	#we need to compile some .vhd file, because the .do file generated by XPS for Verilog mode is incomplete! the .vhd files are missing!
+	bash -c "cd vsim_beh; vcom $(VCOM_OPTS) $(UNET_XPS_GEN_SIM_DIR)/*.vhd"
+
+	bash -c "cd vsim_beh; vlog $(VLOG_OPTS) +libext+.v  +define+VSIM_COMPILE +define+SIMULATION $(SIM_OPT) $(INC_CMD) \
+	$(SRC_SEARCH_CMD) -y $(UNET_XPS_GEN_SIM_DIR) $(COMMON_DIR) $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(SRCS)"
+else
+	# Create the behavioral directory
+ifeq ($(wildcard vsim_beh),)
+	rm -rf vsim_beh
+	mkdir vsim_beh
+
+	# map some common libs to their absolute paths
+ifneq ($(MODELSIM_ENV),)
+	cp $(MODELSIM) $(MODELSIM_INI)
+endif
+	cd vsim_beh && vlib work && $(MODELSIM_ENV) vmap work ${PWD}/vsim_beh/work
+endif
+
+	cd vsim_beh && $(MODELSIM_ENV) vlog $(VLOG_OPTS) +libext+.v  +define+VSIM_COMPILE $(SIM_OPT) $(INC_CMD) \
+	$(SRC_SEARCH_CMD) -y $(COMMON_DIR)  $(DEFINES_SRCS) $(CPCI_INC_SRCS) $(SRCS)
+endif
+	touch $@
+	@echo "+++testFinished:build.ModelSim.binary"
+
+
+xps_sim_gen :
+ifneq (${UNET_XPS_DIR},)
+	# Only build the CPU if the XPS directory exists
+	@echo "Generating embed_cpu_system sim model files"
+	bash -c "cd ${UNET_XPS_DIR}; make -f embed_cpu_system.make program "
+	bash -c "cd ${UNET_XPS_DIR}; make -f embed_cpu_system.make simmodel "
+
+	# add "exit" cmd to finish the vsim shell execution
+	cp  $(UNET_XPS_GEN_SIM_DIR)/embed_cpu_system.do  $(UNET_XPS_GEN_SIM_DIR)/embed_cpu_system_modify.do
+	echo "exit" >> $(UNET_XPS_GEN_SIM_DIR)/embed_cpu_system_modify.do
+
+	# modify _init.v file to remove "module", "endmodule", "timescale" lines
+	bash -c "cd ${UNET_XPS_GEN_SIM_DIR}; ${UNET_XPS_DIR}/bin/modify_init_v.pl *_init.v"
+else
+	@echo "Not generating embed_cpu_system sim model files: UNET_XPS_DIR does not exist"
+endif
+
+
+clean:
+	rm -rf work my_sim simv transcript *~ simv.daidir csrc simvfast vsim_beh
+	@echo "removing embed_cpu_system sim model files"
+	bash -c "cd ${UNET_XPS_DIR}; make -f embed_cpu_system.make simclean;"

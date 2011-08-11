@@ -1,0 +1,14 @@
+#!/usr/bin/perl
+
+use NF::RegressLib;
+
+my $device = nftest_get_iface('nf2c0');
+system("nf_download  -i $device $ENV{NF_ROOT}/bitfiles/crypto_nic.bit") == 0
+        or die "Download Failed: $?\n";
+
+`/sbin/ifconfig nf2c0 up`;
+`/sbin/ifconfig nf2c1 up`;
+`/sbin/ifconfig nf2c2 up`;
+`/sbin/ifconfig nf2c3 up`;
+
+sleep(2);
