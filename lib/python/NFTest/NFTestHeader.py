@@ -3,7 +3,7 @@
 # project register defines
 import sys
 import os
-sys.path.append(os.environ['NF_DESIGN_DIR']+'/lib/Python')
+sys.path.append(os.path.abspath(os.environ['NF_DESIGN_DIR']+'/lib/Python'))
 project = os.path.basename(os.environ['NF_DESIGN_DIR'])
 if project == '':
     project = os.path.basename(os.environ['NF_DESIGN_DIR'][0:-1])
