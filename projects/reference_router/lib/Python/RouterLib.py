@@ -135,7 +135,7 @@ def get_dst_ip_filter_entry(index):
 	if index < 0 or index > reg_defines.ROUTER_OP_LUT_DST_IP_FILTER_TABLE_DEPTH()-1:
 		print 'Bad data'
 		sys.exit(1)
-	nftest_regwrite(ROUTER_OP_LUT_DST_IP_FILTER_TABLE_RD_ADDR_REG(), index)
+	nftest_regwrite(reg_defines.ROUTER_OP_LUT_DST_IP_FILTER_TABLE_RD_ADDR_REG(), index)
 	return regread('nf2c0', reg_defines.ROUTER_OP_LUT_DST_IP_FILTER_TABLE_ENTRY_IP_REG())
 
 ################################################################
