@@ -1,0 +1,118 @@
+#!/usr/bin/perl
+# Author: Jianying Luo
+# Date: 11/04/2007
+
+# Objective:
+# ensure that ethernet pkts whose ethertype field is not IP or ARP are dropped
+
+use Error qw(:try);
+use IO::Socket;
+use NF::RegressLib;
+use NF::PacketLib;
+use strict;
+
+# Move to SCONE's root directory
+chdir $ENV{'NF_DESIGN_DIR'}.'/sw' or die "Can't cd: $!\n";
+
+my $pid;
+# Fork off a process for SCONE
+if (!($pid = fork)) {
+    # Run SCONE from this process
+    #
+    exec "./scone", "-r", "rtable.netfpga";
+    die "Failed to launch SCONE: $!";
+} else {
+    my $exitCode = 1;
+    try {
+	#
+	# Run control from this process
+	#
+
+	# Wait for router to initialize
+	sleep(2);
+
+	# monitor if pkts get out from SCONE
+	# launch PCAP listenting to eth1, eth2
+	my @interfaces = ("eth1","eth2",);
+	nftest_init(\@ARGV,\@interfaces);
+	nftest_start(\@interfaces);
+
+	# vars
+	my $ETHTYPE_IP  = 0x0800;
+	my $ETHTYPE_ARP = 0x0806;
+
+	my $NF0_MAC = "00:00:00:00:00:01";
+	my $NF1_MAC = "00:00:00:00:00:02";
+
+	my $eth1_MAC = "aa:bb:cc:dd:ee:f0";
+	my $eth2_MAC = "aa:bb:cc:dd:ee:f1";
+
+	my $ALLSPFRouters = "224.0.0.5";
+
+	# Create a non-IP packet by cheating and creating an IP_pkt but
+	# forcing the Ethertype to something other than IP.
+	# Send it out eth1
+	my $pkt = new NF::IP_pkt (
+		force   => 1,
+		DA      => $NF0_MAC,
+		SA      => $eth1_MAC,
+		Ethertype => $ETHTYPE_IP - 1,
+	);
+	nftest_send('eth1', $pkt->packed());
+
+	# Send it out eth1
+	$pkt->set(
+		force   => 1,
+		Ethertype => $ETHTYPE_ARP + 1,
+	);
+	nftest_send('eth1', $pkt->packed());
+
+	# Send a similar packet out eth2
+	$pkt->set(
+		force   => 1,
+		DA      => $NF1_MAC,
+		SA      => $eth2_MAC,
+		Ethertype => $ETHTYPE_IP - 1,
+	);
+	nftest_send('eth2', $pkt->packed());
+
+	# Send a similar packet out eth2
+	$pkt->set(
+		force   => 1,
+		Ethertype => $ETHTYPE_ARP + 1,
+	);
+	nftest_send('eth2', $pkt->packed());
+
+
+	# Give it 1 seconds to make sure no packets come through
+	sleep(1);
+
+	# Ignore OSPF Packets
+	nftest_ignore_ospf("eth1","eth2");
+
+	# Finish and print errors, if any
+	my $total_errors = nftest_print_errors(nftest_finish());
+
+	if ( $total_errors == 0 ) {
+	    print "SUCCESS!\n";
+	    $exitCode = 0;
+	} else {
+	    print "FAIL: $total_errors errors\n";
+	    $exitCode = 1;
+	}
+    } catch Error with {
+	# Catch and print any errors that occurred during control processing
+	my $ex = shift;
+	if ($ex) {
+	    print $ex->stringify();
+	}
+    } finally {
+	# Ensure SCONE is killed even if we have an error
+	kill 9, $pid;
+	# Exit with the resulting exit code
+	exit($exitCode);
+    };
+
+} # test process
+
+
