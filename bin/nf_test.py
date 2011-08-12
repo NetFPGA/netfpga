@@ -228,7 +228,7 @@ def run_sim_test():
         if status == 99:
             print "Test " + td + " ran in GUI mode.  Unable to identify pass/failure"
             gui.append(td)
-        if status > 0:
+        elif status > 0:
             print 'Error: test ' + td + ' failed!'
             failed.append(td)
         else:

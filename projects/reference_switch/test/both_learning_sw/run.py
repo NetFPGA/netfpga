@@ -34,8 +34,7 @@ for i in range(num_normal):
     nftest_send_phy('nf2c1', pkt)
     nftest_expect_phy('nf2c0', pkt)
 
-
-total_errors = 0
+nftest_barrier()
 
 nftest_regread_expect(reg_defines.MAC_GRP_0_TX_QUEUE_NUM_PKTS_SENT_REG(), num_normal)
 nftest_regread_expect(reg_defines.MAC_GRP_1_TX_QUEUE_NUM_PKTS_SENT_REG(), num_broadcast)
