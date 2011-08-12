@@ -150,7 +150,7 @@ $good &= &validateOutput if $good;
 tcTestFinished($test);
 if ($gui) {
 	system('touch GUI');
-	exit 0;
+	exit 99;
 }
 elsif ($good) {
 	system('touch PASS');

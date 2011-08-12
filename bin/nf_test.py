@@ -90,7 +90,8 @@ def run_hw_test():
             TeamCity.tcTestStarted(testStr)
             prepareTestWorkDir(test)
             if not args.quiet:
-                print '   Running test ' + os.path.basename(test) + '... ',
+                sys.stdout.write('   Running test ' + os.path.basename(test) + '... ')
+                sys.stdout.flush()
 
             # Common setup
             (csResult, csOutput) = runCommonSetup(project)
@@ -192,7 +193,7 @@ def run_sim_test():
         sys.exit(0)
 
     #set up test dirs
-    passed = []; failed = []
+    passed = []; failed = []; gui = []
     for td in tests:
         prepareTestWorkDir(td)
 
@@ -224,6 +225,9 @@ def run_sim_test():
         print '=== Running test ' + dst_dir + ' ...',
         print 'using cmd', cmd
         status = subprocess.call(cmd)
+        if status == 99:
+            print "Test " + td + " ran in GUI mode.  Unable to identify pass/failure"
+            gui.append(td)
         if status > 0:
             print 'Error: test ' + td + ' failed!'
             failed.append(td)
@@ -239,7 +243,7 @@ def run_sim_test():
     summary += 'FAILING TESTS: \n'
     for test in failed:
         summary = summary + test + '\n'
-    summary += 'TOTAL: ' + str(len(tests)) + ' PASS: ' + str(len(passed)) + ' FAIL: ' + str(len(failed)) + '\n'
+    summary += 'TOTAL: ' + str(len(tests)) + ' PASS: ' + str(len(passed)) + ' FAIL: ' + str(len(failed)) + ' GUI: ' + str(len(gui)) + '\n'
     print summary
 
     if len(failed) >= 0: # check this
