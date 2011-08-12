@@ -1,2 +1,0 @@
-test_desc = NF 2.1 packet DMA transfer test
-finish = 220000

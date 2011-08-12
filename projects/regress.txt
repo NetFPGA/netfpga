@@ -2,9 +2,9 @@ driver
 scone
 router_kit
 router_buffer_sizing
-reference_router
-reference_nic
+#reference_router
+#reference_nic
 rcp_router
 #dram_queue_test
 #dram_router
-reference_switch
+#reference_switch

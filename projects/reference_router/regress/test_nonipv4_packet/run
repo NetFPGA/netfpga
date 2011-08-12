@@ -1,2 +1,0 @@
-# ./rr_hw_test.pl <test_id> <numberOfPorts> <numberOfPackets>
-../src/rr_hw_test.pl 4 2 300 $@

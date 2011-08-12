@@ -1,2 +1,0 @@
-test_desc = NF 2.1 reference 4-port NIC
-finish = 40000

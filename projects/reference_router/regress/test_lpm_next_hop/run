@@ -1,4 +1,0 @@
-#! /bin/bash
-
-./lpm_next_hop.pl $@
-
