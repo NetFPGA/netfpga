@@ -33,6 +33,8 @@ endif
 registers:
 	$(NF_ROOT)/bin/nf_register_gen.pl --project reference_router
 	ln -f -s $(NF_ROOT)/projects/reference_router/lib/C/reg_defines_reference_router.h reg_defines.h
+	mkdir -p ../lib/Python
+	ln -f -s ../../../reference_router/lib/Python/reg_defines_reference_router.py ../lib/Python/reg_defines_scone.py
 
 # --
 # To run the scone in "cpu" mode to interact with the NetFPGA uncomment
