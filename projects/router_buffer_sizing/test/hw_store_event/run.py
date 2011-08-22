@@ -41,5 +41,5 @@ if store_events == 1000:
     print 'SUCCESS!'
     sys.exit(0)
 else:
-    print "FAIL: 1000 packets sent, %d packets recorded"%pkts_recorded
+    print "FAIL: 1000 packets sent, %d packets recorded"%store_events
     sys.exit(1)
