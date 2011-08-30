@@ -1,2 +1,0 @@
-test_time_stamp/run
-test_store_event/run
