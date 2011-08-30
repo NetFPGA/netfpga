@@ -214,7 +214,6 @@ class pktSend(Thread):
         self.lock.acquire()
         self.toSend.append(pkt)
         self.sendcount += 1
-        time.sleep(0.008)
         self.lock.release()
 
     ############################
