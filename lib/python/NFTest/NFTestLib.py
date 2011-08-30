@@ -132,14 +132,6 @@ def nftest_init(sim_loop = [], hw_config=None):
         # avoid duplicating interfaces
         ifaces = list(set(connections.keys() + connections.values() + list(hw_config[portConfig][1])) - set(['']))
 
-        ifaceArray = ifaces
-
-        for iface in ifaces:
-            sent_phy[iface] = []
-            sent_dma[iface] = []
-            expected_phy[iface] = []
-            expected_dma[iface] = []
-
         global map
         # populate map
         if '--map' in sys.argv:
@@ -148,9 +140,20 @@ def nftest_init(sim_loop = [], hw_config=None):
             for line in lines:
                 mapping = line.strip().split(':')
                 map[mapping[0]] = mapping[1]
+                if mapping[0] in ifaces:
+                    ifaces.remove(mapping[0])
+                    ifaces.append(mapping[1])
         else:
             for iface in ifaces:
                 map[iface] = iface
+
+        ifaceArray = ifaces
+
+        for iface in ifaces:
+            sent_phy[iface] = []
+            sent_dma[iface] = []
+            expected_phy[iface] = []
+            expected_dma[iface] = []
 
         hwPktLib.init(ifaces)
 
