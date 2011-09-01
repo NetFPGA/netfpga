@@ -1,1 +1,0 @@
-test_desc = Empty test used for register generation

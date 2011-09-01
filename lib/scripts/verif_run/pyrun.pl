@@ -16,7 +16,7 @@ use File::Temp qw/ tempfile /;
 
 # Local variables that should be overridden by the local config script
 my %config = (
-	'test_desc' => undef,
+	'test_desc' => '',
 	'test_num' => 1,
 	'opts' => '',
 	'extra_files' => '',
@@ -201,39 +201,32 @@ sub readConfig {
 
 	# Verify that the config file exists
 	if (! -f $configFile) {
-		&printError("configuration file '$configFile' does not exist");
-		return 0;
-	}
+		# Open and read the configuration file
+		if (open CONFIG, $configFile) {
+			while (<CONFIG>) {
+				chomp;
 
-	# Open and read the configuration file
-	if (open CONFIG, $configFile) {
-		while (<CONFIG>) {
-			chomp;
+				# Remove comments
+				s/#.*//;
 
-			# Remove comments
-			s/#.*//;
+				# Kill as much white space as possible at beginning
+				s/^\s*//;
 
-			# Kill as much white space as possible at beginning
-			s/^\s*//;
+				# Skip blanks
+				next if /^$/;
 
-			# Skip blanks
-			next if /^$/;
+				# Work out the components
+				/^(\w+)\s*=\s*((\S.*)?\S)?\s*/;
+				my ($key, $val) = ($1, $2);
+				$val = '' if (!defined($val));
 
-			# Work out the components
-			/^(\w+)\s*=\s*((\S.*)?\S)?\s*/;
-			my ($key, $val) = ($1, $2);
-			$val = '' if (!defined($val));
+				# Set the value in the hash
+				$config{$key} = $val;
 
-			# Set the value in the hash
-			$config{$key} = $val;
-
-			print "Seen: $key => $val\n";
+				print "Seen: $key => $val\n";
+			}
+			close CONFIG;
 		}
-		close CONFIG;
-	}
-	else {
-		&printError("Unable to open configuration file '$configFile'");
-		return 0;
 	}
 
 	# Verify that all necessary variables have been set
