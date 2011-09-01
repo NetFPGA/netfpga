@@ -15,7 +15,7 @@
 	<base name="lib/python" />
 	<base name="projects/Makefile" />
 
-	<release name="full" version="3.0.0_pre1">
+	<release name="full" version="3.0.0">
 		<bitfile name="cpci" />
 		<bitfile name="cpci_reprogrammer" />
 		<bitfile name="selftest" />
