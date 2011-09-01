@@ -1,5 +1,24 @@
 HEAD -- Version X.X.X
 
+Version 3.0.0 (official)
+(01 Sept, 2011)
+  Improvements:
+   * See 3.0.0_pre1
+
+  Removed:
+   * Legacy tests from
+     - reference_nic
+     - reference_router
+     - reference_switch
+     - router_buffer_sizing
+     - scone
+     - router_kit
+
+  Bug fixes:
+   * Map file for tests is working
+   * Modified router_buffer_sizing test hw_time_stamp to pass
+      (needs to be rewritten)
+
 Version 3.0.0_pre1 (pre-release 1)
 (12 Aug, 2011)
   Improvements:
