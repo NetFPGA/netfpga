@@ -8,7 +8,7 @@ import sys
 import os
 
 sim = True # default, pass an argument if hardware is needed
-map = {} # key is interface specified by test, value is physical interface to use
+iface_map = {} # key is interface specified by test, value is physical interface to use
 connections = {} # key is an interface specified by test, value is connected interface specified by test
 
 ifaceArray = []
@@ -28,7 +28,7 @@ CPCI_Interrupt_Mask = 0x40
 #                    hw_config - list of valid hardware configurations for hardware tests
 #                                configurations are formatted ('path/to/conn/file', ['looped', 'ifaces'])
 # Description: parses the configurations to find a valid configuration
-#              populates map and connections dictionaries
+#              populates iface_map and connections dictionaries
 ############################
 def nftest_init(sim_loop = [], hw_config=None):
     global sim
@@ -132,20 +132,20 @@ def nftest_init(sim_loop = [], hw_config=None):
         # avoid duplicating interfaces
         ifaces = list(set(connections.keys() + connections.values() + list(hw_config[portConfig][1])) - set(['']))
 
-        global map
-        # populate map
+        global iface_map
+        # populate iface_map
         if '--map' in sys.argv:
             mapfile = open(sys.argv[sys.argv.index('--map')+1], 'r')
             lines = mapfile.readlines()
             for line in lines:
                 mapping = line.strip().split(':')
-                map[mapping[0]] = mapping[1]
+                iface_map[mapping[0]] = mapping[1]
                 if mapping[0] in ifaces:
                     ifaces.remove(mapping[0])
                     ifaces.append(mapping[1])
         else:
             for iface in ifaces:
-                map[iface] = iface
+                iface_map[iface] = iface
 
         ifaceArray = ifaces
 
@@ -161,13 +161,13 @@ def nftest_init(sim_loop = [], hw_config=None):
         print 'Running test using the following physical connections:'
         for connection in connections.items():
             try:
-                print map[connection[0]] + ':' + map[connection[1]]
+                print iface_map[connection[0]] + ':' + iface_map[connection[1]]
             except KeyError:
-                print map[connection[0]] + ' initialized but not connected'
+                print iface_map[connection[0]] + ' initialized but not connected'
         if len(list(hw_config[portConfig][1])) > 0:
             print 'Ports in loopback:'
             for iface in list(hw_config[portConfig][1]):
-                print map[iface]
+                print iface_map[iface]
         print '------------------------------------------------------'
 
         return portConfig
@@ -201,7 +201,7 @@ def nftest_send_phy(ifaceName, pkt):
     if sim:
         simPkt.pktSendPHY(int(ifaceName[4:5])+1, pkt)
     else:
-        hwPktLib.send(map[connections[ifaceName]], pkt)
+        hwPktLib.send(iface_map[connections[ifaceName]], pkt)
 
 ############################
 # Function: nftest_send_dma
@@ -214,7 +214,7 @@ def nftest_send_dma(ifaceName, pkt):
     if sim:
         simPkt.pktSendDMA(int(ifaceName[4:5])+1, pkt)
     else:
-        hwPktLib.send(map[ifaceName], pkt)
+        hwPktLib.send(iface_map[ifaceName], pkt)
 
 ############################
 # Function: nftest_expect_phy
@@ -230,7 +230,7 @@ def nftest_expect_phy(ifaceName, pkt):
     if sim:
         simPkt.pktExpectPHY(int(ifaceName[4:5])+1, pkt)
     else:
-        hwPktLib.expect(map[connections[ifaceName]], pkt)
+        hwPktLib.expect(iface_map[connections[ifaceName]], pkt)
 
 ############################
 # Function: nftest_expect_dma
@@ -243,7 +243,7 @@ def nftest_expect_dma(ifaceName, pkt):
     if sim:
         simPkt.pktExpectDMA(int(ifaceName[4:5])+1, pkt)
     else:
-        hwPktLib.expect(map[ifaceName], pkt)
+        hwPktLib.expect(iface_map[ifaceName], pkt)
 
 ############################
 # Function: nftest_barrier
@@ -306,7 +306,7 @@ def nftest_regread_expect(addr, val):
         simReg.regRead(addr, val)
         return 0
     else:
-        return hwRegLib.regread_expect(map['nf2c0'], addr, val)
+        return hwRegLib.regread_expect(iface_map['nf2c0'], addr, val)
 
 
 ############################
@@ -319,7 +319,7 @@ def nftest_regwrite(addr, val):
     if sim:
         simReg.regWrite(addr, val)
     else:
-        hwRegLib.regwrite(map['nf2c0'], addr, val)
+        hwRegLib.regwrite(iface_map['nf2c0'], addr, val)
 
 ############################
 # Function: nftest_fpga_reset
