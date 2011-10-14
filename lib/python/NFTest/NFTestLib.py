@@ -220,30 +220,32 @@ def nftest_send_dma(ifaceName, pkt):
 # Function: nftest_expect_phy
 # Arguments: interface name
 #            packet to expect
+#            optional packet mask to ignore parts of packet
 # Description: expect a packet on the phy
 ############################
-def nftest_expect_phy(ifaceName, pkt):
+def nftest_expect_phy(ifaceName, pkt, mask = None):
     if connections[ifaceName] == ifaceName:
         print "Error: cannot expect on phy of a port in loopback"
         sys.exit(1)
     expected_phy[ifaceName].append(pkt)
     if sim:
-        simPkt.pktExpectPHY(int(ifaceName[4:5])+1, pkt)
+        simPkt.pktExpectPHY(int(ifaceName[4:5])+1, pkt, mask)
     else:
-        hwPktLib.expect(iface_map[connections[ifaceName]], pkt)
+        hwPktLib.expect(iface_map[connections[ifaceName]], pkt, mask)
 
 ############################
 # Function: nftest_expect_dma
 # Arguments: interface name
 #            packet to expect
+#            optional packet mask to ignore parts of packet
 # Description: expect a packet on dma
 ############################
-def nftest_expect_dma(ifaceName, pkt):
+def nftest_expect_dma(ifaceName, pkt, mask = None):
     expected_dma[ifaceName].append(pkt)
     if sim:
-        simPkt.pktExpectDMA(int(ifaceName[4:5])+1, pkt)
+        simPkt.pktExpectDMA(int(ifaceName[4:5])+1, pkt, mask)
     else:
-        hwPktLib.expect(iface_map[ifaceName], pkt)
+        hwPktLib.expect(iface_map[ifaceName], pkt, mask)
 
 ############################
 # Function: nftest_barrier

@@ -119,22 +119,39 @@ def pktSendDMA(toPort, pkt):
 # Function: pktExpectPHY
 # Arguments: atPort - the port the packet will be sent at (1-4)
 #            pkt - the packet data, class scapy.Packet
+#            mask - mask packet data, class scapy.Packet
 #
 ############################
-def pktExpectPHY(atPort, pkt):
+def pktExpectPHY(atPort, pkt, mask = None):
     numExpectedPktsPHY[atPort-1] += 1
     f = simLib.fExpectPHY(atPort)
 
     # convert packet to string
+    pktArr = [ord(x) for x in str(pkt)]
+    if mask:
+        maskArr = [ord(x) for x in str(mask)]
+    else:
+        maskArr = [0] * len(pkt)
+
     strpkt = ""
     count = 1
-    for x in str(pkt):
-        strpkt += "%02x "%ord(x)
+    for i in xrange(len(pktArr)):
+        octet = "%02x "%pktArr[i]
+
+        # Handle masks
+        if (maskArr[i] & 0xf0) != 0:
+            octet = "X" + octet[1:]
+        if (maskArr[i] & 0x0f) != 0:
+            octet = octet[0] + "X "
+
+        strpkt += octet
+
         if count < 16:
             count += 1
         else:
             strpkt += "\n"
             count = 1
+
     DA = str.replace(strpkt[0:17], ' ', ':')
     SA = str.replace(strpkt[18:35], ' ', ':')
     ethType = str.replace(strpkt[36:41], ' ', '')
@@ -158,22 +175,39 @@ def pktExpectPHY(atPort, pkt):
 # Function: pktExpectDMA
 # Arguments: atPort - the port the packet will be expected at (1-4)
 #            pkt - the packet data, class scapy.Packet
+#            mask - mask packet data, class scapy.Packet
 #
 ############################
-def pktExpectDMA(atPort, pkt):
+def pktExpectDMA(atPort, pkt, mask = None):
     numExpectedPktsDMA[atPort-1] += 1
     f = simLib.fExpectDMA(atPort)
 
     # convert packet to string
+    pktArr = [ord(x) for x in str(pkt)]
+    if mask:
+        maskArr = [ord(x) for x in str(mask)]
+    else:
+        maskArr = [0] * len(pkt)
+
     strpkt = ""
     count = 1
-    for x in str(pkt):
-        strpkt += "%02x "%ord(x)
+    for i in xrange(len(pktArr)):
+        octet = "%02x "%pktArr[i]
+
+        # Handle masks
+        if (maskArr[i] & 0xf0) != 0:
+            octet = "X" + octet[1:]
+        if (maskArr[i] & 0x0f) != 0:
+            octet = octet[0] + "X "
+
+        strpkt += octet
+
         if count < 16:
             count += 1
         else:
             strpkt += "\n"
             count = 1
+
     DA = str.replace(strpkt[0:17], ' ', ':')
     SA = str.replace(strpkt[18:35], ' ', ':')
     ethType = str.replace(strpkt[36:41], ' ', '')
