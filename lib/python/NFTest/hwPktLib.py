@@ -83,10 +83,11 @@ def send(ifaceName, pkt, exp = True):
 # Function: expect
 # Arguments: interface name
 #            packet to expect
+#            optional mask to apply to packet
 # Description: expects a packet on an interface
 ############################
-def expect(ifaceName, pkt):
-    captureThreads[ifaceName].expectPkt(pkt)
+def expect(ifaceName, pkt, mask = None):
+    captureThreads[ifaceName].expectPkt(pkt, mask)
 
 ############################
 # Function: barrier

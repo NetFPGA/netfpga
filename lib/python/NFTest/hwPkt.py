@@ -94,11 +94,36 @@ class pktExpect(Thread):
     # Function: expectPkt
     # Arguments: calling object
     #            packet to expect
+    #            optional mask to apply to packet
     # Description: adds packet to list of packets to expect
     ############################
-    def expectPkt(self, pkt):
-        self.exp_pkts.append(pkt)
+    def expectPkt(self, pkt, mask = None):
+        self.exp_pkts.append((pkt, mask))
         self.barrierEvent.clear()
+
+    ############################
+    # Function: comparePkts
+    # Arguments: calling object
+    #            pkt A
+    #            pkt B
+    #            mask to use while comparing packets
+    # Description: compares to packets, using the optional mask to ignore
+    #              certain bytes
+    ############################
+    def comparePkts(self, pkta, pktb, mask = None):
+        if mask:
+            pkta = [ord(x) for x in pkta]
+            pktb = [ord(x) for x in pktb]
+            mask = [ord(x) for x in mask]
+            for i in xrange(min(len(pkta), len(mask))):
+                pkta[i] = pkta[i] & ~mask[i]
+            for i in xrange(min(len(pktb), len(mask))):
+                pktb[i] = pktb[i] & ~mask[i]
+
+            pkta = ''.join([chr(x) for x in pkta])
+            pktb = ''.join([chr(x) for x in pktb])
+
+        return pkta == pktb
 
     ############################
     # Function: resolvePkts
@@ -114,16 +139,20 @@ class pktExpect(Thread):
             numPkts = len(self.pkts)
             while i < numPkts:
                 strpkt = str(self.pkts[i])
-                for exp in self.exp_pkts:
+                for (exp, mask) in self.exp_pkts:
                     strexp = str(exp)
-                    matches = (strexp == strpkt)
+                    strmask = None
+                    if mask:
+                        strmask = str(mask)
+                    matches = self.comparePkts(strexp, strpkt, strmask)
                     if not matches and len(exp) < 60 and self.pkts[i].haslayer(scapy.Padding):
-                        if ''.join([strexp,str(self.pkts[i][scapy.Padding])]) == strpkt:
-                            matches = True
+                        matches = self.comparePkts(
+                                ''.join([strexp,str(self.pkts[i][scapy.Padding])]),
+                                strpkt, strmask)
                     if matches:
                         self.matched.append(self.pkts[i])
                         self.pkts.remove(self.pkts[i])
-                        self.exp_pkts.remove(exp)
+                        self.exp_pkts.remove((exp, mask))
                         numPkts -= 1
                         i -= 1
                         break
@@ -157,7 +186,8 @@ class pktExpect(Thread):
         print self.device, 'finishing up'
         self.done = True
         self.lock.acquire()
-        return (self.matched, self.pkts, self.exp_pkts)
+        exp_pkts = [ exp for (exp, mask) in self.exp_pkts ]
+        return (self.matched, self.pkts, exp_pkts)
 
 class pktSend(Thread):
     ############################
