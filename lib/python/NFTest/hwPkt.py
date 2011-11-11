@@ -41,6 +41,7 @@ class pktExpect(Thread):
         self.compareEvent = Event()
         self.compare = pktCompare(self)
         self.barrierEvent = Event()
+        self.started = False
 
     ############################
     # Function: run
@@ -49,12 +50,21 @@ class pktExpect(Thread):
     ############################
     def run(self):
         self.compare.start()
+        self.started = True
         while not self.done:
             try:
                 sniff(prn=self.addPkt,iface=self.device, store=0,
                       stopperTimeout=1, stopper=self.isDone)
             except(KeyboardInterrupt):
                 self.finish()
+
+    ############################
+    # Function: hasStarted
+    # Arguments: calling object
+    # Description: checks if the run method has been called
+    ############################
+    def hasStarted(self):
+        return self.started
 
     ############################
     # Function: addPkt

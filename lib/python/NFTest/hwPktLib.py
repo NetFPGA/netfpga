@@ -52,6 +52,8 @@ def start():
         alive = True
         for iface in ifaceArray:
             alive &= captureThreads[iface].isAlive()
+            if not captureThreads[iface].isAlive() and captureThreads[iface].hasStarted():
+                raise RuntimeError("Thread on %s started and terminated..."%iface)
 
 ############################
 # Function: restart
