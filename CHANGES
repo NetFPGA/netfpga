@@ -1,5 +1,15 @@
 HEAD -- Version X.X.X
 
+Version 3.0.1
+(18 Nov, 2011)
+  Improvements:
+   * Verification infrastructure:
+     - support masks in nf_test_expect
+     - terminate tests if a thread fails to start
+
+  Bug fixes:
+   * Fix kernel compilation in 2.6.37+ (init_MUTEX removed)
+
 Version 3.0.0 (official)
 (01 Sept, 2011)
   Improvements:
