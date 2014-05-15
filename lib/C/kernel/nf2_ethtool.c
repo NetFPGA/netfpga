@@ -101,5 +101,5 @@ static const struct ethtool_ops nf2_ethtool_ops = {
 
 void nf2_set_ethtool_ops(struct net_device *dev)
 {
-	SET_ETHTOOL_OPS(dev, &nf2_ethtool_ops);
+	dev->ethtool_ops = &nf2_ethtool_ops;
 }
