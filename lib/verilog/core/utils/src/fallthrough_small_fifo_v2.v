@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // $Id: small_fifo.v 1998 2007-07-21 01:22:57Z grg $
 //
-// Module: fallthrough_small_fifo.v
+// Module: fallthrough_small_fifo_v2.v
 // Project: utils
 // Description: small fifo with fallthrough i.e. data valid when rd is high
 //
@@ -12,7 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/1ps
 
-  module fallthrough_small_fifo
+  module fallthrough_small_fifo_v2
     #(parameter WIDTH = 72,
       parameter MAX_DEPTH_BITS = 3,
       parameter PROG_FULL_THRESHOLD = 2**MAX_DEPTH_BITS - 1)
