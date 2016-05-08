@@ -121,7 +121,7 @@ if ($good) {
 
 	# Run the script
 	my $makePktsOut;
-	$makePktsOut = `./$makePkts 2>&1`;
+	$makePktsOut = `perl $makePkts 2>&1`;
 	print $makePktsOut;
 
 	# Verify the return code
