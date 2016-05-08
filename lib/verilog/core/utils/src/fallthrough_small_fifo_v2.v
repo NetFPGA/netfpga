@@ -12,7 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/1ps
 
-  module fallthrough_small_fifo
+  module fallthrough_small_fifo_v2
     #(parameter WIDTH = 72,
       parameter MAX_DEPTH_BITS = 3,
       parameter PROG_FULL_THRESHOLD = 2**MAX_DEPTH_BITS - 1)
