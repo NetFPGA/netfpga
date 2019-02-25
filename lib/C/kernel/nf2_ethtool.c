@@ -42,6 +42,7 @@
 
 #include <linux/netdevice.h>
 #include <linux/ethtool.h>
+#include <linux/version.h>
 
 /**
  * nf2_get_settings - get settings for ethtool
@@ -96,10 +97,19 @@ static const struct ethtool_ops nf2_ethtool_ops = {
 	.set_settings		= nf2_set_settings,
 	.get_drvinfo		= nf2_get_drvinfo,
 	.get_link		= ethtool_op_get_link,
-	.phys_id		= nf2_phys_id,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 0, 0)
+	.set_phys_id
+#else
+	.phys_id
+#endif
+		= nf2_phys_id,
 };
 
 void nf2_set_ethtool_ops(struct net_device *dev)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 16, 0)
+	dev->ethtool_ops = &nf2_ethtool_ops;
+#else
 	SET_ETHTOOL_OPS(dev, &nf2_ethtool_ops);
+#endif
 }

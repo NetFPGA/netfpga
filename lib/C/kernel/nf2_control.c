@@ -41,6 +41,8 @@
  * Description: Control card functionality
  *
  * Change history:
+ *   2/25/2019 - Denton Liu
+ *   						Added support for kernels 4.18 and beyond
  *   3/10/10 - Paul Rodman & Maciej Żenczykowski
  *                           Added support for kernels 2.6.31 and beyond
  *                           (net_device api deprecated)
@@ -322,7 +324,11 @@ static int nf2c_tx(struct sk_buff *skb, struct net_device *dev)
 		nf2c_send(dev);
 
 		/* save the timestamp */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 7, 0)
+		netif_trans_update(dev);
+#else
 		dev->trans_start = jiffies;
+#endif
 	}
 
 	/*err_unlock:*/
@@ -706,7 +712,13 @@ static void nf2c_tx_timeout(struct net_device *dev)
 	u32 enable, intmask;
 
 	printk(KERN_ALERT "nf2: Transmit timeout on %s at %lu, latency %lu\n",
-			dev->name, jiffies, jiffies - dev->trans_start);
+			dev->name, jiffies, jiffies -
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 7, 0)
+				dev_trans_start(dev)
+#else
+				dev->trans_start
+#endif
+			);
 
 	iface->stats.tx_errors++;
 
@@ -1234,7 +1246,11 @@ int nf2c_probe(struct pci_dev *pdev, const struct pci_device_id *id,
 	for (i = 0; i < MAX_IFACE; i++) {
 		netdev = card->ndev[i] = alloc_netdev(
 				sizeof(struct nf2_iface_priv),
-				devname, nf2c_init);
+				devname,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0)
+				NET_NAME_UNKNOWN,
+#endif
+				nf2c_init);
 		if (netdev == NULL) {
 			printk(KERN_ERR "nf2: Could not allocate ethernet "
 					"device.\n");
