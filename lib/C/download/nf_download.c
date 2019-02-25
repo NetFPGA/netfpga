@@ -448,7 +448,7 @@ void VerifyDevInfo(void) {
       nf2_read_info(&nf2);
 
       /* Print the device information */
-      printf(getDeviceInfoStr(&nf2));
+      printf("%s", getDeviceInfoStr(&nf2));
 
       /* Check the CPCI version info */
       if (getDeviceID(&nf2) == -1) {

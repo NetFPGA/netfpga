@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
  */
 void display_info(struct nf2device *nf2)
 {
-  printf(getDeviceInfoStr(nf2));
+  printf("%s", getDeviceInfoStr(nf2));
 }
 
 
