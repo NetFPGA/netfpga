@@ -40,6 +40,7 @@
  * Description: Test program to dump the CPCI registers
  */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
